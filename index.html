@@ -1,32 +1,772 @@
 <!doctype html>
-<html lang="ml"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0f8f4f"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><title>AlertConnect</title></head>
+<html lang="ml">
+
+<head>
+
+<meta charset="utf-8">
+
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1"
+>
+
+<meta
+  name="theme-color"
+  content="#0f8f4f"
+>
+
+<meta
+  name="description"
+  content="AlertConnect - Fast emergency communication for trusted people and groups."
+>
+
+<link
+  rel="manifest"
+  href="manifest.webmanifest"
+>
+
+<link
+  rel="stylesheet"
+  href="styles.css"
+>
+
+<title>AlertConnect</title>
+
+</head>
+
+
 <body>
-<section id="login" class="screen"><div class="card login"><div class="logo">🔔</div><h1>Alert<span>Connect</span></h1><p>Fast alerts. Right people.</p><input id="phone" placeholder="+91 Mobile Number" inputmode="tel"><button onclick="login()">Continue</button><small>Prototype mode</small></div></section>
-<section id="home" class="screen hidden"><header><div><small>WELCOME BACK</small><h2>Home</h2></div><button onclick="show('alerts')">🔔</button></header>
-<div class="hero"><b>Stay Connected.<br>Stay Safe.</b><span>🛡️</span></div>
-<h3>My Groups</h3><div class="groups"><button onclick="chat('Family Group','12 members')">👨‍👩‍👧 <b>Family Group</b><small>12 members · 2 new</small></button><button onclick="chat('Madrasa Committee','8 members')">🕌 <b>Madrasa Committee</b><small>8 members</small></button><button onclick="chat('Friends Circle','15 members')">👥 <b>Friends Circle</b><small>15 members · 1 new</small></button></div>
-<div class="quick"><button onclick="alertForm()">🚨<b>Emergency Alert</b><small>Send urgent alert</small></button><button onclick="newGroup()">➕<b>New Group</b><small>Create a group</small></button></div></section>
-<section id="chat" class="screen hidden"><header class="green"><button onclick="show('home')">‹</button><div><b id="ct">Family Group</b><small id="cm">12 members</small></div><button onclick="alertForm()">🚨</button></header><main id="msgs" class="messages"><div class="msg"><b>Ameen</b><p>എല്ലാവരും വീട്ടിലെത്തിയല്ലോ?</p><small>10:25 AM</small></div><div class="msg emergency"><b>🚨 EMERGENCY ALERT</b><p>ഇന്ന് രാത്രി 9 മണിക്ക് എല്ലാവരും വീട്ടിലെത്തുക.</p><small>8:45 PM</small></div></main><footer><input id="msg" placeholder="Type a message..." onkeydown="if(event.key==='Enter')send()"><button onclick="send()">➤</button></footer></section>
-<section id="alert" class="screen hidden"><header><button onclick="show('home')">‹</button><div><h2>New Alert</h2><small>Emergency notification</small></div></header><div class="form"><div class="dangerbox">🚨<b> EMERGENCY ALERT</b><small>Use only for important situations.</small></div><label>Send to</label><div class="row">👨‍👩‍👧 <span><b>Family Group</b><small>12 members</small></span>✓</div><label>Message</label><textarea id="alertmsg" placeholder="Write the urgent message..."></textarea><p class="note">🔔 Push notification will be used. SMS is disabled in Version 1.</p><button class="danger" onclick="preview()">Preview & Send</button></div></section>
-<section id="confirm" class="screen hidden"><div class="card confirm"><div class="warn">!</div><h2>Send Emergency Alert?</h2><p>This will alert 12 members.</p><div id="preview" class="preview"></div><div class="two"><button onclick="show('alert')">Cancel</button><button class="danger" onclick="sendAlert()">Send Alert</button></div></div></section>
-<section id="alerts" class="screen hidden"><header><button onclick="show('home')">‹</button><h2>Alerts</h2></header><div class="history"><b>🚨 Family Group</b><p>ഇന്ന് രാത്രി 9 മണിക്ക് എല്ലാവരും വീട്ടിലെത്തുക.</p><small>Today · 8:45 PM</small></div></section>
-<nav id="nav" class="hidden"><button onclick="show('home')">⌂<small>Home</small></button><button onclick="show('home')">👥<small>Groups</small></button><button class="center" onclick="alertForm()">🚨</button><button onclick="show('alerts')">🔔<small>Alerts</small></button><button onclick="alert('Profile UI ready for next phase')">👤<small>Profile</small></button></nav>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAu91Nuo5lXUZGzarPiWjgVQlSnBR8_r30",
-    authDomain: "alertconnect-27dac.firebaseapp.com",
-    projectId: "alertconnect-27dac",
-    storageBucket: "alertconnect-27dac.firebasestorage.app",
-    messagingSenderId: "556004754007",
-    appId: "1:556004754007:web:c00286f1030afdd4c21912"
-  };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-</script>
-<script src="app.js"></script></body></html>
+<!-- =====================================================
+     LOGIN / SIGN IN
+===================================================== -->
+
+<section
+  id="login"
+  class="screen"
+>
+
+  <div class="card login">
+
+    <div class="logo">
+      🔔
+    </div>
+
+    <h1>
+      Alert<span>Connect</span>
+    </h1>
+
+    <p>
+      Fast alerts. Right people.
+    </p>
+
+    <button
+      id="googleSignInBtn"
+      type="button"
+    >
+      Continue with Google
+    </button>
+
+    <small id="authStatus">
+      Secure sign-in
+    </small>
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     HOME
+===================================================== -->
+
+<section
+  id="home"
+  class="screen hidden"
+>
+
+  <header>
+
+    <div>
+
+      <small>
+        WELCOME BACK
+      </small>
+
+      <h2>
+        Home
+      </h2>
+
+      <small id="userWelcome">
+      </small>
+
+    </div>
+
+    <button
+      type="button"
+      onclick="show('alerts')"
+      aria-label="Alerts"
+    >
+      🔔
+    </button>
+
+  </header>
+
+
+  <!-- HERO -->
+
+  <div class="hero">
+
+    <div>
+
+      <b>
+        Stay Connected.<br>
+        Stay Safe.
+      </b>
+
+      <small>
+        Secure communication for trusted people.
+      </small>
+
+    </div>
+
+    <span>
+      🛡️
+    </span>
+
+  </div>
+
+
+
+  <!-- GROUPS -->
+
+  <h3>
+    My Groups
+  </h3>
+
+  <div
+    id="groups"
+    class="groups"
+  >
+  </div>
+
+
+
+  <!-- QUICK ACTIONS -->
+
+  <div class="quick">
+
+    <button
+      type="button"
+      onclick="alertForm()"
+    >
+
+      <span>
+        🚨
+      </span>
+
+      <b>
+        Emergency Alert
+      </b>
+
+      <small>
+        Send urgent alert
+      </small>
+
+    </button>
+
+
+    <button
+      type="button"
+      onclick="newGroup()"
+    >
+
+      <span>
+        ➕
+      </span>
+
+      <b>
+        New Group
+      </b>
+
+      <small>
+        Create a group
+      </small>
+
+    </button>
+
+  </div>
+
+
+
+  <!-- ACCOUNT -->
+
+  <div
+    class="card"
+    style="margin-top:16px"
+  >
+
+    <b>
+      Account
+    </b>
+
+    <p
+      id="profileInfo"
+    >
+    </p>
+
+    <button
+      type="button"
+      onclick="logout()"
+    >
+      Sign out
+    </button>
+
+  </div>
+
+
+</section>
+
+
+
+<!-- =====================================================
+     CHAT / GROUP
+===================================================== -->
+
+<section
+  id="chat"
+  class="screen hidden"
+>
+
+
+  <header class="green">
+
+
+    <button
+      type="button"
+      onclick="show('home')"
+      aria-label="Back"
+    >
+      ‹
+    </button>
+
+
+    <div>
+
+      <b
+        id="ct"
+      >
+        Group
+      </b>
+
+      <small
+        id="cm"
+      >
+      </small>
+
+    </div>
+
+
+    <button
+      type="button"
+      onclick="alertForm()"
+      aria-label="Emergency Alert"
+    >
+      🚨
+    </button>
+
+
+  </header>
+
+
+
+  <!-- MESSAGE AREA -->
+
+  <main
+    id="msgs"
+    class="messages"
+  >
+  </main>
+
+
+
+  <!-- MESSAGE COMPOSER -->
+
+  <footer>
+
+    <input
+      id="msg"
+      type="text"
+      placeholder="Type a message..."
+      autocomplete="off"
+      onkeydown="if(event.key==='Enter')send()"
+    >
+
+    <button
+      type="button"
+      onclick="send()"
+      aria-label="Send"
+    >
+      ➤
+    </button>
+
+  </footer>
+
+
+</section>
+
+
+
+<!-- =====================================================
+     EMERGENCY ALERT FORM
+===================================================== -->
+
+<section
+  id="alert"
+  class="screen hidden"
+>
+
+
+  <header>
+
+    <button
+      type="button"
+      onclick="show('home')"
+      aria-label="Back"
+    >
+      ‹
+    </button>
+
+
+    <div>
+
+      <h2>
+        New Alert
+      </h2>
+
+      <small>
+        Emergency notification
+      </small>
+
+    </div>
+
+  </header>
+
+
+
+  <div class="form">
+
+
+    <!-- WARNING -->
+
+    <div class="dangerbox">
+
+      <div>
+
+        🚨
+
+        <b>
+          EMERGENCY ALERT
+        </b>
+
+      </div>
+
+      <small>
+        Use only for important situations.
+      </small>
+
+    </div>
+
+
+
+    <!-- TARGET GROUP -->
+
+    <label
+      for="alertTarget"
+    >
+      Send to
+    </label>
+
+
+    <select
+      id="alertTarget"
+    >
+
+      <option value="">
+        Select a group
+      </option>
+
+    </select>
+
+
+
+    <!-- MESSAGE -->
+
+    <label
+      for="alertmsg"
+    >
+      Message
+    </label>
+
+
+    <textarea
+      id="alertmsg"
+      placeholder="Write the urgent message..."
+    ></textarea>
+
+
+
+    <!-- INFORMATION -->
+
+    <p class="note">
+
+      🔔 Push notification will be connected
+      in the backend notification phase.
+
+      <br>
+
+      SMS is disabled in Version 1.
+
+    </p>
+
+
+
+    <!-- PREVIEW -->
+
+    <button
+      class="danger"
+      type="button"
+      onclick="preview()"
+    >
+      Preview &amp; Send
+    </button>
+
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     EMERGENCY CONFIRMATION
+===================================================== -->
+
+<section
+  id="confirm"
+  class="screen hidden"
+>
+
+
+  <div class="card confirm">
+
+
+    <div class="warn">
+      !
+    </div>
+
+
+    <h2>
+      Send Emergency Alert?
+    </h2>
+
+
+    <p
+      id="confirmTarget"
+    >
+    </p>
+
+
+    <!-- PREVIEW MESSAGE -->
+
+    <div
+      id="preview"
+      class="preview"
+    >
+    </div>
+
+
+
+    <!-- ACTIONS -->
+
+    <div class="two">
+
+
+      <button
+        type="button"
+        onclick="show('alert')"
+      >
+        Cancel
+      </button>
+
+
+      <button
+        class="danger"
+        type="button"
+        onclick="sendAlert()"
+      >
+        Send Alert
+      </button>
+
+
+    </div>
+
+
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     ALERT HISTORY
+===================================================== -->
+
+<section
+  id="alerts"
+  class="screen hidden"
+>
+
+
+  <header>
+
+    <button
+      type="button"
+      onclick="show('home')"
+      aria-label="Back"
+    >
+      ‹
+    </button>
+
+
+    <h2>
+      Alerts
+    </h2>
+
+  </header>
+
+
+
+  <div
+    id="history"
+  >
+  </div>
+
+
+</section>
+
+
+
+<!-- =====================================================
+     CREATE GROUP
+===================================================== -->
+
+<section
+  id="groupCreate"
+  class="screen hidden"
+>
+
+
+  <header>
+
+
+    <button
+      type="button"
+      onclick="show('home')"
+      aria-label="Back"
+    >
+      ‹
+    </button>
+
+
+    <div>
+
+      <h2>
+        New Group
+      </h2>
+
+      <small>
+        Create your own group
+      </small>
+
+    </div>
+
+
+  </header>
+
+
+
+  <div class="form">
+
+
+    <!-- GROUP NAME -->
+
+    <label
+      for="groupName"
+    >
+      Group name
+    </label>
+
+
+    <input
+      id="groupName"
+      type="text"
+      placeholder="Example: Family Group"
+      autocomplete="off"
+    >
+
+
+
+    <!-- DESCRIPTION -->
+
+    <label
+      for="groupDescription"
+    >
+      Description
+    </label>
+
+
+    <textarea
+      id="groupDescription"
+      placeholder="Optional"
+    ></textarea>
+
+
+
+    <!-- CREATE -->
+
+    <button
+      type="button"
+      onclick="createGroup()"
+    >
+      Create Group
+    </button>
+
+
+  </div>
+
+
+</section>
+
+
+
+<!-- =====================================================
+     BOTTOM NAVIGATION
+===================================================== -->
+
+<nav
+  id="nav"
+  class="hidden"
+  aria-label="Main navigation"
+>
+
+
+  <!-- HOME -->
+
+  <button
+    type="button"
+    onclick="show('home')"
+  >
+
+    <span>
+      ⌂
+    </span>
+
+    <small>
+      Home
+    </small>
+
+  </button>
+
+
+
+  <!-- GROUPS -->
+
+  <button
+    type="button"
+    onclick="show('home')"
+  >
+
+    <span>
+      👥
+    </span>
+
+    <small>
+      Groups
+    </small>
+
+  </button>
+
+
+
+  <!-- EMERGENCY -->
+
+  <button
+    class="center"
+    type="button"
+    onclick="alertForm()"
+    aria-label="Emergency Alert"
+  >
+
+    🚨
+
+  </button>
+
+
+
+  <!-- ALERTS -->
+
+  <button
+    type="button"
+    onclick="show('alerts')"
+  >
+
+    <span>
+      🔔
+    </span>
+
+    <small>
+      Alerts
+    </small>
+
+  </button>
+
+
+
+  <!-- PROFILE -->
+
+  <button
+    type="button"
+    onclick="show('home')"
+  >
+
+    <span>
+      👤
+    </span>
+
+    <small>
+      Profile
+    </small>
+
+  </button>
+
+
+</nav>
+
+
+
+<!-- =====================================================
+     FIREBASE / APPLICATION JAVASCRIPT
+===================================================== -->
+
+<script
+  type="module"
+  src="app.js"
+></script>
+
+
+</body>
+
+      </html>
