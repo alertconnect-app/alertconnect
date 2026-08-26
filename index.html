@@ -12,4 +12,21 @@
 <section id="confirm" class="screen hidden"><div class="card confirm"><div class="warn">!</div><h2>Send Emergency Alert?</h2><p>This will alert 12 members.</p><div id="preview" class="preview"></div><div class="two"><button onclick="show('alert')">Cancel</button><button class="danger" onclick="sendAlert()">Send Alert</button></div></div></section>
 <section id="alerts" class="screen hidden"><header><button onclick="show('home')">‹</button><h2>Alerts</h2></header><div class="history"><b>🚨 Family Group</b><p>ഇന്ന് രാത്രി 9 മണിക്ക് എല്ലാവരും വീട്ടിലെത്തുക.</p><small>Today · 8:45 PM</small></div></section>
 <nav id="nav" class="hidden"><button onclick="show('home')">⌂<small>Home</small></button><button onclick="show('home')">👥<small>Groups</small></button><button class="center" onclick="alertForm()">🚨</button><button onclick="show('alerts')">🔔<small>Alerts</small></button><button onclick="alert('Profile UI ready for next phase')">👤<small>Profile</small></button></nav>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getAuth, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAu91Nuo5lXUZGzarPiWjgVQlSnBR8_r30",
+    authDomain: "alertconnect-27dac.firebaseapp.com",
+    projectId: "alertconnect-27dac",
+    storageBucket: "alertconnect-27dac.firebasestorage.app",
+    messagingSenderId: "556004754007",
+    appId: "1:556004754007:web:c00286f1030afdd4c21912"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+</script>
 <script src="app.js"></script></body></html>
