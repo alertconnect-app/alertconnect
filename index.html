@@ -1,75 +1,66 @@
 <!doctype html>
-<html lang="ml">
-
+<html lang="en">
 <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 
-<meta charset="utf-8">
+  <meta name="theme-color" content="#0f8f4f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-<meta
-  name="viewport"
-  content="width=device-width,initial-scale=1"
->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
 
-<meta
-  name="theme-color"
-  content="#0f8f4f"
->
-
-<meta
-  name="description"
-  content="AlertConnect - Fast emergency communication for trusted people and groups."
->
-
-<link
-  rel="manifest"
-  href="manifest.webmanifest"
->
-
-<link
-  rel="stylesheet"
-  href="styles.css"
->
-
-<title>AlertConnect</title>
-
+  <title>AlertConnect</title>
 </head>
-
 
 <body>
 
+<!-- =========================================================
+     APP
+========================================================= -->
 
-<!-- =====================================================
-     LOGIN / SIGN IN
-===================================================== -->
+<div id="app">
 
-<section
-  id="login"
-  class="screen"
->
 
-  <div class="card login">
+<!-- =========================================================
+     LOGIN
+========================================================= -->
 
-    <div class="logo">
-      🔔
-    </div>
+<section id="login" class="screen">
 
-    <h1>
-      Alert<span>Connect</span>
-    </h1>
+  <div class="card login-card">
 
-    <p>
+    <div class="logo">🔔</div>
+
+    <h1>Alert<span>Connect</span></h1>
+
+    <p class="tagline">
       Fast alerts. Right people.
+    </p>
+
+    <p class="subtext">
+      Secure communication for trusted people.
     </p>
 
     <button
       id="googleSignInBtn"
-      type="button"
-    >
+      class="primary google-btn"
+      type="button">
+      <span>G</span>
       Continue with Google
     </button>
 
-    <small id="authStatus">
-      Secure sign-in
+    <button
+      id="guestJoinBtn"
+      class="secondary"
+      type="button">
+      Join with Invite Link
+    </button>
+
+    <small class="security-note">
+      🔐 Your account and personal data are protected.
     </small>
 
   </div>
@@ -77,696 +68,1538 @@
 </section>
 
 
+<!-- =========================================================
+     PENDING APPROVAL
+========================================================= -->
 
-<!-- =====================================================
-     HOME
-===================================================== -->
+<section id="pending" class="screen hidden">
 
-<section
-  id="home"
-  class="screen hidden"
->
+  <div class="card status-card">
 
-  <header>
+    <div class="status-icon">⏳</div>
+
+    <h2>Approval Pending</h2>
+
+    <p>
+      Your account has been created successfully.
+    </p>
+
+    <p>
+      An administrator must approve your account
+      before you can use AlertConnect features.
+    </p>
+
+    <div class="status-box">
+      <b>Account Status</b>
+      <span id="accountStatus">PENDING</span>
+    </div>
+
+    <div class="status-box">
+      <b>Notifications</b>
+      <span id="notificationStatus">Not enabled</span>
+    </div>
+
+    <button
+      id="requestNotificationBtn"
+      class="primary"
+      type="button">
+      🔔 Enable Notifications
+    </button>
+
+    <button
+      id="refreshApprovalBtn"
+      class="secondary"
+      type="button">
+      Check Approval
+    </button>
+
+    <button
+      id="pendingSignOutBtn"
+      class="text-btn"
+      type="button">
+      Sign Out
+    </button>
+
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     JOIN INVITE
+========================================================= -->
+
+<section id="join" class="screen hidden">
+
+  <header class="top-header">
+
+    <button
+      class="icon-btn"
+      id="joinBackBtn"
+      type="button">
+      ‹
+    </button>
 
     <div>
+      <small>GROUP INVITATION</small>
+      <h2>Join Group</h2>
+    </div>
 
-      <small>
-        WELCOME BACK
-      </small>
+  </header>
 
-      <h2>
-        Home
+  <main class="form">
+
+    <div class="invite-card">
+
+      <div class="group-icon">👥</div>
+
+      <h2 id="inviteGroupName">
+        Group Invitation
       </h2>
 
-      <small id="userWelcome">
+      <p id="inviteGroupInfo">
+        You have been invited to join this group.
+      </p>
+
+      <div class="invite-owner">
+        <span>Created by</span>
+        <b id="inviteOwnerName">Loading...</b>
+      </div>
+
+    </div>
+
+
+    <div class="permission-card">
+
+      <h3>Before joining</h3>
+
+      <p>
+        Allow notifications so you can receive
+        group messages and emergency alerts.
+      </p>
+
+      <div class="permission-row">
+        <span>🔔 Notifications</span>
+        <span id="joinNotificationState">
+          Required
+        </span>
+      </div>
+
+      <button
+        id="joinNotificationBtn"
+        class="primary"
+        type="button">
+        Allow Notifications
+      </button>
+
+    </div>
+
+
+    <div class="join-request-area">
+
+      <button
+        id="sendJoinRequestBtn"
+        class="primary"
+        type="button"
+        disabled>
+        Send Join Request
+      </button>
+
+      <small>
+        Your request must be approved by the
+        group administrator.
       </small>
 
     </div>
 
+  </main>
+
+</section>
+
+
+<!-- =========================================================
+     HOME
+========================================================= -->
+
+<section id="home" class="screen hidden">
+
+  <header class="home-header">
+
+    <div>
+      <small id="welcomeLabel">
+        WELCOME BACK
+      </small>
+
+      <h2>Home</h2>
+    </div>
+
     <button
-      type="button"
-      onclick="show('alerts')"
-      aria-label="Alerts"
-    >
+      id="alertsHeaderBtn"
+      class="icon-btn"
+      type="button">
       🔔
     </button>
 
   </header>
 
 
-  <!-- HERO -->
+  <main class="home-content">
 
-  <div class="hero">
 
-    <div>
+    <!-- USER CARD -->
 
-      <b>
-        Stay Connected.<br>
-        Stay Safe.
-      </b>
+    <div class="user-card">
 
-      <small>
-        Secure communication for trusted people.
-      </small>
+      <div class="avatar" id="userAvatar">
+        👤
+      </div>
+
+      <div>
+
+        <b id="userName">
+          User
+        </b>
+
+        <small id="userEmail">
+          Loading...
+        </small>
+
+        <span
+          id="userRoleBadge"
+          class="role-badge">
+          PENDING
+        </span>
+
+      </div>
 
     </div>
 
-    <span>
-      🛡️
-    </span>
 
-  </div>
+    <!-- HERO -->
 
+    <div class="hero">
 
+      <div>
 
-  <!-- GROUPS -->
+        <b>
+          Stay Connected.<br>
+          Stay Safe.
+        </b>
 
-  <h3>
-    My Groups
-  </h3>
+        <span>
+          Secure communication for trusted people.
+        </span>
 
-  <div
-    id="groups"
-    class="groups"
-  >
-  </div>
+      </div>
 
+      <div class="hero-icon">
+        🛡️
+      </div>
 
-
-  <!-- QUICK ACTIONS -->
-
-  <div class="quick">
-
-    <button
-      type="button"
-      onclick="alertForm()"
-    >
-
-      <span>
-        🚨
-      </span>
-
-      <b>
-        Emergency Alert
-      </b>
-
-      <small>
-        Send urgent alert
-      </small>
-
-    </button>
+    </div>
 
 
-    <button
-      type="button"
-      onclick="newGroup()"
-    >
+    <!-- MY GROUPS -->
 
-      <span>
-        ➕
-      </span>
+    <div class="section-title">
 
-      <b>
-        New Group
-      </b>
+      <h3>My Groups</h3>
 
-      <small>
-        Create a group
-      </small>
+      <button
+        id="allGroupsBtn"
+        class="small-btn"
+        type="button">
+        View All
+      </button>
 
-    </button>
-
-  </div>
+    </div>
 
 
+    <div id="groupsList" class="groups">
 
-  <!-- ACCOUNT -->
+      <div class="empty-state">
 
-  <div
-    class="card"
-    style="margin-top:16px"
-  >
+        <div>👥</div>
 
-    <b>
-      Account
-    </b>
+        <b>No groups yet</b>
 
-    <p
-      id="profileInfo"
-    >
-    </p>
+        <small>
+          Join a group or create your first group.
+        </small>
 
-    <button
-      type="button"
-      onclick="logout()"
-    >
-      Sign out
-    </button>
+      </div>
 
-  </div>
+    </div>
 
+
+    <!-- QUICK ACTIONS -->
+
+    <div class="quick">
+
+      <button
+        id="emergencyBtn"
+        class="quick-card emergency-card"
+        type="button">
+
+        <span>🚨</span>
+
+        <b>Emergency Alert</b>
+
+        <small>
+          Send urgent alert
+        </small>
+
+      </button>
+
+
+      <button
+        id="newGroupBtn"
+        class="quick-card"
+        type="button">
+
+        <span>➕</span>
+
+        <b>New Group</b>
+
+        <small>
+          Create a group
+        </small>
+
+      </button>
+
+    </div>
+
+
+    <!-- ACCOUNT -->
+
+    <div class="account-section">
+
+      <h3>Account</h3>
+
+      <div class="account-card">
+
+        <div class="avatar small">
+          👤
+        </div>
+
+        <div>
+
+          <b id="accountName">
+            User
+          </b>
+
+          <small id="accountEmail">
+            —
+          </small>
+
+        </div>
+
+        <button
+          id="profileBtn"
+          class="icon-btn"
+          type="button">
+          ›
+        </button>
+
+      </div>
+
+    </div>
+
+  </main>
 
 </section>
 
 
+<!-- =========================================================
+     GROUP CHAT
+========================================================= -->
 
-<!-- =====================================================
-     CHAT / GROUP
-===================================================== -->
+<section id="chat" class="screen hidden">
 
-<section
-  id="chat"
-  class="screen hidden"
->
-
-
-  <header class="green">
-
+  <header class="chat-header">
 
     <button
-      type="button"
-      onclick="show('home')"
-      aria-label="Back"
-    >
+      id="chatBackBtn"
+      class="icon-btn light"
+      type="button">
       ‹
     </button>
 
+    <div class="chat-title">
 
-    <div>
-
-      <b
-        id="ct"
-      >
+      <b id="chatGroupName">
         Group
       </b>
 
-      <small
-        id="cm"
-      >
+      <small id="chatGroupMembers">
+        0 members
       </small>
 
     </div>
 
-
     <button
-      type="button"
-      onclick="alertForm()"
-      aria-label="Emergency Alert"
-    >
+      id="chatAlertBtn"
+      class="icon-btn light"
+      type="button">
       🚨
     </button>
 
+    <button
+      id="groupSettingsBtn"
+      class="icon-btn light"
+      type="button">
+      ⋮
+    </button>
 
   </header>
 
 
-
-  <!-- MESSAGE AREA -->
-
   <main
-    id="msgs"
-    class="messages"
-  >
+    id="messages"
+    class="messages">
+
+    <div class="empty-state chat-empty">
+
+      <div>💬</div>
+
+      <b>No messages yet</b>
+
+      <small>
+        Start a secure conversation.
+      </small>
+
+    </div>
+
   </main>
 
 
-
-  <!-- MESSAGE COMPOSER -->
-
-  <footer>
-
-    <input
-      id="msg"
-      type="text"
-      placeholder="Type a message..."
-      autocomplete="off"
-      onkeydown="if(event.key==='Enter')send()"
-    >
+  <footer class="message-footer">
 
     <button
-      type="button"
-      onclick="send()"
-      aria-label="Send"
-    >
+      id="mediaBtn"
+      class="media-btn"
+      type="button">
+      📎
+    </button>
+
+    <input
+      id="messageInput"
+      type="text"
+      placeholder="Type a message..."
+      autocomplete="off">
+
+    <button
+      id="sendMessageBtn"
+      class="send-btn"
+      type="button">
       ➤
     </button>
 
   </footer>
 
-
 </section>
 
 
+<!-- =========================================================
+     NEW GROUP
+========================================================= -->
 
-<!-- =====================================================
-     EMERGENCY ALERT FORM
-===================================================== -->
+<section id="newGroup" class="screen hidden">
 
-<section
-  id="alert"
-  class="screen hidden"
->
-
-
-  <header>
+  <header class="top-header">
 
     <button
-      type="button"
-      onclick="show('home')"
-      aria-label="Back"
-    >
+      id="newGroupBackBtn"
+      class="icon-btn"
+      type="button">
       ‹
     </button>
 
-
     <div>
-
-      <h2>
-        New Alert
-      </h2>
-
-      <small>
-        Emergency notification
-      </small>
-
+      <small>GROUPS</small>
+      <h2>Create Group</h2>
     </div>
 
   </header>
 
 
+  <main class="form">
 
-  <div class="form">
+    <div class="form-icon">
+      👥
+    </div>
+
+    <label for="groupName">
+      Group Name
+    </label>
+
+    <input
+      id="groupName"
+      type="text"
+      maxlength="80"
+      placeholder="Example: Family Group">
 
 
-    <!-- WARNING -->
+    <label for="groupDescription">
+      Description
+    </label>
 
-    <div class="dangerbox">
+    <textarea
+      id="groupDescription"
+      maxlength="300"
+      placeholder="What is this group for?"></textarea>
 
-      <div>
 
-        🚨
+    <div class="settings-card">
 
-        <b>
-          EMERGENCY ALERT
-        </b>
+      <h3>Group Permissions</h3>
+
+      <div class="setting-row">
+
+        <div>
+          <b>Members can send messages</b>
+          <small>
+            Allow approved members to communicate.
+          </small>
+        </div>
+
+        <label class="switch">
+          <input
+            id="allowMessages"
+            type="checkbox"
+            checked>
+          <span></span>
+        </label>
 
       </div>
 
+
+      <div class="setting-row">
+
+        <div>
+          <b>Emergency alerts</b>
+          <small>
+            Allow approved members to send alerts.
+          </small>
+        </div>
+
+        <label class="switch">
+          <input
+            id="allowAlerts"
+            type="checkbox"
+            checked>
+          <span></span>
+        </label>
+
+      </div>
+
+
+      <div class="setting-row">
+
+        <div>
+          <b>Photo & Video</b>
+          <small>
+            Allow media sharing in this group.
+          </small>
+        </div>
+
+        <label class="switch">
+          <input
+            id="allowMedia"
+            type="checkbox">
+          <span></span>
+        </label>
+
+      </div>
+
+    </div>
+
+
+    <button
+      id="createGroupBtn"
+      class="primary"
+      type="button">
+      Create Group
+    </button>
+
+  </main>
+
+</section>
+
+
+<!-- =========================================================
+     GROUP MEMBERS
+========================================================= -->
+
+<section id="members" class="screen hidden">
+
+  <header class="top-header">
+
+    <button
+      id="membersBackBtn"
+      class="icon-btn"
+      type="button">
+      ‹
+    </button>
+
+    <div>
+      <small>GROUP</small>
+      <h2>Members</h2>
+    </div>
+
+    <button
+      id="inviteMemberBtn"
+      class="header-action"
+      type="button">
+      + Invite
+    </button>
+
+  </header>
+
+
+  <main class="members-content">
+
+    <div class="members-summary">
+
+      <b id="membersCount">
+        0 Members
+      </b>
+
       <small>
-        Use only for important situations.
+        Approved members only
       </small>
 
     </div>
 
 
+    <div
+      id="membersList"
+      class="members-list">
 
-    <!-- TARGET GROUP -->
+      <div class="empty-state">
+        <div>👤</div>
+        <b>No members</b>
+      </div>
 
-    <label
-      for="alertTarget"
-    >
-      Send to
-    </label>
+    </div>
 
-
-    <select
-      id="alertTarget"
-    >
-
-      <option value="">
-        Select a group
-      </option>
-
-    </select>
-
-
-
-    <!-- MESSAGE -->
-
-    <label
-      for="alertmsg"
-    >
-      Message
-    </label>
-
-
-    <textarea
-      id="alertmsg"
-      placeholder="Write the urgent message..."
-    ></textarea>
-
-
-
-    <!-- INFORMATION -->
-
-    <p class="note">
-
-      🔔 Push notification will be connected
-      in the backend notification phase.
-
-      <br>
-
-      SMS is disabled in Version 1.
-
-    </p>
-
-
-
-    <!-- PREVIEW -->
-
-    <button
-      class="danger"
-      type="button"
-      onclick="preview()"
-    >
-      Preview &amp; Send
-    </button>
-
-
-  </div>
+  </main>
 
 </section>
 
 
+<!-- =========================================================
+     JOIN REQUESTS
+========================================================= -->
 
-<!-- =====================================================
-     EMERGENCY CONFIRMATION
-===================================================== -->
+<section id="requests" class="screen hidden">
 
-<section
-  id="confirm"
-  class="screen hidden"
->
+  <header class="top-header">
+
+    <button
+      id="requestsBackBtn"
+      class="icon-btn"
+      type="button">
+      ‹
+    </button>
+
+    <div>
+      <small>GROUP ADMIN</small>
+      <h2>Join Requests</h2>
+    </div>
+
+  </header>
 
 
-  <div class="card confirm">
+  <main class="requests-content">
 
+    <div
+      id="requestsList"
+      class="requests-list">
+
+      <div class="empty-state">
+
+        <div>📨</div>
+
+        <b>No pending requests</b>
+
+        <small>
+          New join requests will appear here.
+        </small>
+
+      </div>
+
+    </div>
+
+  </main>
+
+</section>
+
+
+<!-- =========================================================
+     INVITE
+========================================================= -->
+
+<section id="invite" class="screen hidden">
+
+  <header class="top-header">
+
+    <button
+      id="inviteBackBtn"
+      class="icon-btn"
+      type="button">
+      ‹
+    </button>
+
+    <div>
+      <small>GROUP INVITE</small>
+      <h2>Invite Members</h2>
+    </div>
+
+  </header>
+
+
+  <main class="invite-content">
+
+    <div class="invite-preview">
+
+      <div class="group-icon">
+        👥
+      </div>
+
+      <h2 id="shareGroupName">
+        Group
+      </h2>
+
+      <p>
+        Share this secure invite link.
+      </p>
+
+    </div>
+
+
+    <div class="link-box">
+
+      <input
+        id="inviteLink"
+        type="text"
+        readonly
+        value="Generating secure link...">
+
+      <button
+        id="copyInviteBtn"
+        type="button">
+        Copy
+      </button>
+
+    </div>
+
+
+    <button
+      id="shareInviteBtn"
+      class="primary"
+      type="button">
+      📤 Share Invite Link
+    </button>
+
+
+    <div class="security-note-box">
+
+      🔐 Only people approved by the
+      group administrator become members.
+
+    </div>
+
+  </main>
+
+</section>
+
+
+<!-- =========================================================
+     EMERGENCY ALERT
+========================================================= -->
+
+<section id="alert" class="screen hidden">
+
+  <header class="top-header">
+
+    <button
+      id="alertBackBtn"
+      class="icon-btn"
+      type="button">
+      ‹
+    </button>
+
+    <div>
+      <small>URGENT MESSAGE</small>
+      <h2>Emergency Alert</h2>
+    </div>
+
+  </header>
+
+
+  <main class="form">
+
+    <div class="dangerbox">
+
+      <span>🚨</span>
+
+      <div>
+
+        <b>EMERGENCY ALERT</b>
+
+        <small>
+          Use only for important situations.
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <label>
+      Send to
+    </label>
+
+    <div
+      id="alertTarget"
+      class="select-card">
+
+      <span>👥</span>
+
+      <div>
+
+        <b id="alertTargetName">
+          Select Group
+        </b>
+
+        <small id="alertTargetMembers">
+          0 members
+        </small>
+
+      </div>
+
+      <span>›</span>
+
+    </div>
+
+
+    <label for="alertMessage">
+      Message
+    </label>
+
+    <textarea
+      id="alertMessage"
+      maxlength="1000"
+      placeholder="Write the urgent message..."></textarea>
+
+
+    <div class="alert-options">
+
+      <div class="setting-row">
+
+        <div>
+          <b>High Priority</b>
+
+          <small>
+            Request high-priority notification.
+          </small>
+        </div>
+
+        <label class="switch">
+
+          <input
+            id="highPriority"
+            type="checkbox"
+            checked>
+
+          <span></span>
+
+        </label>
+
+      </div>
+
+    </div>
+
+
+    <p class="note">
+      🔔 Approved members with notification
+      permission enabled will receive the alert.
+    </p>
+
+
+    <button
+      id="previewAlertBtn"
+      class="danger"
+      type="button">
+      Preview & Send
+    </button>
+
+  </main>
+
+</section>
+
+
+<!-- =========================================================
+     ALERT CONFIRM
+========================================================= -->
+
+<section id="confirm" class="screen hidden">
+
+  <div class="card confirm-card">
 
     <div class="warn">
       !
     </div>
 
-
     <h2>
       Send Emergency Alert?
     </h2>
 
-
-    <p
-      id="confirmTarget"
-    >
+    <p>
+      This will notify approved members
+      of the selected group.
     </p>
 
 
-    <!-- PREVIEW MESSAGE -->
-
     <div
-      id="preview"
-      class="preview"
-    >
+      id="alertPreview"
+      class="preview">
     </div>
 
-
-
-    <!-- ACTIONS -->
 
     <div class="two">
 
-
       <button
-        type="button"
-        onclick="show('alert')"
-      >
+        id="cancelAlertBtn"
+        class="secondary"
+        type="button">
         Cancel
       </button>
 
-
       <button
+        id="sendAlertBtn"
         class="danger"
-        type="button"
-        onclick="sendAlert()"
-      >
-        Send Alert
+        type="button">
+        🚨 Send Alert
       </button>
 
-
     </div>
-
 
   </div>
 
 </section>
 
 
-
-<!-- =====================================================
+<!-- =========================================================
      ALERT HISTORY
-===================================================== -->
+========================================================= -->
 
-<section
-  id="alerts"
-  class="screen hidden"
->
+<section id="alerts" class="screen hidden">
 
-
-  <header>
+  <header class="top-header">
 
     <button
-      type="button"
-      onclick="show('home')"
-      aria-label="Back"
-    >
+      id="alertsBackBtn"
+      class="icon-btn"
+      type="button">
       ‹
     </button>
 
-
-    <h2>
-      Alerts
-    </h2>
+    <div>
+      <small>NOTIFICATIONS</small>
+      <h2>Alerts</h2>
+    </div>
 
   </header>
 
 
+  <main
+    id="alertHistory"
+    class="history-list">
 
-  <div
-    id="history"
-  >
-  </div>
+    <div class="empty-state">
 
+      <div>🔔</div>
 
-</section>
-
-
-
-<!-- =====================================================
-     CREATE GROUP
-===================================================== -->
-
-<section
-  id="groupCreate"
-  class="screen hidden"
->
-
-
-  <header>
-
-
-    <button
-      type="button"
-      onclick="show('home')"
-      aria-label="Back"
-    >
-      ‹
-    </button>
-
-
-    <div>
-
-      <h2>
-        New Group
-      </h2>
+      <b>No alerts yet</b>
 
       <small>
-        Create your own group
+        Emergency alerts will appear here.
       </small>
 
     </div>
 
-
-  </header>
-
-
-
-  <div class="form">
-
-
-    <!-- GROUP NAME -->
-
-    <label
-      for="groupName"
-    >
-      Group name
-    </label>
-
-
-    <input
-      id="groupName"
-      type="text"
-      placeholder="Example: Family Group"
-      autocomplete="off"
-    >
-
-
-
-    <!-- DESCRIPTION -->
-
-    <label
-      for="groupDescription"
-    >
-      Description
-    </label>
-
-
-    <textarea
-      id="groupDescription"
-      placeholder="Optional"
-    ></textarea>
-
-
-
-    <!-- CREATE -->
-
-    <button
-      type="button"
-      onclick="createGroup()"
-    >
-      Create Group
-    </button>
-
-
-  </div>
-
+  </main>
 
 </section>
 
 
+<!-- =========================================================
+     PROFILE
+========================================================= -->
 
-<!-- =====================================================
-     BOTTOM NAVIGATION
-===================================================== -->
+<section id="profile" class="screen hidden">
 
-<nav
-  id="nav"
-  class="hidden"
-  aria-label="Main navigation"
->
+  <header class="top-header">
+
+    <button
+      id="profileBackBtn"
+      class="icon-btn"
+      type="button">
+      ‹
+    </button>
+
+    <div>
+      <small>ACCOUNT</small>
+      <h2>Profile</h2>
+    </div>
+
+  </header>
 
 
-  <!-- HOME -->
+  <main class="profile-content">
 
-  <button
-    type="button"
-    onclick="show('home')"
-  >
+    <div class="profile-card">
 
-    <span>
-      ⌂
+      <div
+        id="profileAvatar"
+        class="profile-avatar">
+        👤
+      </div>
+
+      <h2 id="profileName">
+        User
+      </h2>
+
+      <p id="profileEmail">
+        —
+      </p>
+
+      <span
+        id="profileRole"
+        class="role-badge">
+        MEMBER
+      </span>
+
+    </div>
+
+
+    <div class="settings-card">
+
+      <div class="setting-row">
+
+        <div>
+          <b>Notifications</b>
+
+          <small id="profileNotificationStatus">
+            Checking...
+          </small>
+
+        </div>
+
+        <button
+          id="profileNotificationBtn"
+          class="small-btn"
+          type="button">
+          Manage
+        </button>
+
+      </div>
+
+
+      <div class="setting-row">
+
+        <div>
+          <b>Account Status</b>
+
+          <small id="profileAccountStatus">
+            Checking...
+          </small>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <button
+      id="signOutBtn"
+      class="danger-outline"
+      type="button">
+      Sign Out
+    </button>
+
+  </main>
+
+</section>
+
+
+<!-- =========================================================
+     MASTER ADMIN
+========================================================= -->
+
+<section id="masterAdmin" class="screen hidden">
+
+  <header class="admin-header">
+
+    <div>
+
+      <small>MASTER CONTROL</small>
+
+      <h2>
+        Master Admin
+      </h2>
+
+    </div>
+
+    <span class="master-badge">
+      👑 MASTER
     </span>
 
-    <small>
-      Home
+  </header>
+
+
+  <main class="admin-content">
+
+
+    <div class="admin-security-banner">
+
+      🔐
+
+      <div>
+
+        <b>Privacy Protected</b>
+
+        <small>
+          Master Admin controls the system,
+          not private message content.
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- STATISTICS -->
+
+    <div class="admin-stats">
+
+      <div class="stat-card">
+
+        <b id="totalUsers">
+          0
+        </b>
+
+        <small>
+          Users
+        </small>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <b id="totalGroups">
+          0
+        </b>
+
+        <small>
+          Groups
+        </small>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <b id="pendingUsers">
+          0
+        </b>
+
+        <small>
+          Pending
+        </small>
+
+      </div>
+
+    </div>
+
+
+    <!-- USER CONTROL -->
+
+    <div class="admin-card">
+
+      <div class="admin-card-title">
+
+        <div>
+
+          <b>Users</b>
+
+          <small>
+            Approve or suspend accounts.
+          </small>
+
+        </div>
+
+        <span>👥</span>
+
+      </div>
+
+      <button
+        id="adminUsersBtn"
+        class="admin-action"
+        type="button">
+        Manage Users
+        <span>›</span>
+      </button>
+
+    </div>
+
+
+    <!-- GROUP CONTROL -->
+
+    <div class="admin-card">
+
+      <div class="admin-card-title">
+
+        <div>
+
+          <b>Groups</b>
+
+          <small>
+            System-level group controls.
+          </small>
+
+        </div>
+
+        <span>🏠</span>
+
+      </div>
+
+      <button
+        id="adminGroupsBtn"
+        class="admin-action"
+        type="button">
+        Manage Groups
+        <span>›</span>
+      </button>
+
+    </div>
+
+
+    <!-- ORGANIZER -->
+
+    <div class="admin-card">
+
+      <div class="admin-card-title">
+
+        <div>
+
+          <b>Organizers</b>
+
+          <small>
+            Manage organizer permissions.
+          </small>
+
+        </div>
+
+        <span>🛡️</span>
+
+      </div>
+
+      <button
+        id="adminOrganizersBtn"
+        class="admin-action"
+        type="button">
+        Manage Organizers
+        <span>›</span>
+      </button>
+
+    </div>
+
+
+    <!-- GLOBAL SETTINGS -->
+
+    <div class="admin-card">
+
+      <div class="admin-card-title">
+
+        <div>
+
+          <b>Global Settings</b>
+
+          <small>
+            Control optional system features.
+          </small>
+
+        </div>
+
+        <span>⚙️</span>
+
+      </div>
+
+
+      <div class="setting-row">
+
+        <div>
+
+          <b>Emergency Alerts</b>
+
+          <small>
+            Global emergency system.
+          </small>
+
+        </div>
+
+        <label class="switch">
+
+          <input
+            id="globalAlerts"
+            type="checkbox"
+            checked>
+
+          <span></span>
+
+        </label>
+
+      </div>
+
+
+      <div class="setting-row">
+
+        <div>
+
+          <b>Photo & Video</b>
+
+          <small>
+            Allow media features globally.
+          </small>
+
+        </div>
+
+        <label class="switch">
+
+          <input
+            id="globalMedia"
+            type="checkbox">
+
+          <span></span>
+
+        </label>
+
+      </div>
+
+    </div>
+
+
+    <div class="admin-privacy">
+
+      <b>Private Communication</b>
+
+      <p>
+        Master Admin does not have permission
+        to read private user messages or private
+        group conversations.
+      </p>
+
+    </div>
+
+
+    <button
+      id="adminBackBtn"
+      class="secondary"
+      type="button">
+      Back to Home
+    </button>
+
+  </main>
+
+</section>
+
+
+<!-- =========================================================
+     MASTER ADMIN USER APPROVAL
+========================================================= -->
+
+<section id="adminUsers" class="screen hidden">
+
+  <header class="top-header">
+
+    <button
+      id="adminUsersBackBtn"
+      class="icon-btn"
+      type="button">
+      ‹
+    </button>
+
+    <div>
+
+      <small>MASTER CONTROL</small>
+
+      <h2>Users</h2>
+
+    </div>
+
+  </header>
+
+
+  <main
+    id="adminUsersList"
+    class="admin-list">
+
+    <div class="empty-state">
+
+      <div>👥</div>
+
+      <b>No users</b>
+
+    </div>
+
+  </main>
+
+</section>
+
+
+<!-- =========================================================
+     MEDIA PREVIEW
+========================================================= -->
+
+<section id="media" class="screen hidden">
+
+  <header class="top-header">
+
+    <button
+      id="mediaBackBtn"
+      class="icon-btn"
+      type="button">
+      ‹
+    </button>
+
+    <div>
+
+      <small>MEDIA</small>
+
+      <h2>Send Media</h2>
+
+    </div>
+
+  </header>
+
+
+  <main class="form">
+
+    <div class="permission-card">
+
+      <div class="form-icon">
+        📷
+      </div>
+
+      <h3>
+        Photo & Video Sharing
+      </h3>
+
+      <p>
+        Media sharing is available only when
+        both the system and group administrator
+        allow it.
+      </p>
+
+    </div>
+
+
+    <input
+      id="mediaInput"
+      type="file"
+      accept="image/*,video/*"
+      hidden>
+
+
+    <button
+      id="selectMediaBtn"
+      class="primary"
+      type="button">
+      📷 Select Photo / Video
+    </button>
+
+
+    <small class="note">
+      Media will be optimized/compressed before
+      upload when the media system is enabled.
     </small>
+
+  </main>
+
+</section>
+
+
+<!-- =========================================================
+     NAVIGATION
+========================================================= -->
+
+<nav id="nav" class="bottom-nav hidden">
+
+  <button
+    id="navHome"
+    type="button">
+
+    <span>⌂</span>
+    <small>Home</small>
 
   </button>
 
 
-
-  <!-- GROUPS -->
-
   <button
-    type="button"
-    onclick="show('home')"
-  >
+    id="navGroups"
+    type="button">
 
-    <span>
-      👥
-    </span>
-
-    <small>
-      Groups
-    </small>
+    <span>👥</span>
+    <small>Groups</small>
 
   </button>
 
 
-
-  <!-- EMERGENCY -->
-
   <button
+    id="navEmergency"
     class="center"
-    type="button"
-    onclick="alertForm()"
-    aria-label="Emergency Alert"
-  >
+    type="button">
 
-    🚨
+    <span>🚨</span>
 
   </button>
 
-
-
-  <!-- ALERTS -->
 
   <button
-    type="button"
-    onclick="show('alerts')"
-  >
+    id="navAlerts"
+    type="button">
 
-    <span>
-      🔔
-    </span>
-
-    <small>
-      Alerts
-    </small>
+    <span>🔔</span>
+    <small>Alerts</small>
 
   </button>
 
-
-
-  <!-- PROFILE -->
 
   <button
-    type="button"
-    onclick="show('home')"
-  >
+    id="navProfile"
+    type="button">
 
-    <span>
-      👤
-    </span>
-
-    <small>
-      Profile
-    </small>
+    <span>👤</span>
+    <small>Profile</small>
 
   </button>
-
 
 </nav>
 
 
+</div>
 
-<!-- =====================================================
-     FIREBASE / APPLICATION JAVASCRIPT
-===================================================== -->
 
-<script
-  type="module"
-  src="app.js"
-></script>
+<!-- =========================================================
+     APP JAVASCRIPT
+========================================================= -->
 
+<script type="module" src="app.js"></script>
 
 </body>
-
-      </html>
+    </html>
