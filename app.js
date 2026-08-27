@@ -618,7 +618,7 @@ async function initializeNotifications() {
     const token = await getToken(
       messaging,
       {
-        vapidKey: "YOUR_VAPID_KEY",
+        vapidKey: "BEgr7aecThStfASiimhDZgVkIbm4nEtN3CgPiW_5kRG-Lc2ZOP9ED9zLIyTa-U1UJC2tpZYSQAzOOWvdm1pJ7Wk",
         serviceWorkerRegistration: registration
       }
     );
