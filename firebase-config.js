@@ -3,7 +3,11 @@
 // File: firebase-config.js
 // ============================================================
 
-// Firebase SDK
+
+// ============================================================
+// FIREBASE SDK IMPORTS
+// ============================================================
+
 import { initializeApp } from
   "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 
@@ -31,36 +35,28 @@ import {
 
 
 // ============================================================
-// FIREBASE PROJECT CONFIG
-// ============================================================
-//
-// IMPORTANT:
-// Replace the values below with the configuration
-// from your Firebase Console.
-//
-// Firebase Console:
-// Project Settings → General → Your apps → Web app
-//
+// ALERTCONNECT FIREBASE PROJECT
 // ============================================================
 
 const firebaseConfig = {
 
-  apiKey: "YOUR_FIREBASE_API_KEY",
+  apiKey:
+    "AIzaSyAu91Nuo5lXUZGzarPiWjgVQlSnBR8_r30",
 
   authDomain:
-    "YOUR_PROJECT_ID.firebaseapp.com",
+    "alertconnect-27dac.firebaseapp.com",
 
   projectId:
-    "YOUR_PROJECT_ID",
+    "alertconnect-27dac",
 
   storageBucket:
-    "YOUR_PROJECT_ID.firebasestorage.app",
+    "alertconnect-27dac.firebasestorage.app",
 
   messagingSenderId:
-    "YOUR_MESSAGING_SENDER_ID",
+    "556004754007",
 
   appId:
-    "YOUR_FIREBASE_APP_ID"
+    "1:556004754007:web:c00286f1030afdd4c21912"
 
 };
 
@@ -73,10 +69,13 @@ const app = initializeApp(firebaseConfig);
 
 
 // ============================================================
-// AUTHENTICATION
+// FIREBASE AUTHENTICATION
 // ============================================================
 
 const auth = getAuth(app);
+
+
+// Google Sign-In provider
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -98,12 +97,6 @@ const storage = getStorage(app);
 // ============================================================
 // FIREBASE CLOUD MESSAGING
 // ============================================================
-//
-// Messaging is supported only in browsers that support
-// Firebase Web Push requirements.
-//
-// We check support before initializing it.
-// ============================================================
 
 let messaging = null;
 
@@ -116,13 +109,13 @@ try {
     messaging = getMessaging(app);
 
     console.log(
-      "AlertConnect: Firebase Messaging supported."
+      "AlertConnect: Firebase Cloud Messaging is supported."
     );
 
   } else {
 
     console.warn(
-      "AlertConnect: Firebase Messaging is not supported in this browser."
+      "AlertConnect: Firebase Cloud Messaging is not supported in this browser."
     );
 
   }
@@ -130,7 +123,7 @@ try {
 } catch (error) {
 
   console.error(
-    "AlertConnect: Messaging initialization failed:",
+    "AlertConnect: Firebase Messaging initialization failed.",
     error
   );
 
@@ -138,7 +131,7 @@ try {
 
 
 // ============================================================
-// EXPORTS
+// EXPORT FIREBASE SERVICES
 // ============================================================
 
 export {
@@ -161,9 +154,14 @@ export {
 
 
 // ============================================================
-// DEBUG
+// INITIALIZATION MESSAGE
 // ============================================================
 
 console.log(
-  "AlertConnect Firebase initialized successfully."
+  "AlertConnect: Firebase initialized successfully."
+);
+
+console.log(
+  "AlertConnect Project ID:",
+  firebaseConfig.projectId
 );
