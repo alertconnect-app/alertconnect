@@ -45,12 +45,12 @@ import {
    ========================================================= */
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.firebasestorage.app",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAu91Nuo5lXUZGzarPiWjgVQlSnBR8_r30",
+  authDomain: "alertconnect-27dac.firebaseapp.com",
+  projectId: "alertconnect-27dac",
+  storageBucket: "alertconnect-27dac.firebasestorage.app",
+  messagingSenderId: "556004754007",
+  appId: "1:556004754007:web:c00286f1030afdd4c21912"
 };
 
 
