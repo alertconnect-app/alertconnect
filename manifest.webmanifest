@@ -1,1 +1,35 @@
-{"name":"AlertConnect","short_name":"AlertConnect","start_url":"./","display":"standalone","theme_color":"#0f8f4f","background_color":"#f6f8f7"}
+{
+  "name": "AlertConnect",
+  "short_name": "AlertConnect",
+  "description": "Secure group communication and emergency alerts.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#087f5b",
+
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+
+  "categories": [
+    "communication",
+    "social",
+    "utilities"
+  ],
+
+  "lang": "en",
+  "dir": "ltr"
+}
