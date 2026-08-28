@@ -1,6 +1,8 @@
 /* =========================================================
-   AlertConnect - app.js
-   Step 2: Main Application Logic
+   AlertConnect
+   FINAL app.js
+   Firebase Web SDK + Firestore + Auth + FCM
+   Cloud Functions 2nd Gen compatible
    ========================================================= */
 
 import {
@@ -28,7 +30,10 @@ import {
   query,
   where,
   orderBy,
-  serverTimestamp
+  serverTimestamp,
+  arrayUnion,
+  arrayRemove,
+  limit
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 import {
@@ -41,7 +46,6 @@ import {
 
 /* =========================================================
    FIREBASE CONFIG
-   Replace these values with your Firebase project values.
    ========================================================= */
 
 const firebaseConfig = {
@@ -52,6 +56,43 @@ const firebaseConfig = {
   messagingSenderId: "556004754007",
   appId: "1:556004754007:web:c00286f1030afdd4c21912"
 };
+
+
+/* =========================================================
+   APP CONSTANTS
+   ========================================================= */
+
+const APP_NAME = "AlertConnect";
+const APP_VERSION = "2.0.0";
+
+const MASTER_ADMIN_UID =
+  "NT1cA2oRVQdvJk8CWhSFhpcr60V2";
+
+/*
+  IMPORTANT:
+  Keep ALL role names in one place.
+
+  Do not scatter role strings throughout the app.
+  When your final six-role specification is fixed,
+  only this configuration needs to be aligned with
+  Firestore Rules / Cloud Functions.
+*/
+
+const ROLES = Object.freeze({
+  MASTER_ADMIN: "masterAdmin",
+  ADMIN: "admin",
+  ORGANIZER: "organizer",
+  MEMBER: "member",
+  GUEST: "guest",
+  MODERATOR: "moderator"
+});
+
+const ACCOUNT_STATUS = Object.freeze({
+  PENDING: "pending",
+  APPROVED: "approved",
+  SUSPENDED: "suspended",
+  DISABLED: "disabled"
+});
 
 
 /* =========================================================
@@ -67,23 +108,49 @@ let messaging = null;
 
 
 /* =========================================================
-   APPLICATION STATE
+   GLOBAL STATE
    ========================================================= */
 
 const state = {
+
   user: null,
+
   profile: null,
+
   currentScreen: "login",
+
   currentGroup: null,
+
   groups: [],
+
   members: [],
+
+  joinRequests: [],
+
   alerts: [],
+
   pendingAlert: null,
+
   inviteGroup: null,
+
+  notificationToken: null,
+
   unsubscribeGroups: null,
+
   unsubscribeMessages: null,
+
   unsubscribeAlerts: null,
-  deferredInstallPrompt: null
+
+  unsubscribeMembers: null,
+
+  unsubscribeRequests: null,
+
+  deferredInstallPrompt: null,
+
+  notificationListenerStarted: false,
+
+  initialized: false
+
 };
 
 
@@ -91,24 +158,58 @@ const state = {
    DOM HELPERS
    ========================================================= */
 
-const $ = (id) => document.getElementById(id);
+const $ = id =>
+  document.getElementById(id);
+
 
 function showElement(id) {
+
   const el = $(id);
-  if (el) el.classList.remove("hidden");
+
+  if (el) {
+    el.classList.remove("hidden");
+  }
 }
+
 
 function hideElement(id) {
+
   const el = $(id);
-  if (el) el.classList.add("hidden");
+
+  if (el) {
+    el.classList.add("hidden");
+  }
 }
+
 
 function text(id, value) {
+
   const el = $(id);
-  if (el) el.textContent = value ?? "";
+
+  if (el) {
+    el.textContent = value ?? "";
+  }
 }
 
+
+function value(id, fallback = "") {
+
+  return $(id)?.value ?? fallback;
+}
+
+
+function setValue(id, val) {
+
+  const el = $(id);
+
+  if (el) {
+    el.value = val ?? "";
+  }
+}
+
+
 function escapeHTML(value = "") {
+
   return String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -118,11 +219,100 @@ function escapeHTML(value = "") {
 }
 
 
+function normalizeRole(role) {
+
+  const r =
+    String(role || ROLES.MEMBER)
+      .trim();
+
+  if (
+    Object.values(ROLES)
+      .includes(r)
+  ) {
+    return r;
+  }
+
+  return ROLES.MEMBER;
+}
+
+
+/* =========================================================
+   ROLE HELPERS
+   ========================================================= */
+
+function isMasterAdmin() {
+
+  return Boolean(
+    state.user &&
+    (
+      state.user.uid === MASTER_ADMIN_UID ||
+      state.profile?.role === ROLES.MASTER_ADMIN
+    )
+  );
+}
+
+
+function isAdmin() {
+
+  return (
+    isMasterAdmin() ||
+    state.profile?.role === ROLES.ADMIN
+  );
+}
+
+
+function isOrganizer() {
+
+  return (
+    isMasterAdmin() ||
+    state.profile?.role === ROLES.ORGANIZER
+  );
+}
+
+
+function canManageSystem() {
+
+  return (
+    isMasterAdmin() ||
+    isAdmin()
+  );
+}
+
+
+function canManageGroup(group = state.currentGroup) {
+
+  if (!group || !state.user) {
+    return false;
+  }
+
+  if (isMasterAdmin() || isAdmin()) {
+    return true;
+  }
+
+  if (
+    group.ownerId === state.user.uid
+  ) {
+    return true;
+  }
+
+  if (
+    group.adminIds?.includes(
+      state.user.uid
+    )
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+
 /* =========================================================
    SCREEN NAVIGATION
    ========================================================= */
 
 const screens = [
+
   "login",
   "guestJoin",
   "pending",
@@ -143,23 +333,31 @@ const screens = [
   "adminGroups",
   "organizers",
   "createOrganizer"
+
 ];
+
 
 function showScreen(screenId) {
 
   screens.forEach(id => {
+
     const screen = $(id);
 
     if (screen) {
       screen.classList.add("hidden");
     }
+
   });
 
   const target = $(screenId);
 
   if (target) {
+
     target.classList.remove("hidden");
-    state.currentScreen = screenId;
+
+    state.currentScreen =
+      screenId;
+
   }
 
   updateNavigation(screenId);
@@ -169,6 +367,7 @@ function showScreen(screenId) {
 function updateNavigation(screenId) {
 
   const appScreens = [
+
     "home",
     "chat",
     "newGroup",
@@ -186,37 +385,72 @@ function updateNavigation(screenId) {
     "adminGroups",
     "organizers",
     "createOrganizer"
+
   ];
 
-  if (appScreens.includes(screenId)) {
+  if (
+    appScreens.includes(screenId)
+  ) {
+
     showElement("nav");
+
   } else {
+
     hideElement("nav");
+
   }
+
 
   document
     .querySelectorAll(".nav-item")
-    .forEach(item => item.classList.remove("active"));
+    .forEach(item =>
+      item.classList.remove("active")
+    );
+
 
   if (screenId === "home") {
-    $("navHome")?.classList.add("active");
+
+    $("navHome")
+      ?.classList.add("active");
+
   }
 
+
   if (
-    ["newGroup", "members", "requests", "invite"].includes(screenId)
+    [
+      "newGroup",
+      "members",
+      "requests",
+      "invite"
+    ].includes(screenId)
   ) {
-    $("navGroups")?.classList.add("active");
+
+    $("navGroups")
+      ?.classList.add("active");
+
   }
+
 
   if (screenId === "alerts") {
-    $("navAlerts")?.classList.add("active");
+
+    $("navAlerts")
+      ?.classList.add("active");
+
   }
 
+
   if (
-    ["profile", "editProfile"].includes(screenId)
+    [
+      "profile",
+      "editProfile"
+    ].includes(screenId)
   ) {
-    $("navProfile")?.classList.add("active");
+
+    $("navProfile")
+      ?.classList.add("active");
+
   }
+
 }
 
 
@@ -226,22 +460,50 @@ function updateNavigation(screenId) {
 
 let toastTimer = null;
 
-function toast(message, icon = "✓") {
 
-  const toastEl = $("toast");
+function toast(
+  message,
+  icon = "✓"
+) {
 
-  if (!toastEl) return;
+  const toastEl =
+    $("toast");
 
-  text("toastMessage", message);
-  text("toastIcon", icon);
+  if (!toastEl) {
 
-  toastEl.classList.remove("hidden");
+    console.log(message);
 
-  clearTimeout(toastTimer);
+    return;
+  }
 
-  toastTimer = setTimeout(() => {
-    toastEl.classList.add("hidden");
-  }, 3500);
+  text(
+    "toastMessage",
+    message
+  );
+
+  text(
+    "toastIcon",
+    icon
+  );
+
+  toastEl.classList.remove(
+    "hidden"
+  );
+
+  clearTimeout(
+    toastTimer
+  );
+
+  toastTimer =
+    setTimeout(
+      () => {
+        toastEl.classList.add(
+          "hidden"
+        );
+      },
+      3500
+    );
+
 }
 
 
@@ -249,48 +511,76 @@ function toast(message, icon = "✓") {
    LOADING
    ========================================================= */
 
-function loading(show, message = "Please wait...") {
+function loading(
+  show,
+  message = "Please wait..."
+) {
 
   if (show) {
-    text("loadingText", message);
-    showElement("loadingOverlay");
+
+    text(
+      "loadingText",
+      message
+    );
+
+    showElement(
+      "loadingOverlay"
+    );
+
   } else {
-    hideElement("loadingOverlay");
+
+    hideElement(
+      "loadingOverlay"
+    );
+
   }
+
 }
 
 
 /* =========================================================
-   GOOGLE LOGIN
+   GOOGLE AUTH
    ========================================================= */
 
 async function googleLogin() {
 
   try {
 
-    loading(true, "Signing in...");
+    loading(
+      true,
+      "Signing in with Google..."
+    );
 
-    const provider = new GoogleAuthProvider();
+    const provider =
+      new GoogleAuthProvider();
 
     provider.setCustomParameters({
       prompt: "select_account"
     });
 
-    await signInWithPopup(auth, provider);
+    await signInWithPopup(
+      auth,
+      provider
+    );
 
   } catch (error) {
 
-    console.error("Google login error:", error);
+    console.error(
+      "Google login error:",
+      error
+    );
 
     toast(
-      error?.message || "Unable to sign in.",
+      getFriendlyError(error),
       "!"
     );
 
   } finally {
 
     loading(false);
+
   }
+
 }
 
 
@@ -298,125 +588,397 @@ async function googleLogin() {
    AUTH STATE
    ========================================================= */
 
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(
+  auth,
+  async user => {
 
-  if (!user) {
+    try {
 
-    state.user = null;
-    state.profile = null;
+      if (!user) {
 
-    cleanupRealtimeListeners();
+        state.user = null;
 
-    showScreen("login");
+        state.profile = null;
 
-    return;
+        cleanupRealtimeListeners();
+
+        showScreen("login");
+
+        return;
+
+      }
+
+
+      state.user = user;
+
+
+      /*
+        Master Admin UID is authoritative.
+        We don't wait for a profile role to show
+        Master Admin controls.
+      */
+
+      if (
+        user.uid === MASTER_ADMIN_UID
+      ) {
+
+        await ensureMasterAdminProfile(
+          user
+        );
+
+      } else {
+
+        await loadUserProfile(
+          user
+        );
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Auth state error:",
+        error
+      );
+
+      toast(
+        "Unable to load your account.",
+        "!"
+      );
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   MASTER ADMIN PROFILE
+   ========================================================= */
+
+async function ensureMasterAdminProfile(
+  user
+) {
+
+  const ref =
+    doc(
+      db,
+      "users",
+      user.uid
+    );
+
+  const snap =
+    await getDoc(ref);
+
+
+  const profile = {
+
+    uid: user.uid,
+
+    name:
+      user.displayName ||
+      "Master Admin",
+
+    email:
+      user.email ||
+      "",
+
+    photoURL:
+      user.photoURL ||
+      "",
+
+    phone:
+      "",
+
+    role:
+      ROLES.MASTER_ADMIN,
+
+    status:
+      ACCOUNT_STATUS.APPROVED,
+
+    accountType:
+      "Master Admin",
+
+    createdAt:
+      serverTimestamp(),
+
+    updatedAt:
+      serverTimestamp()
+
+  };
+
+
+  if (!snap.exists()) {
+
+    await setDoc(
+      ref,
+      profile
+    );
+
+    state.profile = {
+      ...profile,
+      uid: user.uid
+    };
+
+  } else {
+
+    await setDoc(
+      ref,
+      {
+        role:
+          ROLES.MASTER_ADMIN,
+
+        status:
+          ACCOUNT_STATUS.APPROVED,
+
+        updatedAt:
+          serverTimestamp()
+      },
+      {
+        merge: true
+      }
+    );
+
+    state.profile = {
+      uid: user.uid,
+      ...snap.data(),
+      role:
+        ROLES.MASTER_ADMIN,
+      status:
+        ACCOUNT_STATUS.APPROVED
+    };
+
   }
 
-  state.user = user;
 
-  await loadUserProfile(user);
+  updateProfileUI();
 
-});
+  await startApplication();
+
+}
 
 
 /* =========================================================
    LOAD USER PROFILE
    ========================================================= */
 
-async function loadUserProfile(user) {
+async function loadUserProfile(
+  user
+) {
 
   try {
 
-    loading(true, "Loading your account...");
+    loading(
+      true,
+      "Loading your account..."
+    );
 
-    const ref = doc(db, "users", user.uid);
 
-    const snap = await getDoc(ref);
+    const ref =
+      doc(
+        db,
+        "users",
+        user.uid
+      );
+
+
+    const snap =
+      await getDoc(ref);
+
 
     if (!snap.exists()) {
 
       const newProfile = {
-        uid: user.uid,
-        name: user.displayName || "User",
-        email: user.email || "",
-        photoURL: user.photoURL || "",
-        phone: "",
-        role: "member",
-        status: "pending",
-        accountType: "member",
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+
+        uid:
+          user.uid,
+
+        name:
+          user.displayName ||
+          "User",
+
+        email:
+          user.email ||
+          "",
+
+        photoURL:
+          user.photoURL ||
+          "",
+
+        phone:
+          "",
+
+        role:
+          ROLES.MEMBER,
+
+        status:
+          ACCOUNT_STATUS.PENDING,
+
+        accountType:
+          "Member",
+
+        createdAt:
+          serverTimestamp(),
+
+        updatedAt:
+          serverTimestamp()
+
       };
 
-      await setDoc(ref, newProfile);
+
+      await setDoc(
+        ref,
+        newProfile
+      );
+
 
       state.profile = {
         ...newProfile,
-        status: "pending"
+        uid: user.uid
       };
 
     } else {
 
       state.profile = {
+
         uid: user.uid,
+
         ...snap.data()
+
       };
+
     }
+
+
+    /*
+      Defensive role normalization.
+    */
+
+    state.profile.role =
+      normalizeRole(
+        state.profile.role
+      );
+
 
     updateProfileUI();
 
-    if (state.profile.status === "suspended") {
+
+    if (
+      state.profile.status ===
+      ACCOUNT_STATUS.SUSPENDED ||
+      state.profile.status ===
+      ACCOUNT_STATUS.DISABLED
+    ) {
 
       toast(
-        "Your account is suspended.",
+        "Your account is currently disabled.",
         "!"
       );
 
-      showScreen("pending");
+      showScreen(
+        "pending"
+      );
 
       return;
+
     }
+
 
     if (
-      state.profile.role === "masterAdmin" ||
-      state.profile.role === "admin"
+      state.profile.status !==
+      ACCOUNT_STATUS.APPROVED
     ) {
 
-      loadGroups();
-      loadAlerts();
-
-      showScreen("home");
-
-      return;
-    }
-
-    if (state.profile.status !== "approved") {
-
-      showScreen("pending");
+      showScreen(
+        "pending"
+      );
 
       return;
+
     }
 
-    loadGroups();
-    loadAlerts();
 
-    showScreen("home");
-
-    initializeNotifications();
+    await startApplication();
 
   } catch (error) {
 
-    console.error("Profile loading error:", error);
+    console.error(
+      "Profile loading error:",
+      error
+    );
 
     toast(
-      "Unable to load account.",
+      getFriendlyError(error),
       "!"
     );
 
   } finally {
 
     loading(false);
+
   }
+
+}
+
+
+/* =========================================================
+   START APPLICATION
+   ========================================================= */
+
+async function startApplication() {
+
+  if (
+    !state.user ||
+    !state.profile
+  ) {
+    return;
+  }
+
+
+  state.initialized = true;
+
+
+  updateProfileUI();
+
+
+  loadGroups();
+
+  loadAlerts();
+
+
+  if (
+    Notification &&
+    Notification.permission ===
+    "granted"
+  ) {
+
+    initializeNotifications();
+
+  }
+
+
+  /*
+    Master Admin panel is available only
+    to the actual Master Admin.
+  */
+
+  if (isMasterAdmin()) {
+
+    showElement(
+      "masterAdminEntry"
+    );
+
+  } else {
+
+    hideElement(
+      "masterAdminEntry"
+    );
+
+  }
+
+
+  showScreen("home");
+
 }
 
 
@@ -426,76 +988,173 @@ async function loadUserProfile(user) {
 
 function updateProfileUI() {
 
-  const profile = state.profile;
+  const profile =
+    state.profile;
 
-  if (!profile) return;
+  if (!profile) {
+    return;
+  }
+
 
   const name =
     profile.name ||
     state.user?.displayName ||
     "User";
 
+
   const email =
     profile.email ||
     state.user?.email ||
     "—";
+
 
   const photo =
     profile.photoURL ||
     state.user?.photoURL ||
     "";
 
-  text("userName", name);
-  text("accountName", name);
-  text("profileName", name);
 
-  text("userEmail", email);
-  text("accountEmail", email);
-  text("profileEmail", email);
+  text(
+    "userName",
+    name
+  );
+
+  text(
+    "accountName",
+    name
+  );
+
+  text(
+    "profileName",
+    name
+  );
+
+
+  text(
+    "userEmail",
+    email
+  );
+
+  text(
+    "accountEmail",
+    email
+  );
+
+  text(
+    "profileEmail",
+    email
+  );
+
 
   text(
     "userRoleBadge",
-    String(profile.role || "member").toUpperCase()
+    normalizeRole(
+      profile.role
+    ).toUpperCase()
   );
+
 
   text(
     "profileRole",
-    String(profile.role || "member").toUpperCase()
+    normalizeRole(
+      profile.role
+    ).toUpperCase()
   );
+
 
   text(
     "profileAccountStatus",
-    String(profile.status || "pending").toUpperCase()
+    String(
+      profile.status ||
+      ACCOUNT_STATUS.PENDING
+    ).toUpperCase()
   );
+
 
   text(
     "profileAccountType",
-    profile.accountType || "Member"
+    profile.accountType ||
+    "Member"
   );
 
-  updateAvatar("userAvatar", photo, name);
-  updateAvatar("homeHeaderAvatar", photo, name);
-  updateAvatar("accountAvatar", photo, name);
-  updateAvatar("profileAvatar", photo, name);
-  updateAvatar("editProfileAvatar", photo, name);
+
+  updateAvatar(
+    "userAvatar",
+    photo,
+    name
+  );
+
+  updateAvatar(
+    "homeHeaderAvatar",
+    photo,
+    name
+  );
+
+  updateAvatar(
+    "accountAvatar",
+    photo,
+    name
+  );
+
+  updateAvatar(
+    "profileAvatar",
+    photo,
+    name
+  );
+
+  updateAvatar(
+    "editProfileAvatar",
+    photo,
+    name
+  );
+
+
+  /*
+    Master Admin UI.
+  */
+
+  if (isMasterAdmin()) {
+
+    showElement(
+      "masterAdminEntry"
+    );
+
+  } else {
+
+    hideElement(
+      "masterAdminEntry"
+    );
+
+  }
+
 }
 
 
-function updateAvatar(id, photo, name) {
+function updateAvatar(
+  id,
+  photo,
+  name
+) {
 
   const el = $(id);
 
-  if (!el) return;
+  if (!el) {
+    return;
+  }
+
 
   if (photo) {
 
     el.innerHTML =
-      `<img src="${escapeHTML(photo)}" alt="${escapeHTML(name)}">`;
+      `<img src="${escapeHTML(photo)}"
+             alt="${escapeHTML(name)}">`;
 
   } else {
 
     el.textContent = "👤";
+
   }
+
 }
 
 
@@ -505,7 +1164,9 @@ function updateAvatar(id, photo, name) {
 
 async function requestNotificationPermission() {
 
-  if (!("Notification" in window)) {
+  if (
+    !("Notification" in window)
+  ) {
 
     toast(
       "This browser does not support notifications.",
@@ -513,16 +1174,24 @@ async function requestNotificationPermission() {
     );
 
     return false;
+
   }
+
 
   try {
 
     const permission =
       await Notification.requestPermission();
 
-    updateNotificationUI(permission);
 
-    if (permission === "granted") {
+    updateNotificationUI(
+      permission
+    );
+
+
+    if (
+      permission === "granted"
+    ) {
 
       await initializeNotifications();
 
@@ -532,7 +1201,9 @@ async function requestNotificationPermission() {
       );
 
       return true;
+
     }
+
 
     toast(
       "Notification permission was not granted.",
@@ -543,39 +1214,63 @@ async function requestNotificationPermission() {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      error
+    );
 
     return false;
+
   }
+
 }
 
 
-function updateNotificationUI(permission) {
+function updateNotificationUI(
+  permission
+) {
 
   const granted =
-    permission === "granted";
+    permission ===
+    "granted";
+
 
   text(
     "notificationStatus",
-    granted ? "Enabled" : "Not enabled"
+    granted
+      ? "Enabled"
+      : "Not enabled"
   );
+
 
   text(
     "profileNotificationStatus",
-    granted ? "Enabled" : "Not enabled"
+    granted
+      ? "Enabled"
+      : "Not enabled"
   );
+
 
   text(
     "guestNotificationState",
-    granted ? "Notifications enabled" : "Permission required"
+    granted
+      ? "Notifications enabled"
+      : "Permission required"
   );
 
-  const guestBtn = $("guestNotificationBtn");
 
-  if (guestBtn) {
-    guestBtn.textContent =
-      granted ? "Enabled" : "Allow";
+  const btn =
+    $("guestNotificationBtn");
+
+
+  if (btn) {
+
+    btn.textContent =
+      granted
+        ? "Enabled"
+        : "Allow";
+
   }
+
 }
 
 
@@ -587,141 +1282,253 @@ async function initializeNotifications() {
 
   try {
 
-    if (!("Notification" in window)) {
+    if (
+      !("Notification" in window)
+    ) {
       return;
     }
 
-    if (Notification.permission !== "granted") {
+
+    if (
+      Notification.permission !==
+      "granted"
+    ) {
       return;
     }
 
-    const supported = await isSupported();
+
+    const supported =
+      await isSupported();
+
 
     if (!supported) {
-      console.warn("FCM is not supported.");
-      return;
-    }
 
-    messaging = getMessaging(firebaseApp);
-
-    const registration =
-      await navigator.serviceWorker.register(
-        "/firebase-messaging-sw.js"
+      console.warn(
+        "FCM is not supported."
       );
 
+      return;
+
+    }
+
+
+    if (!messaging) {
+
+      messaging =
+        getMessaging(
+          firebaseApp
+        );
+
+    }
+
+
+    const registration =
+      await navigator
+        .serviceWorker
+        .register(
+          "/firebase-messaging-sw.js"
+        );
+
+
     /*
-      IMPORTANT:
-      Replace YOUR_VAPID_KEY with the Web Push certificate
-      key from Firebase Console.
+      Firebase Console
+      → Project Settings
+      → Cloud Messaging
+      → Web Push certificates
+
+      VAPID public key.
     */
 
-    const token = await getToken(
-      messaging,
-      {
-        vapidKey: "BEgr7aecThStfASiimhDZgVkIbm4nEtN3CgPiW_5kRG-Lc2ZOP9ED9zLIyTa-U1UJC2tpZYSQAzOOWvdm1pJ7Wk",
-        serviceWorkerRegistration: registration
-      }
-    );
+    const vapidKey =
+      "BEgr7aecThStfASiimhDZgVkIbm4nEt3CgPiW_5kRG-Lc2ZOP9ED9zLIyTa-U1UJC2tpZYSQAzOOWvdm1pJ7Wk";
+
+
+    const token =
+      await getToken(
+        messaging,
+        {
+          vapidKey,
+          serviceWorkerRegistration:
+            registration
+        }
+      );
+
 
     if (!token) {
-      console.warn("No FCM token available.");
+
+      console.warn(
+        "No FCM token available."
+      );
+
       return;
+
     }
+
+
+    state.notificationToken =
+      token;
+
 
     if (state.user) {
 
-      await saveNotificationToken(token);
-    }
-
-    onMessage(messaging, payload => {
-
-      console.log(
-        "Foreground notification:",
-        payload
+      await saveNotificationToken(
+        token
       );
 
-      handleIncomingAlert(payload);
-    });
+    }
+
+
+    /*
+      Avoid registering multiple foreground
+      listeners.
+    */
+
+    if (
+      !state.notificationListenerStarted
+    ) {
+
+      onMessage(
+        messaging,
+        payload => {
+
+          console.log(
+            "Foreground FCM:",
+            payload
+          );
+
+          handleIncomingAlert(
+            payload
+          );
+
+        }
+      );
+
+
+      state.notificationListenerStarted =
+        true;
+
+    }
 
   } catch (error) {
 
     console.error(
-      "Notification initialization error:",
+      "FCM initialization error:",
       error
     );
+
   }
+
 }
 
 
 /* =========================================================
-   SAVE FCM TOKEN
+   SAVE NOTIFICATION TOKEN
    ========================================================= */
 
-async function saveNotificationToken(token) {
+async function saveNotificationToken(
+  token
+) {
 
-  if (!state.user) return;
+  if (!state.user || !token) {
+    return;
+  }
 
-  const tokenRef = doc(
-    db,
-    "users",
-    state.user.uid,
-    "notificationTokens",
-    token
-  );
+
+  const tokenRef =
+    doc(
+      db,
+      "users",
+      state.user.uid,
+      "notificationTokens",
+      token
+    );
+
 
   await setDoc(
     tokenRef,
     {
+
       token,
-      platform: "web",
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+
+      uid:
+        state.user.uid,
+
+      platform:
+        detectPlatform(),
+
+      createdAt:
+        serverTimestamp(),
+
+      updatedAt:
+        serverTimestamp(),
+
+      active:
+        true
+
     },
-    { merge: true }
+    {
+      merge: true
+    }
   );
+
 }
 
 
 /* =========================================================
-   INCOMING ALERT
+   INCOMING FCM ALERT
    ========================================================= */
 
-function handleIncomingAlert(payload) {
+function handleIncomingAlert(
+  payload
+) {
 
   const notification =
-    payload?.notification || {};
+    payload?.notification ||
+    {};
 
   const data =
-    payload?.data || {};
+    payload?.data ||
+    {};
+
 
   const title =
     notification.title ||
     data.title ||
     "Emergency Alert";
 
+
   const message =
     notification.body ||
     data.message ||
     "You have received an emergency alert.";
 
+
   const group =
     data.groupName ||
     "AlertConnect";
+
 
   const sender =
     data.senderName ||
     "AlertConnect";
 
-  const time =
-    new Date().toLocaleString();
 
   showEmergencyOverlay({
+
     title,
+
     message,
+
     group,
+
     sender,
-    time
+
+    time:
+      new Date()
+        .toLocaleString()
+
   });
+
 }
 
 
@@ -729,17 +1536,23 @@ function handleIncomingAlert(payload) {
    EMERGENCY OVERLAY
    ========================================================= */
 
-function showEmergencyOverlay(alert) {
+function showEmergencyOverlay(
+  alert
+) {
 
   text(
     "overlayAlertGroup",
-    alert.group || "AlertConnect"
+    alert.group ||
+    "AlertConnect"
   );
+
 
   text(
     "overlayAlertMessage",
-    alert.message || ""
+    alert.message ||
+    ""
   );
+
 
   text(
     "overlayAlertSender",
@@ -748,17 +1561,28 @@ function showEmergencyOverlay(alert) {
       : ""
   );
 
+
   text(
     "overlayAlertTime",
-    alert.time || new Date().toLocaleString()
+    alert.time ||
+    new Date()
+      .toLocaleString()
   );
 
-  showElement("emergencyOverlay");
+
+  showElement(
+    "emergencyOverlay"
+  );
+
 }
 
 
 function dismissEmergencyOverlay() {
-  hideElement("emergencyOverlay");
+
+  hideElement(
+    "emergencyOverlay"
+  );
+
 }
 
 
@@ -768,118 +1592,183 @@ function dismissEmergencyOverlay() {
 
 function loadGroups() {
 
-  if (!state.user) return;
-
-  if (state.unsubscribeGroups) {
-    state.unsubscribeGroups();
+  if (!state.user) {
+    return;
   }
 
-  const q = query(
-    collection(db, "groups"),
-    where(
-      "memberIds",
-      "array-contains",
-      state.user.uid
-    )
-  );
+
+  if (
+    state.unsubscribeGroups
+  ) {
+
+    state.unsubscribeGroups();
+
+  }
+
+
+  const q =
+    query(
+      collection(
+        db,
+        "groups"
+      ),
+      where(
+        "memberIds",
+        "array-contains",
+        state.user.uid
+      )
+    );
+
 
   state.unsubscribeGroups =
     onSnapshot(
       q,
+
       snapshot => {
 
-        state.groups = snapshot.docs.map(docSnap => ({
-          id: docSnap.id,
-          ...docSnap.data()
-        }));
+        state.groups =
+          snapshot.docs.map(
+            docSnap => ({
+              id:
+                docSnap.id,
+
+              ...docSnap.data()
+
+            })
+          );
+
 
         renderGroups();
+
         updateGroupStats();
 
       },
+
       error => {
 
         console.error(
           "Groups listener error:",
           error
         );
+
       }
     );
+
 }
 
 
 /* =========================================================
-   RENDER GROUPS
+   GROUP RENDER
    ========================================================= */
 
 function renderGroups() {
 
-  const container = $("groupsList");
+  const container =
+    $("groupsList");
 
-  if (!container) return;
 
-  if (!state.groups.length) {
-
-    container.innerHTML = `
-      <div class="empty-state">
-        <div>👥</div>
-        <b>No groups yet</b>
-        <small>
-          Join a group or create your first group.
-        </small>
-      </div>
-    `;
-
+  if (!container) {
     return;
   }
 
+
+  if (
+    !state.groups.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty-state">
+
+        <div>👥</div>
+
+        <b>No groups yet</b>
+
+        <small>
+          Join a group or create your first group.
+        </small>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
   container.innerHTML =
-    state.groups.map(group => `
+    state.groups
+      .map(group => `
 
-      <button
-        class="group-card"
-        type="button"
-        data-group-id="${escapeHTML(group.id)}"
-      >
+        <button
+          class="group-card"
+          type="button"
+          data-group-id="${escapeHTML(group.id)}"
+        >
 
-        <div class="group-card-icon">
-          ${escapeHTML(group.icon || "👥")}
-        </div>
+          <div class="group-card-icon">
+            ${escapeHTML(group.icon || "👥")}
+          </div>
 
-        <div class="group-card-info">
+          <div class="group-card-info">
 
-          <b>
-            ${escapeHTML(group.name || "Group")}
-          </b>
+            <b>
+              ${escapeHTML(
+                group.name ||
+                "Group"
+              )}
+            </b>
 
-          <small>
-            ${escapeHTML(
-              group.description || "AlertConnect group"
-            )}
-          </small>
+            <small>
+              ${escapeHTML(
+                group.description ||
+                "AlertConnect group"
+              )}
+            </small>
 
-        </div>
+          </div>
 
-        <span>
-          ›
-        </span>
+          <span>›</span>
 
-      </button>
+        </button>
 
-    `).join("");
+      `)
+      .join("");
+
 
   container
-    .querySelectorAll("[data-group-id]")
+    .querySelectorAll(
+      "[data-group-id]"
+    )
     .forEach(button => {
 
       button.addEventListener(
         "click",
-        () => {
-          openGroup(button.dataset.groupId);
-        }
+        () =>
+          openGroup(
+            button.dataset.groupId
+          )
       );
 
     });
+
+}
+
+
+/* =========================================================
+   GROUP STATS
+   ========================================================= */
+
+function updateGroupStats() {
+
+  text(
+    "groupCount",
+    String(
+      state.groups.length
+    )
+  );
+
 }
 
 
@@ -889,16 +1778,32 @@ function renderGroups() {
 
 async function createGroup() {
 
-  if (!state.user || !state.profile) {
-    toast("Please sign in first.", "!");
+  if (
+    !state.user ||
+    !state.profile
+  ) {
+
+    toast(
+      "Please sign in first.",
+      "!"
+    );
+
     return;
+
   }
 
+
   const name =
-    $("groupName")?.value.trim();
+    value(
+      "groupName"
+    ).trim();
+
 
   const description =
-    $("groupDescription")?.value.trim();
+    value(
+      "groupDescription"
+    ).trim();
+
 
   if (!name) {
 
@@ -908,77 +1813,161 @@ async function createGroup() {
     );
 
     return;
+
   }
 
-  const memberPermissions = {
+
+  const permissions = {
+
     messages:
-      $("allowMessages")?.checked ?? true,
+      $("allowMessages")
+        ?.checked ??
+      true,
 
     alerts:
-      $("allowAlerts")?.checked ?? true,
+      $("allowAlerts")
+        ?.checked ??
+      true,
 
     media:
-      $("allowMedia")?.checked ?? false,
+      $("allowMedia")
+        ?.checked ??
+      false,
 
     guests:
-      $("allowGuests")?.checked ?? true
+      $("allowGuests")
+        ?.checked ??
+      true
+
   };
+
 
   try {
 
-    loading(true, "Creating group...");
+    loading(
+      true,
+      "Creating group..."
+    );
+
+
+    const groupData = {
+
+      name,
+
+      description,
+
+      icon:
+        "👥",
+
+      ownerId:
+        state.user.uid,
+
+      adminIds:
+        [state.user.uid],
+
+      memberIds:
+        [state.user.uid],
+
+      permissions,
+
+      settings: {
+
+        messageRetentionDays:
+          30,
+
+        mediaEnabled:
+          permissions.media,
+
+        emergencyAlerts:
+          permissions.alerts
+
+      },
+
+      createdAt:
+        serverTimestamp(),
+
+      updatedAt:
+        serverTimestamp()
+
+    };
+
 
     const groupRef =
       await addDoc(
-        collection(db, "groups"),
-        {
-          name,
-          description,
-          icon: "👥",
-
-          ownerId: state.user.uid,
-
-          memberIds: [
-            state.user.uid
-          ],
-
-          permissions: memberPermissions,
-
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        }
+        collection(
+          db,
+          "groups"
+        ),
+        groupData
       );
 
-    await addDoc(
-      collection(
+
+    await setDoc(
+      doc(
         db,
         "groups",
         groupRef.id,
-        "members"
+        "members",
+        state.user.uid
       ),
       {
-        uid: state.user.uid,
+
+        uid:
+          state.user.uid,
+
         name:
           state.profile.name ||
           state.user.displayName ||
           "User",
+
         email:
-          state.user.email || "",
-        role: "owner",
-        status: "approved",
-        joinedAt: serverTimestamp()
+          state.user.email ||
+          "",
+
+        role:
+          "owner",
+
+        appRole:
+          normalizeRole(
+            state.profile.role
+          ),
+
+        status:
+          ACCOUNT_STATUS.APPROVED,
+
+        notifications:
+          "push",
+
+        joinedAt:
+          serverTimestamp(),
+
+        updatedAt:
+          serverTimestamp()
+
       }
     );
 
-    $("groupName").value = "";
-    $("groupDescription").value = "";
+
+    setValue(
+      "groupName",
+      ""
+    );
+
+    setValue(
+      "groupDescription",
+      ""
+    );
+
 
     toast(
       "Group created successfully.",
       "✓"
     );
 
-    showScreen("home");
+
+    showScreen(
+      "home"
+    );
 
   } catch (error) {
 
@@ -988,14 +1977,16 @@ async function createGroup() {
     );
 
     toast(
-      "Unable to create group.",
+      getFriendlyError(error),
       "!"
     );
 
   } finally {
 
     loading(false);
+
   }
+
 }
 
 
@@ -1003,38 +1994,62 @@ async function createGroup() {
    OPEN GROUP
    ========================================================= */
 
-async function openGroup(groupId) {
+async function openGroup(
+  groupId
+) {
 
   const group =
     state.groups.find(
-      item => item.id === groupId
+      item =>
+        item.id === groupId
     );
 
+
   if (!group) {
-    toast("Group not found.", "!");
+
+    toast(
+      "Group not found.",
+      "!"
+    );
+
     return;
+
   }
 
-  state.currentGroup = group;
+
+  state.currentGroup =
+    group;
+
 
   text(
     "chatGroupName",
-    group.name || "Group"
+    group.name ||
+    "Group"
   );
+
 
   text(
     "chatGroupMembers",
     `${group.memberIds?.length || 0} members`
   );
 
+
   text(
     "chatGroupAvatar",
-    group.icon || "👥"
+    group.icon ||
+    "👥"
   );
 
-  showScreen("chat");
 
-  loadMessages(groupId);
+  showScreen(
+    "chat"
+  );
+
+
+  loadMessages(
+    groupId
+  );
+
 }
 
 
@@ -1042,11 +2057,18 @@ async function openGroup(groupId) {
    GROUP MESSAGES
    ========================================================= */
 
-function loadMessages(groupId) {
+function loadMessages(
+  groupId
+) {
 
-  if (state.unsubscribeMessages) {
+  if (
+    state.unsubscribeMessages
+  ) {
+
     state.unsubscribeMessages();
+
   }
+
 
   const messagesRef =
     collection(
@@ -1056,89 +2078,139 @@ function loadMessages(groupId) {
       "messages"
     );
 
-  const q = query(
-    messagesRef,
-    orderBy("createdAt", "asc")
-  );
+
+  const q =
+    query(
+      messagesRef,
+      orderBy(
+        "createdAt",
+        "asc"
+      )
+    );
+
 
   state.unsubscribeMessages =
     onSnapshot(
       q,
+
       snapshot => {
 
         const messages =
-          snapshot.docs.map(docSnap => ({
-            id: docSnap.id,
-            ...docSnap.data()
-          }));
+          snapshot.docs.map(
+            docSnap => ({
 
-        renderMessages(messages);
+              id:
+                docSnap.id,
+
+              ...docSnap.data()
+
+            })
+          );
+
+
+        renderMessages(
+          messages
+        );
 
       },
+
       error => {
 
         console.error(
           "Messages listener error:",
           error
         );
+
       }
     );
+
 }
 
 
-function renderMessages(messages) {
+/* =========================================================
+   MESSAGE RENDER
+   ========================================================= */
 
-  const container = $("messages");
+function renderMessages(
+  messages
+) {
 
-  if (!container) return;
+  const container =
+    $("messages");
+
+
+  if (!container) {
+    return;
+  }
+
 
   if (!messages.length) {
 
     container.innerHTML = `
+
       <div class="empty-state chat-empty">
+
         <div>💬</div>
+
         <b>No messages yet</b>
+
         <small>
           Start a secure conversation.
         </small>
+
       </div>
+
     `;
 
     return;
+
   }
 
+
   container.innerHTML =
-    messages.map(message => {
+    messages
+      .map(message => {
 
-      const own =
-        message.senderId === state.user?.uid;
+        const own =
+          message.senderId ===
+          state.user?.uid;
 
-      return `
-        <div class="message-row ${own ? "own" : ""}">
 
-          <div class="message-bubble">
+        return `
 
-            <small>
-              ${escapeHTML(
-                message.senderName || "Member"
-              )}
-            </small>
+          <div
+            class="message-row ${own ? "own" : ""}"
+          >
 
-            <div>
-              ${escapeHTML(
-                message.text || ""
-              )}
+            <div class="message-bubble">
+
+              <small>
+                ${escapeHTML(
+                  message.senderName ||
+                  "Member"
+                )}
+              </small>
+
+              <div>
+                ${escapeHTML(
+                  message.text ||
+                  ""
+                )}
+              </div>
+
             </div>
 
           </div>
 
-        </div>
-      `;
+        `;
 
-    }).join("");
+      })
+      .join("");
+
 
   container.scrollTop =
     container.scrollHeight;
+
 }
 
 
@@ -1148,20 +2220,30 @@ function renderMessages(messages) {
 
 async function sendMessage() {
 
-  if (!state.user || !state.currentGroup) {
+  if (
+    !state.user ||
+    !state.currentGroup
+  ) {
     return;
   }
+
 
   const input =
     $("messageInput");
 
-  const value =
+
+  const message =
     input?.value.trim();
 
-  if (!value) return;
+
+  if (!message) {
+    return;
+  }
+
 
   const group =
     state.currentGroup;
+
 
   if (
     group.permissions &&
@@ -1174,11 +2256,14 @@ async function sendMessage() {
     );
 
     return;
+
   }
+
 
   try {
 
     input.value = "";
+
 
     await addDoc(
       collection(
@@ -1188,17 +2273,24 @@ async function sendMessage() {
         "messages"
       ),
       {
-        senderId: state.user.uid,
+
+        senderId:
+          state.user.uid,
 
         senderName:
           state.profile?.name ||
           state.user.displayName ||
           "Member",
 
-        text: value,
+        text:
+          message,
+
+        type:
+          "text",
 
         createdAt:
           serverTimestamp()
+
       }
     );
 
@@ -1209,36 +2301,70 @@ async function sendMessage() {
       error
     );
 
+    input.value =
+      message;
+
+
     toast(
-      "Message could not be sent.",
+      getFriendlyError(error),
       "!"
     );
+
   }
+
 }
 
 
 /* =========================================================
-   ALERT PAGE
+   EMERGENCY ALERT PAGE
    ========================================================= */
 
-function openEmergencyPage(group = null) {
+function openEmergencyPage(
+  group = null
+) {
 
   if (group) {
 
-    state.currentGroup = group;
+    state.currentGroup =
+      group;
+
 
     text(
       "alertTargetName",
-      group.name || "Group"
+      group.name ||
+      "Group"
     );
+
 
     text(
       "alertTargetMembers",
       `${group.memberIds?.length || 0} members`
     );
+
   }
 
-  showScreen("alert");
+
+  if (!state.currentGroup) {
+
+    if (state.groups.length) {
+
+      state.currentGroup =
+        state.groups[0];
+
+      text(
+        "alertTargetName",
+        state.currentGroup.name
+      );
+
+    }
+
+  }
+
+
+  showScreen(
+    "alert"
+  );
+
 }
 
 
@@ -1249,7 +2375,10 @@ function openEmergencyPage(group = null) {
 function previewAlert() {
 
   const message =
-    $("alertMessage")?.value.trim();
+    value(
+      "alertMessage"
+    ).trim();
+
 
   if (!message) {
 
@@ -1259,7 +2388,9 @@ function previewAlert() {
     );
 
     return;
+
   }
+
 
   if (!state.currentGroup) {
 
@@ -1269,24 +2400,58 @@ function previewAlert() {
     );
 
     return;
+
   }
 
+
+  if (
+    state.currentGroup.permissions &&
+    state.currentGroup.permissions.alerts === false
+  ) {
+
+    toast(
+      "Emergency alerts are disabled in this group.",
+      "!"
+    );
+
+    return;
+
+  }
+
+
   state.pendingAlert = {
-    groupId: state.currentGroup.id,
-    groupName: state.currentGroup.name,
+
+    groupId:
+      state.currentGroup.id,
+
+    groupName:
+      state.currentGroup.name,
+
     message,
+
     highPriority:
-      $("highPriority")?.checked ?? true,
+      $("highPriority")
+        ?.checked ??
+      true,
+
     emergencySound:
-      $("emergencySound")?.checked ?? true
+      $("emergencySound")
+        ?.checked ??
+      true
+
   };
+
 
   text(
     "alertPreview",
     message
   );
 
-  showScreen("confirm");
+
+  showScreen(
+    "confirm"
+  );
+
 }
 
 
@@ -1296,55 +2461,137 @@ function previewAlert() {
 
 async function sendEmergencyAlert() {
 
-  if (!state.pendingAlert) {
+  if (
+    !state.pendingAlert ||
+    !state.user
+  ) {
     return;
   }
+
 
   const alert =
     state.pendingAlert;
 
+
   try {
 
-    loading(true, "Sending emergency alert...");
+    loading(
+      true,
+      "Sending emergency alert..."
+    );
 
-    await addDoc(
-      collection(db, "alerts"),
+
+    const alertData = {
+
+      groupId:
+        alert.groupId,
+
+      groupName:
+        alert.groupName,
+
+      senderId:
+        state.user.uid,
+
+      senderName:
+        state.profile?.name ||
+        state.user.displayName ||
+        "Member",
+
+      message:
+        alert.message,
+
+      priority:
+        alert.highPriority
+          ? "high"
+          : "normal",
+
+      emergencySound:
+        alert.emergencySound,
+
+      type:
+        "emergency",
+
+      createdAt:
+        serverTimestamp()
+
+    };
+
+
+    /*
+      Firestore document.
+
+      IMPORTANT:
+      Firebase Cloud Functions 2nd Gen can listen to
+      this collection and send FCM notifications.
+
+      The client DOES NOT contain any server credential.
+    */
+
+    const alertRef =
+      await addDoc(
+        collection(
+          db,
+          "alerts"
+        ),
+        alertData
+      );
+
+
+    /*
+      Optional client-side delivery queue record.
+      The Cloud Function V2 can consume this if your
+      backend uses an explicit queue architecture.
+    */
+
+    await setDoc(
+      doc(
+        db,
+        "alertDeliveries",
+        alertRef.id
+      ),
       {
-        groupId: alert.groupId,
-        groupName: alert.groupName,
 
-        senderId: state.user.uid,
+        alertId:
+          alertRef.id,
 
-        senderName:
-          state.profile?.name ||
-          state.user.displayName ||
-          "Member",
+        groupId:
+          alert.groupId,
 
-        message: alert.message,
-
-        priority:
-          alert.highPriority
-            ? "high"
-            : "normal",
-
-        emergencySound:
-          alert.emergencySound,
+        status:
+          "queued",
 
         createdAt:
-          serverTimestamp()
+          serverTimestamp(),
+
+        createdBy:
+          state.user.uid
+
+      },
+      {
+        merge: true
       }
     );
+
 
     toast(
       "Emergency alert sent.",
       "🚨"
     );
 
-    $("alertMessage").value = "";
 
-    state.pendingAlert = null;
+    setValue(
+      "alertMessage",
+      ""
+    );
 
-    showScreen("home");
+
+    state.pendingAlert =
+      null;
+
+
+    showScreen(
+      "home"
+    );
 
   } catch (error) {
 
@@ -1354,14 +2601,16 @@ async function sendEmergencyAlert() {
     );
 
     toast(
-      "Emergency alert could not be sent.",
+      getFriendlyError(error),
       "!"
     );
 
   } finally {
 
     loading(false);
+
   }
+
 }
 
 
@@ -1371,134 +2620,203 @@ async function sendEmergencyAlert() {
 
 function loadAlerts() {
 
-  if (!state.user) return;
-
-  if (state.unsubscribeAlerts) {
-    state.unsubscribeAlerts();
+  if (!state.user) {
+    return;
   }
 
-  const q = query(
-    collection(db, "alerts"),
-    orderBy("createdAt", "desc")
-  );
+
+  if (
+    state.unsubscribeAlerts
+  ) {
+
+    state.unsubscribeAlerts();
+
+  }
+
+
+  const q =
+    query(
+      collection(
+        db,
+        "alerts"
+      ),
+      orderBy(
+        "createdAt",
+        "desc"
+      ),
+      limit(100)
+    );
+
 
   state.unsubscribeAlerts =
     onSnapshot(
       q,
+
       snapshot => {
 
         state.alerts =
-          snapshot.docs.map(docSnap => ({
-            id: docSnap.id,
-            ...docSnap.data()
-          }));
+          snapshot.docs.map(
+            docSnap => ({
+
+              id:
+                docSnap.id,
+
+              ...docSnap.data()
+
+            })
+          );
+
 
         renderAlertHistory();
 
         updateAlertBadge();
 
       },
+
       error => {
 
         console.error(
           "Alert listener error:",
           error
         );
+
       }
     );
+
 }
 
+
+/* =========================================================
+   ALERT HISTORY UI
+   ========================================================= */
 
 function renderAlertHistory() {
 
   const container =
     $("alertHistory");
 
-  if (!container) return;
 
-  if (!state.alerts.length) {
-
-    container.innerHTML = `
-      <div class="empty-state">
-        <div>🔔</div>
-        <b>No alerts yet</b>
-        <small>
-          Emergency alerts will appear here.
-        </small>
-      </div>
-    `;
-
+  if (!container) {
     return;
   }
 
+
+  if (
+    !state.alerts.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty-state">
+
+        <div>🔔</div>
+
+        <b>No alerts yet</b>
+
+        <small>
+          Emergency alerts will appear here.
+        </small>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
   container.innerHTML =
-    state.alerts.map(alert => {
+    state.alerts
+      .map(alert => {
 
-      let date = "";
+        let date = "";
 
-      if (alert.createdAt?.toDate) {
-        date =
-          alert.createdAt
-            .toDate()
-            .toLocaleString();
-      }
 
-      return `
-        <div class="history-card">
+        if (
+          alert.createdAt?.toDate
+        ) {
 
-          <div class="history-icon">
-            🚨
+          date =
+            alert.createdAt
+              .toDate()
+              .toLocaleString();
+
+        }
+
+
+        return `
+
+          <div class="history-card">
+
+            <div class="history-icon">
+              🚨
+            </div>
+
+            <div class="history-content">
+
+              <b>
+                ${escapeHTML(
+                  alert.groupName ||
+                  "Group"
+                )}
+              </b>
+
+              <p>
+                ${escapeHTML(
+                  alert.message ||
+                  ""
+                )}
+              </p>
+
+              <small>
+                ${escapeHTML(date)}
+              </small>
+
+            </div>
+
           </div>
 
-          <div class="history-content">
+        `;
 
-            <b>
-              ${escapeHTML(
-                alert.groupName || "Group"
-              )}
-            </b>
+      })
+      .join("");
 
-            <p>
-              ${escapeHTML(
-                alert.message || ""
-              )}
-            </p>
-
-            <small>
-              ${escapeHTML(date)}
-            </small>
-
-          </div>
-
-        </div>
-      `;
-
-    }).join("");
 }
 
+
+/* =========================================================
+   ALERT BADGE
+   ========================================================= */
 
 function updateAlertBadge() {
 
   const count =
     state.alerts.length;
 
-  const badges = [
+
+  [
     $("alertBadge"),
     $("navAlertBadge")
-  ];
+  ]
+    .forEach(badge => {
 
-  badges.forEach(badge => {
+      if (!badge) {
+        return;
+      }
 
-    if (!badge) return;
 
-    badge.textContent =
-      String(count);
+      badge.textContent =
+        String(count);
 
-    badge.classList.toggle(
-      "hidden",
-      count === 0
-    );
-  });
+
+      badge.classList.toggle(
+        "hidden",
+        count === 0
+      );
+
+    });
+
 }
 
 
@@ -1511,34 +2829,50 @@ async function generateInviteLink() {
   const group =
     state.currentGroup;
 
-  if (!group) return;
+
+  if (!group) {
+    return;
+  }
+
 
   const url =
     new URL(
       window.location.href
     );
 
+
   url.searchParams.set(
     "join",
     group.id
   );
 
+
   const link =
     url.toString();
+
 
   const input =
     $("inviteLink");
 
+
   if (input) {
-    input.value = link;
+
+    input.value =
+      link;
+
   }
+
 
   text(
     "shareGroupName",
-    group.name || "Group"
+    group.name ||
+    "AlertConnect Group"
   );
 
-  state.inviteGroup = group;
+
+  state.inviteGroup =
+    group;
+
 }
 
 
@@ -1548,27 +2882,39 @@ async function generateInviteLink() {
 
 async function copyInviteLink() {
 
-  const value =
+  const link =
     $("inviteLink")?.value;
 
-  if (!value) return;
+
+  if (!link) {
+    return;
+  }
+
 
   try {
 
-    await navigator.clipboard.writeText(value);
+    await navigator
+      .clipboard
+      .writeText(link);
+
 
     toast(
       "Invite link copied.",
       "✓"
     );
 
-  } catch {
+  } catch (error) {
+
+    console.error(error);
+
 
     toast(
       "Could not copy the link.",
       "!"
     );
+
   }
+
 }
 
 
@@ -1581,36 +2927,51 @@ async function shareInvite() {
   const link =
     $("inviteLink")?.value;
 
-  if (!link) return;
+
+  if (!link) {
+    return;
+  }
+
 
   const groupName =
     state.currentGroup?.name ||
     "AlertConnect Group";
 
-  if (navigator.share) {
+
+  if (
+    navigator.share
+  ) {
 
     try {
 
       await navigator.share({
-        title: groupName,
+
+        title:
+          groupName,
+
         text:
           `Join ${groupName} on AlertConnect`,
-        url: link
+
+        url:
+          link
+
       });
 
     } catch {
-      // User cancelled share.
+      // User cancelled.
     }
 
   } else {
 
     await copyInviteLink();
+
   }
+
 }
 
 
 /* =========================================================
-   PROCESS URL INVITE
+   PROCESS INVITE URL
    ========================================================= */
 
 async function processInviteURL() {
@@ -1620,10 +2981,15 @@ async function processInviteURL() {
       window.location.search
     );
 
+
   const groupId =
     params.get("join");
 
-  if (!groupId) return;
+
+  if (!groupId) {
+    return;
+  }
+
 
   try {
 
@@ -1636,6 +3002,7 @@ async function processInviteURL() {
         )
       );
 
+
     if (!groupSnap.exists()) {
 
       toast(
@@ -1644,12 +3011,19 @@ async function processInviteURL() {
       );
 
       return;
+
     }
 
+
     state.inviteGroup = {
-      id: groupSnap.id,
+
+      id:
+        groupSnap.id,
+
       ...groupSnap.data()
+
     };
+
 
     text(
       "guestGroupName",
@@ -1657,11 +3031,13 @@ async function processInviteURL() {
       "Group Invitation"
     );
 
+
     text(
       "guestGroupDescription",
       state.inviteGroup.description ||
       "You have been invited to join this group."
     );
+
 
     text(
       "guestGroupOwner",
@@ -1669,7 +3045,10 @@ async function processInviteURL() {
       "Group Administrator"
     );
 
-    showScreen("guestJoin");
+
+    showScreen(
+      "guestJoin"
+    );
 
   } catch (error) {
 
@@ -1677,18 +3056,21 @@ async function processInviteURL() {
       "Invite processing error:",
       error
     );
+
   }
+
 }
 
 
 /* =========================================================
-   GUEST JOIN
+   GUEST JOIN / SUBSCRIPTION
    ========================================================= */
 
 async function guestJoin() {
 
   const group =
     state.inviteGroup;
+
 
   if (!group) {
 
@@ -1698,7 +3080,9 @@ async function guestJoin() {
     );
 
     return;
+
   }
+
 
   if (
     group.permissions &&
@@ -1711,29 +3095,36 @@ async function guestJoin() {
     );
 
     return;
+
   }
 
-  const permission =
-    Notification.permission;
 
-  if (permission !== "granted") {
+  if (
+    Notification.permission !==
+    "granted"
+  ) {
 
     const allowed =
       await requestNotificationPermission();
 
+
     if (!allowed) {
 
       toast(
-        "Notification permission is required for guest alerts.",
+        "Notification permission is required.",
         "!"
       );
 
       return;
+
     }
+
   }
+
 
   const guestId =
     getGuestId();
+
 
   try {
 
@@ -1744,27 +3135,42 @@ async function guestJoin() {
         guestId
       ),
       {
+
         guestId,
-        groupId: group.id,
-        groupName: group.name || "",
-        notificationEnabled: true,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+
+        groupId:
+          group.id,
+
+        groupName:
+          group.name ||
+          "",
+
+        notificationEnabled:
+          true,
+
+        createdAt:
+          serverTimestamp(),
+
+        updatedAt:
+          serverTimestamp()
+
       },
-      { merge: true }
+      {
+        merge: true
+      }
     );
+
 
     localStorage.setItem(
       "alertconnect_guest_group",
       group.id
     );
 
+
     toast(
       "You are now subscribed to alerts.",
       "🔔"
     );
-
-    showScreen("guestJoin");
 
   } catch (error) {
 
@@ -1773,11 +3179,14 @@ async function guestJoin() {
       error
     );
 
+
     toast(
-      "Guest registration failed.",
+      getFriendlyError(error),
       "!"
     );
+
   }
+
 }
 
 
@@ -1788,18 +3197,288 @@ function getGuestId() {
       "alertconnect_guest_id"
     );
 
+
   if (!id) {
 
     id =
       crypto.randomUUID();
 
+
     localStorage.setItem(
       "alertconnect_guest_id",
       id
     );
+
   }
 
+
   return id;
+
+}
+
+
+/* =========================================================
+   MEMBER JOIN REQUEST
+   ========================================================= */
+
+async function requestGroupJoin(
+  groupId
+) {
+
+  if (!state.user) {
+
+    toast(
+      "Please sign in first.",
+      "!"
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    await setDoc(
+      doc(
+        db,
+        "groups",
+        groupId,
+        "requests",
+        state.user.uid
+      ),
+      {
+
+        uid:
+          state.user.uid,
+
+        name:
+          state.profile?.name ||
+          state.user.displayName ||
+          "User",
+
+        email:
+          state.user.email ||
+          "",
+
+        status:
+          "pending",
+
+        createdAt:
+          serverTimestamp(),
+
+        updatedAt:
+          serverTimestamp()
+
+      }
+    );
+
+
+    toast(
+      "Join request sent.",
+      "✓"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Join request error:",
+      error
+    );
+
+
+    toast(
+      getFriendlyError(error),
+      "!"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   APPROVE MEMBER
+   ========================================================= */
+
+async function approveMember(
+  groupId,
+  uid
+) {
+
+  if (
+    !canManageGroup(
+      state.currentGroup
+    )
+  ) {
+
+    toast(
+      "You do not have permission.",
+      "!"
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    await updateDoc(
+      doc(
+        db,
+        "groups",
+        groupId
+      ),
+      {
+
+        memberIds:
+          arrayUnion(uid),
+
+        updatedAt:
+          serverTimestamp()
+
+      }
+    );
+
+
+    await updateDoc(
+      doc(
+        db,
+        "groups",
+        groupId,
+        "requests",
+        uid
+      ),
+      {
+
+        status:
+          "approved",
+
+        updatedAt:
+          serverTimestamp()
+
+      }
+    );
+
+
+    toast(
+      "Member approved.",
+      "✓"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Approve member error:",
+      error
+    );
+
+
+    toast(
+      getFriendlyError(error),
+      "!"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   REMOVE MEMBER
+   ========================================================= */
+
+async function removeMember(
+  groupId,
+  uid
+) {
+
+  if (
+    !canManageGroup(
+      state.currentGroup
+    )
+  ) {
+
+    toast(
+      "You do not have permission.",
+      "!"
+    );
+
+    return;
+
+  }
+
+
+  if (
+    uid ===
+    state.currentGroup?.ownerId
+  ) {
+
+    toast(
+      "The group owner cannot be removed.",
+      "!"
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    await updateDoc(
+      doc(
+        db,
+        "groups",
+        groupId
+      ),
+      {
+
+        memberIds:
+          arrayRemove(uid),
+
+        adminIds:
+          arrayRemove(uid),
+
+        updatedAt:
+          serverTimestamp()
+
+      }
+    );
+
+
+    await deleteDoc(
+      doc(
+        db,
+        "groups",
+        groupId,
+        "members",
+        uid
+      )
+    );
+
+
+    toast(
+      "Member removed.",
+      "✓"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Remove member error:",
+      error
+    );
+
+
+    toast(
+      getFriendlyError(error),
+      "!"
+    );
+
+  }
+
 }
 
 
@@ -1809,13 +3488,22 @@ function getGuestId() {
 
 async function saveProfile() {
 
-  if (!state.user) return;
+  if (!state.user) {
+    return;
+  }
+
 
   const name =
-    $("editNameInput")?.value.trim();
+    value(
+      "editNameInput"
+    ).trim();
+
 
   const phone =
-    $("editPhoneInput")?.value.trim();
+    value(
+      "editPhoneInput"
+    ).trim();
+
 
   if (!name) {
 
@@ -1825,11 +3513,17 @@ async function saveProfile() {
     );
 
     return;
+
   }
+
 
   try {
 
-    loading(true, "Saving profile...");
+    loading(
+      true,
+      "Saving profile..."
+    );
+
 
     await updateDoc(
       doc(
@@ -1838,24 +3532,37 @@ async function saveProfile() {
         state.user.uid
       ),
       {
+
         name,
+
         phone,
+
         updatedAt:
           serverTimestamp()
+
       }
     );
 
-    state.profile.name = name;
-    state.profile.phone = phone;
+
+    state.profile.name =
+      name;
+
+    state.profile.phone =
+      phone;
+
 
     updateProfileUI();
+
 
     toast(
       "Profile updated.",
       "✓"
     );
 
-    showScreen("profile");
+
+    showScreen(
+      "profile"
+    );
 
   } catch (error) {
 
@@ -1864,70 +3571,698 @@ async function saveProfile() {
       error
     );
 
+
     toast(
-      "Unable to save profile.",
+      getFriendlyError(error),
       "!"
     );
 
   } finally {
 
     loading(false);
+
   }
+
 }
 
 
 /* =========================================================
-   SIGN OUT
+   MASTER ADMIN
    ========================================================= */
 
-async function logout() {
+function openMasterAdmin() {
+
+  if (!isMasterAdmin()) {
+
+    toast(
+      "Master Admin access denied.",
+      "!"
+    );
+
+    return;
+
+  }
+
+
+  showScreen(
+    "masterAdmin"
+  );
+
+
+  loadAdminUsers();
+
+  loadAdminGroups();
+
+  loadOrganizers();
+
+}
+
+
+/* =========================================================
+   ADMIN USERS
+   ========================================================= */
+
+async function loadAdminUsers() {
+
+  const container =
+    $("adminUsersList");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  if (!canManageSystem()) {
+    return;
+  }
+
 
   try {
 
-    cleanupRealtimeListeners();
+    const snapshot =
+      await getDocsSafe(
+        collection(
+          db,
+          "users"
+        )
+      );
 
-    await signOut(auth);
 
-    state.user = null;
-    state.profile = null;
+    if (!snapshot) {
+      return;
+    }
 
-    showScreen("login");
+
+    container.innerHTML =
+      snapshot.docs
+        .map(snap => {
+
+          const user =
+            snap.data();
+
+
+          return `
+
+            <div class="admin-user-card">
+
+              <div>
+
+                <b>
+                  ${escapeHTML(
+                    user.name ||
+                    "User"
+                  )}
+                </b>
+
+                <small>
+                  ${escapeHTML(
+                    user.email ||
+                    ""
+                  )}
+                </small>
+
+                <small>
+                  Role:
+                  ${escapeHTML(
+                    normalizeRole(
+                      user.role
+                    )
+                  )}
+                </small>
+
+                <small>
+                  Status:
+                  ${escapeHTML(
+                    user.status ||
+                    ""
+                  )}
+                </small>
+
+              </div>
+
+              <div>
+
+                <button
+                  type="button"
+                  data-admin-user="${escapeHTML(
+                    snap.id
+                  )}"
+                >
+                  Manage
+                </button>
+
+              </div>
+
+            </div>
+
+          `;
+
+        })
+        .join("");
+
 
   } catch (error) {
 
     console.error(
-      "Sign out error:",
+      "Admin users error:",
       error
     );
+
+    container.innerHTML =
+      `<div class="empty-state">
+         Unable to load users.
+       </div>`;
+
   }
+
 }
 
 
 /* =========================================================
-   REALTIME CLEANUP
+   ADMIN GROUPS
    ========================================================= */
 
-function cleanupRealtimeListeners() {
+async function loadAdminGroups() {
 
-  if (state.unsubscribeGroups) {
-    state.unsubscribeGroups();
-    state.unsubscribeGroups = null;
+  const container =
+    $("adminGroupsList");
+
+
+  if (!container) {
+    return;
   }
 
-  if (state.unsubscribeMessages) {
-    state.unsubscribeMessages();
-    state.unsubscribeMessages = null;
+
+  if (!canManageSystem()) {
+    return;
   }
 
-  if (state.unsubscribeAlerts) {
-    state.unsubscribeAlerts();
-    state.unsubscribeAlerts = null;
+
+  try {
+
+    const snapshot =
+      await getDocsSafe(
+        collection(
+          db,
+          "groups"
+        )
+      );
+
+
+    if (!snapshot) {
+      return;
+    }
+
+
+    container.innerHTML =
+      snapshot.docs
+        .map(snap => {
+
+          const group =
+            snap.data();
+
+
+          return `
+
+            <div class="admin-group-card">
+
+              <b>
+                ${escapeHTML(
+                  group.name ||
+                  "Group"
+                )}
+              </b>
+
+              <small>
+                Members:
+                ${group.memberIds?.length || 0}
+              </small>
+
+              <small>
+                Owner:
+                ${escapeHTML(
+                  group.ownerId ||
+                  ""
+                )}
+              </small>
+
+            </div>
+
+          `;
+
+        })
+        .join("");
+
+
+  } catch (error) {
+
+    console.error(
+      "Admin groups error:",
+      error
+    );
+
   }
+
 }
 
 
 /* =========================================================
-   INSTALLABLE PWA
+   ORGANIZERS
+   ========================================================= */
+
+async function loadOrganizers() {
+
+  const container =
+    $("organizerList");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  if (!isMasterAdmin()) {
+    return;
+  }
+
+
+  try {
+
+    const snapshot =
+      await getDocsSafe(
+        collection(
+          db,
+          "organizers"
+        )
+      );
+
+
+    if (!snapshot) {
+      return;
+    }
+
+
+    if (
+      snapshot.empty
+    ) {
+
+      container.innerHTML =
+        `<div class="empty-state">
+           No organizers yet.
+         </div>`;
+
+      return;
+
+    }
+
+
+    container.innerHTML =
+      snapshot.docs
+        .map(snap => {
+
+          const organizer =
+            snap.data();
+
+
+          return `
+
+            <div class="master-item">
+
+              <div>
+
+                <b>
+                  ${escapeHTML(
+                    organizer.name ||
+                    organizer.email ||
+                    snap.id
+                  )}
+                </b>
+
+                <small>
+                  ${escapeHTML(
+                    organizer.email ||
+                    ""
+                  )}
+                </small>
+
+                <small>
+                  Status:
+                  ${organizer.active === false
+                    ? "Disabled"
+                    : "Active"}
+                </small>
+
+              </div>
+
+            </div>
+
+          `;
+
+        })
+        .join("");
+
+
+  } catch (error) {
+
+    console.error(
+      "Load organizers error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CREATE ORGANIZER
+   ========================================================= */
+
+async function createOrganizer() {
+
+  if (!isMasterAdmin()) {
+
+    toast(
+      "Only Master Admin can create organizers.",
+      "!"
+    );
+
+    return;
+
+  }
+
+
+  const name =
+    value(
+      "organizerName"
+    ).trim();
+
+
+  const email =
+    value(
+      "organizerEmail"
+    ).trim()
+      .toLowerCase();
+
+
+  const activationCode =
+    value(
+      "organizerActivationCode"
+    ).trim();
+
+
+  if (
+    !name ||
+    !email
+  ) {
+
+    toast(
+      "Organizer name and Gmail are required.",
+      "!"
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    loading(
+      true,
+      "Creating organizer..."
+    );
+
+
+    const ref =
+      await addDoc(
+        collection(
+          db,
+          "organizers"
+        ),
+        {
+
+          name,
+
+          email,
+
+          activationCode:
+            activationCode ||
+            createActivationCode(),
+
+          active:
+            true,
+
+          activated:
+            false,
+
+          role:
+            ROLES.ORGANIZER,
+
+          createdBy:
+            state.user.uid,
+
+          createdAt:
+            serverTimestamp(),
+
+          updatedAt:
+            serverTimestamp()
+
+        }
+      );
+
+
+    console.log(
+      "Organizer created:",
+      ref.id
+    );
+
+
+    toast(
+      "Organizer created successfully.",
+      "✓"
+    );
+
+
+    setValue(
+      "organizerName",
+      ""
+    );
+
+    setValue(
+      "organizerEmail",
+      ""
+    );
+
+    setValue(
+      "organizerActivationCode",
+      ""
+    );
+
+
+    loadOrganizers();
+
+
+  } catch (error) {
+
+    console.error(
+      "Create organizer error:",
+      error
+    );
+
+
+    toast(
+      getFriendlyError(error),
+      "!"
+    );
+
+  } finally {
+
+    loading(false);
+
+  }
+
+}
+
+
+/* =========================================================
+   ORGANIZER CONTROL
+   ========================================================= */
+
+async function setOrganizerActive(
+  organizerId,
+  active
+) {
+
+  if (!isMasterAdmin()) {
+    return;
+  }
+
+
+  try {
+
+    await updateDoc(
+      doc(
+        db,
+        "organizers",
+        organizerId
+      ),
+      {
+
+        active:
+          Boolean(active),
+
+        updatedAt:
+          serverTimestamp()
+
+      }
+    );
+
+
+    toast(
+      active
+        ? "Organizer enabled."
+        : "Organizer disabled.",
+      "✓"
+    );
+
+
+    loadOrganizers();
+
+  } catch (error) {
+
+    console.error(
+      "Organizer update error:",
+      error
+    );
+
+
+    toast(
+      getFriendlyError(error),
+      "!"
+    );
+
+  }
+
+}
+
+
+async function resetOrganizer(
+  organizerId
+) {
+
+  if (!isMasterAdmin()) {
+    return;
+  }
+
+
+  try {
+
+    await updateDoc(
+      doc(
+        db,
+        "organizers",
+        organizerId
+      ),
+      {
+
+        activated:
+          false,
+
+        activatedAt:
+          null,
+
+        updatedAt:
+          serverTimestamp()
+
+      }
+    );
+
+
+    toast(
+      "Organizer activation reset.",
+      "✓"
+    );
+
+
+    loadOrganizers();
+
+  } catch (error) {
+
+    console.error(
+      "Reset organizer error:",
+      error
+    );
+
+
+    toast(
+      getFriendlyError(error),
+      "!"
+    );
+
+  }
+
+}
+
+
+async function deleteOrganizer(
+  organizerId
+) {
+
+  if (!isMasterAdmin()) {
+    return;
+  }
+
+
+  if (
+    !confirm(
+      "Delete this organizer?"
+    )
+  ) {
+    return;
+  }
+
+
+  try {
+
+    await deleteDoc(
+      doc(
+        db,
+        "organizers",
+        organizerId
+      )
+    );
+
+
+    toast(
+      "Organizer deleted.",
+      "✓"
+    );
+
+
+    loadOrganizers();
+
+  } catch (error) {
+
+    console.error(
+      "Delete organizer error:",
+      error
+    );
+
+
+    toast(
+      getFriendlyError(error),
+      "!"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   PWA INSTALL
    ========================================================= */
 
 window.addEventListener(
@@ -1939,14 +4274,19 @@ window.addEventListener(
     state.deferredInstallPrompt =
       event;
 
-    showElement("installPrompt");
+    showElement(
+      "installPrompt"
+    );
+
   }
 );
 
 
 async function installApp() {
 
-  if (!state.deferredInstallPrompt) {
+  if (
+    !state.deferredInstallPrompt
+  ) {
 
     toast(
       "Install option is not available right now.",
@@ -1954,15 +4294,145 @@ async function installApp() {
     );
 
     return;
+
   }
 
-  state.deferredInstallPrompt.prompt();
 
-  await state.deferredInstallPrompt.userChoice;
+  state.deferredInstallPrompt
+    .prompt();
 
-  state.deferredInstallPrompt = null;
 
-  hideElement("installPrompt");
+  await state
+    .deferredInstallPrompt
+    .userChoice;
+
+
+  state.deferredInstallPrompt =
+    null;
+
+
+  hideElement(
+    "installPrompt"
+  );
+
+}
+
+
+/* =========================================================
+   LOGOUT
+   ========================================================= */
+
+async function logout() {
+
+  try {
+
+    cleanupRealtimeListeners();
+
+    await signOut(
+      auth
+    );
+
+
+    state.user =
+      null;
+
+    state.profile =
+      null;
+
+    state.groups =
+      [];
+
+    state.alerts =
+      [];
+
+    state.currentGroup =
+      null;
+
+    state.initialized =
+      false;
+
+
+    showScreen(
+      "login"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Logout error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   REALTIME CLEANUP
+   ========================================================= */
+
+function cleanupRealtimeListeners() {
+
+  if (
+    state.unsubscribeGroups
+  ) {
+
+    state.unsubscribeGroups();
+
+    state.unsubscribeGroups =
+      null;
+
+  }
+
+
+  if (
+    state.unsubscribeMessages
+  ) {
+
+    state.unsubscribeMessages();
+
+    state.unsubscribeMessages =
+      null;
+
+  }
+
+
+  if (
+    state.unsubscribeAlerts
+  ) {
+
+    state.unsubscribeAlerts();
+
+    state.unsubscribeAlerts =
+      null;
+
+  }
+
+
+  if (
+    state.unsubscribeMembers
+  ) {
+
+    state.unsubscribeMembers();
+
+    state.unsubscribeMembers =
+      null;
+
+  }
+
+
+  if (
+    state.unsubscribeRequests
+  ) {
+
+    state.unsubscribeRequests();
+
+    state.unsubscribeRequests =
+      null;
+
+  }
+
 }
 
 
@@ -1978,17 +4448,26 @@ function setupEvents() {
       googleLogin
     );
 
+
   $("guestJoinBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("guestJoin")
+      () =>
+        showScreen(
+          "guestJoin"
+        )
     );
+
 
   $("guestBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("login")
+      () =>
+        showScreen(
+          "login"
+        )
     );
+
 
   $("guestNotificationBtn")
     ?.addEventListener(
@@ -1996,11 +4475,13 @@ function setupEvents() {
       requestNotificationPermission
     );
 
+
   $("guestJoinConfirmBtn")
     ?.addEventListener(
       "click",
       guestJoin
     );
+
 
   $("requestNotificationBtn")
     ?.addEventListener(
@@ -2008,11 +4489,13 @@ function setupEvents() {
       requestNotificationPermission
     );
 
+
   $("profileNotificationBtn")
     ?.addEventListener(
       "click",
       requestNotificationPermission
     );
+
 
   $("refreshApprovalBtn")
     ?.addEventListener(
@@ -2020,13 +4503,16 @@ function setupEvents() {
       async () => {
 
         if (state.user) {
+
           await loadUserProfile(
             state.user
           );
+
         }
 
       }
     );
+
 
   $("pendingSignOutBtn")
     ?.addEventListener(
@@ -2034,25 +4520,32 @@ function setupEvents() {
       logout
     );
 
+
   $("emergencyBtn")
     ?.addEventListener(
       "click",
-      () => openEmergencyPage()
+      () =>
+        openEmergencyPage()
     );
+
 
   $("navEmergency")
     ?.addEventListener(
       "click",
-      () => openEmergencyPage()
+      () =>
+        openEmergencyPage()
     );
+
 
   $("chatAlertBtn")
     ?.addEventListener(
       "click",
-      () => openEmergencyPage(
-        state.currentGroup
-      )
+      () =>
+        openEmergencyPage(
+          state.currentGroup
+        )
     );
+
 
   $("previewAlertBtn")
     ?.addEventListener(
@@ -2060,11 +4553,16 @@ function setupEvents() {
       previewAlert
     );
 
+
   $("cancelAlertBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("alert")
+      () =>
+        showScreen(
+          "alert"
+        )
     );
+
 
   $("sendAlertBtn")
     ?.addEventListener(
@@ -2072,54 +4570,66 @@ function setupEvents() {
       sendEmergencyAlert
     );
 
+
   $("alertsHeaderBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("alerts")
+      () =>
+        showScreen(
+          "alerts"
+        )
     );
+
 
   $("navAlerts")
     ?.addEventListener(
       "click",
-      () => showScreen("alerts")
+      () =>
+        showScreen(
+          "alerts"
+        )
     );
+
 
   $("alertsBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("home")
+      () =>
+        showScreen(
+          "home"
+        )
     );
 
-  $("clearAlertsBtn")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        state.alerts = [];
-
-        renderAlertHistory();
-        updateAlertBadge();
-
-      }
-    );
 
   $("newGroupBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("newGroup")
+      () =>
+        showScreen(
+          "newGroup"
+        )
     );
+
 
   $("navGroups")
     ?.addEventListener(
       "click",
-      () => showScreen("newGroup")
+      () =>
+        showScreen(
+          "newGroup"
+        )
     );
+
 
   $("newGroupBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("home")
+      () =>
+        showScreen(
+          "home"
+        )
     );
+
 
   $("createGroupBtn")
     ?.addEventListener(
@@ -2127,17 +4637,23 @@ function setupEvents() {
       createGroup
     );
 
+
   $("chatBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("home")
+      () =>
+        showScreen(
+          "home"
+        )
     );
+
 
   $("sendMessageBtn")
     ?.addEventListener(
       "click",
       sendMessage
     );
+
 
   $("messageInput")
     ?.addEventListener(
@@ -2152,28 +4668,42 @@ function setupEvents() {
           event.preventDefault();
 
           sendMessage();
+
         }
 
       }
     );
 
+
   $("profileBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("profile")
+      () =>
+        showScreen(
+          "profile"
+        )
     );
+
 
   $("navProfile")
     ?.addEventListener(
       "click",
-      () => showScreen("profile")
+      () =>
+        showScreen(
+          "profile"
+        )
     );
+
 
   $("profileBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("home")
+      () =>
+        showScreen(
+          "home"
+        )
     );
+
 
   $("editProfileBtn")
     ?.addEventListener(
@@ -2182,28 +4712,44 @@ function setupEvents() {
 
         if (state.profile) {
 
-          $("editNameInput").value =
-            state.profile.name || "";
+          setValue(
+            "editNameInput",
+            state.profile.name ||
+            ""
+          );
 
-          $("editPhoneInput").value =
-            state.profile.phone || "";
+          setValue(
+            "editPhoneInput",
+            state.profile.phone ||
+            ""
+          );
+
         }
 
-        showScreen("editProfile");
+        showScreen(
+          "editProfile"
+        );
+
       }
     );
+
 
   $("editProfileBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("profile")
+      () =>
+        showScreen(
+          "profile"
+        )
     );
+
 
   $("saveProfileBtn")
     ?.addEventListener(
       "click",
       saveProfile
     );
+
 
   $("inviteMemberBtn")
     ?.addEventListener(
@@ -2212,15 +4758,23 @@ function setupEvents() {
 
         await generateInviteLink();
 
-        showScreen("invite");
+        showScreen(
+          "invite"
+        );
+
       }
     );
+
 
   $("inviteBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("members")
+      () =>
+        showScreen(
+          "members"
+        )
     );
+
 
   $("copyInviteBtn")
     ?.addEventListener(
@@ -2228,11 +4782,13 @@ function setupEvents() {
       copyInviteLink
     );
 
+
   $("shareInviteBtn")
     ?.addEventListener(
       "click",
       shareInvite
     );
+
 
   $("dismissEmergencyBtn")
     ?.addEventListener(
@@ -2240,107 +4796,354 @@ function setupEvents() {
       dismissEmergencyOverlay
     );
 
+
   $("installAppBtn")
     ?.addEventListener(
       "click",
       installApp
     );
 
+
   $("closeInstallPromptBtn")
     ?.addEventListener(
       "click",
-      () => hideElement("installPrompt")
+      () =>
+        hideElement(
+          "installPrompt"
+        )
     );
+
 
   $("adminBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("home")
+      () =>
+        showScreen(
+          "home"
+        )
     );
+
 
   $("adminUsersBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("adminUsers")
+      () => {
+
+        showScreen(
+          "adminUsers"
+        );
+
+        loadAdminUsers();
+
+      }
     );
+
 
   $("adminGroupsBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("adminGroups")
+      () => {
+
+        showScreen(
+          "adminGroups"
+        );
+
+        loadAdminGroups();
+
+      }
     );
+
 
   $("adminOrganizersBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("organizers")
+      () => {
+
+        showScreen(
+          "organizers"
+        );
+
+        loadOrganizers();
+
+      }
     );
+
 
   $("adminUsersBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("masterAdmin")
+      () =>
+        showScreen(
+          "masterAdmin"
+        )
     );
+
 
   $("adminGroupsBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("masterAdmin")
+      () =>
+        showScreen(
+          "masterAdmin"
+        )
     );
+
 
   $("organizersBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("masterAdmin")
+      () =>
+        showScreen(
+          "masterAdmin"
+        )
     );
+
 
   $("createOrganizerBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("createOrganizer")
+      () =>
+        showScreen(
+          "createOrganizer"
+        )
     );
+
 
   $("createOrganizerBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("organizers")
+      () =>
+        showScreen(
+          "organizers"
+        )
     );
+
+
+  $("createOrganizerSaveBtn")
+    ?.addEventListener(
+      "click",
+      createOrganizer
+    );
+
 
   $("mediaBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("media")
+      () =>
+        showScreen(
+          "media"
+        )
     );
+
 
   $("mediaBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("chat")
+      () =>
+        showScreen(
+          "chat"
+        )
     );
+
 
   $("allGroupsBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("newGroup")
+      () =>
+        showScreen(
+          "newGroup"
+        )
     );
+
 
   $("membersBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("chat")
+      () =>
+        showScreen(
+          "chat"
+        )
     );
+
 
   $("openRequestsBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("requests")
+      () =>
+        showScreen(
+          "requests"
+        )
     );
+
 
   $("requestsBackBtn")
     ?.addEventListener(
       "click",
-      () => showScreen("members")
+      () =>
+        showScreen(
+          "members"
+        )
     );
+
+
+  $("masterAdminEntry")
+    ?.addEventListener(
+      "click",
+      openMasterAdmin
+    );
+
+
+  $("logoutBtn")
+    ?.addEventListener(
+      "click",
+      logout
+    );
+
+}
+
+
+/* =========================================================
+   UTILITY HELPERS
+   ========================================================= */
+
+function detectPlatform() {
+
+  const ua =
+    navigator.userAgent
+      .toLowerCase();
+
+
+  if (
+    ua.includes("android")
+  ) {
+    return "android";
+  }
+
+
+  if (
+    ua.includes("iphone") ||
+    ua.includes("ipad")
+  ) {
+    return "ios";
+  }
+
+
+  return "web";
+
+}
+
+
+function createActivationCode() {
+
+  const chars =
+    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+
+  let code = "";
+
+
+  for (
+    let i = 0;
+    i < 8;
+    i++
+  ) {
+
+    code +=
+      chars[
+        Math.floor(
+          Math.random() *
+          chars.length
+        )
+      ];
+
+  }
+
+
+  return code;
+
+}
+
+
+function getFriendlyError(
+  error
+) {
+
+  if (!error) {
+    return "Something went wrong.";
+  }
+
+
+  const code =
+    error.code ||
+    "";
+
+
+  const messages = {
+
+    "permission-denied":
+      "You do not have permission to perform this action.",
+
+    "auth/popup-closed-by-user":
+      "Google sign-in was cancelled.",
+
+    "auth/popup-blocked":
+      "Your browser blocked the Google sign-in popup.",
+
+    "auth/unauthorized-domain":
+      "This website domain is not authorized in Firebase Authentication.",
+
+    "failed-precondition":
+      "This Firebase operation requires additional configuration.",
+
+    "unavailable":
+      "Firebase is temporarily unavailable. Please try again."
+
+  };
+
+
+  return (
+    messages[code] ||
+    error.message ||
+    "Something went wrong."
+  );
+
+}
+
+
+/*
+  Safe wrapper.
+
+  This prevents an admin screen from crashing the
+  whole application if Firestore permission denies
+  the collection.
+*/
+
+async function getDocsSafe(
+  collectionRef
+) {
+
+  try {
+
+    const { getDocs } =
+      await import(
+        "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"
+      );
+
+
+    return await getDocs(
+      collectionRef
+    );
+
+  } catch (error) {
+
+    console.error(
+      "getDocs error:",
+      error
+    );
+
+    return null;
+
+  }
 
 }
 
@@ -2355,11 +5158,22 @@ document.addEventListener(
 
     setupEvents();
 
-    if ("Notification" in window) {
+
+    if (
+      "Notification" in window
+    ) {
+
       updateNotificationUI(
         Notification.permission
       );
+
     }
+
+
+    /*
+      Process invite before normal screen
+      if an invite URL exists.
+    */
 
     await processInviteURL();
 
@@ -2372,10 +5186,52 @@ document.addEventListener(
    ========================================================= */
 
 window.AlertConnect = {
+
   state,
+
+  ROLES,
+
+  ACCOUNT_STATUS,
+
+  MASTER_ADMIN_UID,
+
   showScreen,
+
   requestNotificationPermission,
+
   initializeNotifications,
+
   openEmergencyPage,
+
+  sendEmergencyAlert,
+
+  createGroup,
+
+  requestGroupJoin,
+
+  approveMember,
+
+  removeMember,
+
+  openMasterAdmin,
+
+  createOrganizer,
+
+  setOrganizerActive,
+
+  resetOrganizer,
+
+  deleteOrganizer,
+
   logout
+
 };
+
+
+/* =========================================================
+   VERSION
+   ========================================================= */
+
+console.log(
+  `${APP_NAME} ${APP_VERSION} initialized`
+);
