@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AlertConnect - Secure Emergency Communication</title>
     <meta name="theme-color" content="#047857">
+    <!-- PWA Manifest & iOS Settings -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -25,10 +29,10 @@
     </script>
 </head>
 <body class="h-full flex flex-col items-center justify-center bg-slate-900 text-slate-100 selection:bg-emerald-500 selection:text-white">
-    <!-- App Frame Container (Mobile View Simulation on Desktop / Full on Mobile) -->
+    <!-- App Container -->
     <div id="app-container" class="w-full max-w-md h-full sm:h-[844px] sm:max-h-[92vh] bg-slate-50 text-slate-900 sm:rounded-3xl sm:shadow-2xl flex flex-col relative overflow-hidden">
         
-        <!-- Top Header Bar -->
+        <!-- Header -->
         <header id="app-header" class="hidden bg-emerald-700 text-white px-4 py-3 flex items-center justify-between shadow-md z-10">
             <div class="flex items-center space-x-3">
                 <div id="header-back-btn" class="hidden cursor-pointer text-lg font-bold" onclick="navigateTo('home')">←</div>
@@ -37,23 +41,23 @@
             <div id="header-right-action" class="text-xs bg-emerald-800 px-2.5 py-1 rounded-lg font-medium">Secure</div>
         </header>
 
-        <!-- Main View Root -->
+        <!-- Main Content -->
         <main id="view-root" class="flex-1 flex flex-col overflow-y-auto relative pb-20">
             
-            <!-- 1. LOADING SCREEN -->
+            <!-- Loading Screen -->
             <div id="screen-loading" class="flex flex-col items-center justify-center h-full text-center space-y-4 p-6">
                 <div class="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold shadow-lg">AC</div>
                 <h2 class="text-2xl font-bold text-slate-800">AlertConnect</h2>
-                <p class="text-sm text-slate-500">Initializing secure network...</p>
+                <p class="text-sm text-slate-500">Checking secure access...</p>
                 <div class="animate-spin rounded-full h-8 w-8 border-4 border-emerald-600 border-t-transparent"></div>
             </div>
 
-            <!-- 2. AUTH SCREEN (LOGIN) -->
+            <!-- Auth Screen (Google Login) -->
             <div id="screen-auth" class="hidden flex flex-col items-center justify-center h-full text-center space-y-6 p-6">
                 <div class="w-20 h-20 bg-emerald-600 text-white rounded-3xl flex items-center justify-center text-3xl font-bold shadow-xl">AC</div>
                 <div class="space-y-1">
                     <h1 class="text-2xl font-bold text-slate-800">Welcome Back!</h1>
-                    <p class="text-xs text-slate-500">Sign in to continue secure communication</p>
+                    <p class="text-xs text-slate-500">Sign in to request access and connect</p>
                 </div>
                 <div class="w-full space-y-3 pt-4">
                     <button onclick="handleGoogleLogin()" class="w-full py-3 px-4 bg-white border border-slate-300 rounded-xl shadow-sm text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-center space-x-3 transition">
@@ -63,7 +67,7 @@
                 </div>
             </div>
 
-            <!-- 3. PENDING APPROVAL SCREEN -->
+            <!-- Approval Pending Screen -->
             <div id="screen-pending" class="hidden flex flex-col items-center justify-center h-full text-center space-y-4 p-6">
                 <div class="w-16 h-16 bg-amber-500 text-white rounded-2xl flex items-center justify-center text-2xl font-bold shadow-md">⏳</div>
                 <h2 class="text-xl font-bold text-slate-800">Approval Pending</h2>
@@ -71,19 +75,17 @@
                 <button onclick="handleLogout()" class="mt-4 px-4 py-2 bg-slate-200 text-slate-700 rounded-xl text-sm font-medium">Logout</button>
             </div>
 
-            <!-- 4. HOME TAB -->
+            <!-- Home Tab -->
             <div id="tab-home" class="hidden flex flex-col p-4 space-y-4">
-                <!-- Banner -->
                 <div class="bg-gradient-to-r from-emerald-700 to-emerald-600 rounded-2xl p-4 text-white shadow-md flex items-center justify-between">
                     <div>
                         <h2 class="font-bold text-base">Stay Connected.</h2>
                         <h2 class="font-bold text-base">Stay Safe.</h2>
-                        <p class="text-[11px] text-emerald-100 mt-1">Quick communication for what matters most.</p>
+                        <p class="text-[11px] text-emerald-100 mt-1">Emergency broadcast & secure groups.</p>
                     </div>
                     <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-xl">🛡️</div>
                 </div>
 
-                <!-- Quick Action Buttons -->
                 <div class="grid grid-cols-2 gap-3">
                     <button onclick="navigateTo('new-alert')" class="bg-red-50 border border-red-200 p-3 rounded-2xl flex items-center space-x-3 text-left shadow-sm hover:bg-red-100 transition">
                         <div class="w-10 h-10 bg-red-600 text-white rounded-xl flex items-center justify-center font-bold">🚨</div>
@@ -101,19 +103,16 @@
                     </button>
                 </div>
 
-                <!-- My Groups List Header -->
                 <div class="flex items-center justify-between pt-2">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">My Groups</h3>
                     <span class="text-xs text-emerald-600 font-semibold cursor-pointer" onclick="loadGroups()">Refresh</span>
                 </div>
-
-                <!-- Groups Container -->
                 <div id="home-groups-list" class="space-y-2">
                     <p class="text-xs text-slate-400 italic">Loading groups...</p>
                 </div>
             </div>
 
-            <!-- 5. CHATS TAB -->
+            <!-- Chats Tab -->
             <div id="tab-chats" class="hidden flex flex-col p-4 space-y-3">
                 <h3 class="text-sm font-bold text-slate-800">Active Conversations</h3>
                 <div id="chats-groups-list" class="space-y-2">
@@ -121,16 +120,16 @@
                 </div>
             </div>
 
-            <!-- 6. ALERTS TAB -->
+            <!-- Alerts Tab -->
             <div id="tab-alerts" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm text-center space-y-3">
                     <h2 class="text-base font-bold text-slate-800">Emergency Broadcast Hub</h2>
-                    <p class="text-xs text-slate-500">Trigger high-priority alerts to all approved members instantly.</p>
+                    <p class="text-xs text-slate-500">Trigger high-priority alert sound and push notification to members.</p>
                     <button onclick="navigateTo('new-alert')" class="w-full py-3 bg-red-600 text-white rounded-xl font-bold shadow-md hover:bg-red-700 text-sm transition">CREATE EMERGENCY ALERT</button>
                 </div>
             </div>
 
-            <!-- 7. PROFILE TAB -->
+            <!-- Profile Tab -->
             <div id="tab-profile" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col items-center text-center space-y-2">
                     <div class="w-16 h-16 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-md" id="profile-initials">U</div>
@@ -139,11 +138,19 @@
                     <span id="profile-role-badge" class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">Member</span>
                 </div>
 
-                <!-- Admin Approval Section (Only for Master Admin) -->
+                <!-- Master Admin Approval Panel (Only for Master Admin) -->
                 <div id="admin-approval-panel" class="hidden bg-white border border-slate-200 p-4 rounded-2xl shadow-sm space-y-3">
-                    <h4 class="text-xs font-bold text-slate-700 uppercase">Pending User Approvals</h4>
+                    <h4 class="text-xs font-bold text-slate-700 uppercase">Master Admin: Pending User Approvals</h4>
                     <div id="pending-users-list" class="space-y-2 text-xs text-slate-500">
                         <p class="italic">No pending requests.</p>
+                    </div>
+                </div>
+
+                <!-- Group Creator Approval Panel (For any user who created a group) -->
+                <div id="group-approval-panel" class="hidden bg-white border border-slate-200 p-4 rounded-2xl shadow-sm space-y-3">
+                    <h4 class="text-xs font-bold text-emerald-700 uppercase">My Group Join Requests</h4>
+                    <div id="pending-group-requests-list" class="space-y-2 text-xs text-slate-500">
+                        <p class="italic">No pending requests for your groups.</p>
                     </div>
                 </div>
 
@@ -155,7 +162,7 @@
                 </div>
             </div>
 
-            <!-- 8. CHAT ROOM VIEW -->
+            <!-- Chat Room View -->
             <div id="view-chat-room" class="hidden flex flex-col h-full absolute inset-0 bg-slate-50 z-20">
                 <div class="bg-emerald-700 text-white p-3 flex items-center justify-between shadow-md">
                     <div class="flex items-center space-x-3">
@@ -165,6 +172,7 @@
                             <p class="text-[10px] text-emerald-100">End-to-end secure</p>
                         </div>
                     </div>
+                    <button onclick="inviteToGroup()" class="text-xs bg-emerald-800 px-2.5 py-1 rounded-lg font-medium">Invite</button>
                 </div>
                 <div id="chat-messages-container" class="flex-1 bg-slate-100 p-3 overflow-y-auto space-y-2 text-xs">
                     <p class="text-slate-400 text-center italic">Loading messages...</p>
@@ -175,7 +183,7 @@
                 </div>
             </div>
 
-            <!-- 9. NEW ALERT VIEW -->
+            <!-- New Alert View -->
             <div id="view-new-alert" class="hidden flex flex-col p-4 space-y-4 absolute inset-0 bg-slate-50 z-25">
                 <div class="flex items-center justify-between border-b border-slate-200 pb-3">
                     <button onclick="navigateTo('home')" class="text-sm font-bold text-slate-700">← Back</button>
@@ -189,8 +197,8 @@
                         <label class="flex items-center p-3 bg-red-50 border border-red-200 rounded-xl cursor-pointer">
                             <input type="radio" name="alertType" value="Emergency" checked class="text-red-600 focus:ring-red-500">
                             <div class="ml-3">
-                                <p class="text-xs font-bold text-red-700">Emergency Alert</p>
-                                <p class="text-[10px] text-red-500">High priority broadcast to all members</p>
+                                <p class="text-xs font-bold text-red-700">Emergency High-Priority Alert</p>
+                                <p class="text-[10px] text-red-500">Triggers sound and push notification on all devices</p>
                             </div>
                         </label>
                     </div>
@@ -201,7 +209,7 @@
                     <textarea id="alert-message-text" rows="4" placeholder="Type emergency broadcast message..." class="w-full p-3 border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-emerald-600">All family members, please come home immediately.</textarea>
                 </div>
 
-                <button onclick="submitEmergencyAlert()" class="w-full py-3 bg-red-600 text-white rounded-xl font-bold shadow-lg hover:bg-red-700 text-sm transition">Preview & Send Alert</button>
+                <button onclick="submitEmergencyAlert()" class="w-full py-3 bg-red-600 text-white rounded-xl font-bold shadow-lg hover:bg-red-700 text-sm transition">Send Emergency Alert with Sound</button>
             </div>
 
         </main>
@@ -230,7 +238,7 @@
         </nav>
     </div>
 
-    <!-- Firebase & App Script Logic -->
+    <!-- Script Logic -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAu91Nuo5lXUZGzarPiWjgVQlSnBR8_r30",
@@ -255,7 +263,6 @@
         function navigateTo(viewName) {
             if (messagesUnsubscribe) { messagesUnsubscribe(); messagesUnsubscribe = null; }
 
-            // Hide all views & tabs
             ['screen-loading', 'screen-auth', 'screen-pending', 'tab-home', 'tab-chats', 'tab-alerts', 'tab-profile', 'view-chat-room', 'view-new-alert'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.add('hidden');
@@ -264,16 +271,13 @@
             const header = document.getElementById('app-header');
             const navBar = document.getElementById('app-nav-bar');
 
-            if (viewName === 'home' || viewName === 'chats' || viewName === 'alerts' || viewName === 'profile') {
+            if (['home', 'chats', 'alerts', 'profile'].includes(viewName)) {
                 header.classList.remove('hidden');
                 navBar.classList.remove('hidden');
                 document.getElementById(`tab-${viewName}`).classList.remove('hidden');
-                
-                // Update header title
                 document.getElementById('header-title').innerText = viewName.toUpperCase();
                 document.getElementById('header-back-btn').classList.add('hidden');
 
-                // Update nav icons highlight
                 document.querySelectorAll('.nav-item').forEach(item => {
                     if (item.getAttribute('data-target') === viewName) {
                         item.classList.remove('text-slate-400');
@@ -287,7 +291,7 @@
                 if (viewName === 'home') loadGroups();
                 if (viewName === 'chats') loadChatsList();
                 if (viewName === 'profile') loadProfileData();
-            } else if (viewName === 'chat-room' || viewName === 'new-alert') {
+            } else {
                 header.classList.remove('hidden');
                 navBar.classList.add('hidden');
                 document.getElementById(`view-${viewName}`).classList.remove('hidden');
@@ -295,7 +299,7 @@
             }
         }
 
-        // Auth Observer
+        // Auth Observer & Strict Access Control
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 try {
@@ -327,7 +331,7 @@
                         document.getElementById('screen-pending').classList.remove('hidden');
                     }
                 } catch (err) {
-                    console.error("Auth initialization error:", err);
+                    console.error("Auth error:", err);
                 }
             } else {
                 document.getElementById('screen-loading').classList.add('hidden');
@@ -349,6 +353,23 @@
             auth.signOut();
         }
 
+        function playAlertSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start();
+                setTimeout(() => { oscillator.stop(); }, 1200);
+            } catch (e) {
+                console.log("Audio play error:", e);
+            }
+        }
+
         // Groups & Chats Logic
         function loadGroups() {
             const container = document.getElementById('home-groups-list');
@@ -361,12 +382,12 @@
                 snapshot.forEach(doc => {
                     const group = doc.data();
                     const gId = doc.id;
-                    html += `<div onclick="openChatRoom('${gId}', '${group.name}')" class="bg-white border border-slate-200 p-3.5 rounded-2xl flex items-center justify-between shadow-sm cursor-pointer hover:bg-emerald-50 transition">
+                    html += `<div onclick="openChatRoom('${gId}', '${group.name}', '${group.createdBy}')" class="bg-white border border-slate-200 p-3.5 rounded-2xl flex items-center justify-between shadow-sm cursor-pointer hover:bg-emerald-50 transition">
                         <div class="flex items-center space-x-3">
                             <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center font-bold">👥</div>
                             <div>
                                 <h4 class="font-bold text-slate-800 text-xs">${group.name}</h4>
-                                <p class="text-[10px] text-slate-400">Tap to open secure chat</p>
+                                <p class="text-[10px] text-slate-400">Created by ${group.createdBy === MASTER_ADMIN_UID ? 'Master Admin' : 'User'}</p>
                             </div>
                         </div>
                         <span class="text-xs text-emerald-600 font-bold">Open →</span>
@@ -377,13 +398,13 @@
         }
 
         function loadChatsList() {
-            loadGroups(); // Uses same groups list for direct chat access
+            loadGroups();
             const chatsContainer = document.getElementById('chats-groups-list');
             db.collection('groups').get().then(snapshot => {
                 let html = '';
                 snapshot.forEach(doc => {
                     const group = doc.data();
-                    html += `<div onclick="openChatRoom('${doc.id}', '${group.name}')" class="bg-white border border-slate-200 p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-slate-50">
+                    html += `<div onclick="openChatRoom('${doc.id}', '${group.name}', '${group.createdBy}')" class="bg-white border border-slate-200 p-3 rounded-xl flex items-center justify-between cursor-pointer hover:bg-slate-50">
                         <span class="font-bold text-xs text-slate-800">${group.name}</span>
                         <span class="text-[10px] text-emerald-600 font-bold">Chat</span>
                     </div>`;
@@ -405,7 +426,7 @@
             }).catch(err => alert("Error: " + err.message));
         }
 
-        function openChatRoom(groupId, groupName) {
+        function openChatRoom(groupId, groupName, createdBy) {
             activeGroupId = groupId;
             document.getElementById('chat-room-title').innerText = groupName;
             navigateTo('chat-room');
@@ -434,6 +455,12 @@
                 });
         }
 
+        function inviteToGroup() {
+            if (!activeGroupId) return;
+            const inviteLink = window.location.href.split('#')[0] + "?group=" + activeGroupId;
+            prompt("Copy this invite link and share with your friend:", inviteLink);
+        }
+
         function sendChatMessage() {
             const input = document.getElementById('chat-input-msg');
             const text = input.value.trim();
@@ -452,6 +479,7 @@
         function submitEmergencyAlert() {
             const text = document.getElementById('alert-message-text').value.trim();
             if (!text) return;
+            playAlertSound();
 
             db.collection('alerts').add({
                 uid: auth.currentUser.uid,
@@ -460,7 +488,7 @@
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 status: 'Active'
             }).then(() => {
-                alert("Emergency Alert Sent Successfully!");
+                alert("🚨 Emergency Alert Broadcasted Successfully with Sound!");
                 navigateTo('home');
             }).catch(err => alert("Error: " + err.message));
         }
@@ -473,19 +501,23 @@
             document.getElementById('profile-initials').innerText = (user.displayName || 'U')[0].toUpperCase();
 
             const isMaster = (user.uid === MASTER_ADMIN_UID);
-            document.getElementById('profile-role-badge').innerText = isMaster ? 'Master Admin' : 'Member';
+            document.getElementById('profile-role-badge').innerText = isMaster ? 'Master Admin' : 'Group Member';
 
             if (isMaster) {
                 document.getElementById('admin-approval-panel').classList.remove('hidden');
-                loadPendingUsers();
+                loadMasterPendingUsers();
             }
+
+            // Show group creator approval panel for any user who owns groups
+            document.getElementById('group-approval-panel').classList.remove('hidden');
+            loadMyGroupRequests(user.uid);
         }
 
-        function loadPendingUsers() {
+        function loadMasterPendingUsers() {
             const container = document.getElementById('pending-users-list');
             db.collection('users').where('status', '==', 'pending').get().then(snapshot => {
                 if (snapshot.empty) {
-                    container.innerHTML = `<p class="italic text-slate-400">No pending requests.</p>`;
+                    container.innerHTML = `<p class="italic text-slate-400">No pending user requests.</p>`;
                     return;
                 }
                 let html = '';
@@ -493,17 +525,54 @@
                     const u = doc.data();
                     html += `<div class="flex items-center justify-between bg-slate-50 p-2 rounded-xl border border-slate-200">
                         <span class="truncate max-w-[150px] font-medium text-slate-700">${u.email}</span>
-                        <button onclick="approveUser('${doc.id}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">Approve</button>
+                        <button onclick="approveMasterUser('${doc.id}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">Approve</button>
                     </div>`;
                 });
                 container.innerHTML = html;
             });
         }
 
-        function approveUser(uid) {
+        function approveMasterUser(uid) {
             db.collection('users').doc(uid).update({ status: 'approved' }).then(() => {
-                alert("User approved successfully!");
-                loadPendingUsers();
+                alert("User approved by Master Admin!");
+                loadMasterPendingUsers();
+            }).catch(err => alert("Error: " + err.message));
+        }
+
+        function loadMyGroupRequests(userId) {
+            const container = document.getElementById('pending-group-requests-list');
+            // Find groups created by this user and check join requests
+            db.collection('groups').where('createdBy', '==', userId).get().then(snapshot => {
+                if (snapshot.empty) {
+                    container.innerHTML = `<p class="italic text-slate-400">You have not created any groups yet.</p>`;
+                    return;
+                }
+                // For simplicity, checking group join requests collection
+                db.collection('group_requests').where('groupCreatorUid', '==', userId).where('status', '==', 'pending').get().then(reqSnap => {
+                    if (reqSnap.empty) {
+                        container.innerHTML = `<p class="italic text-slate-400">No pending requests for your groups.</p>`;
+                        return;
+                    }
+                    let html = '';
+                    reqSnap.forEach(doc => {
+                        const req = doc.data();
+                        html += `<div class="flex items-center justify-between bg-slate-50 p-2 rounded-xl border border-slate-200">
+                            <div>
+                                <p class="font-medium text-slate-700">${req.userEmail}</p>
+                                <p class="text-[9px] text-emerald-600">Wants to join your group</p>
+                            </div>
+                            <button onclick="approveGroupJoin('${doc.id}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">Approve</button>
+                        </div>`;
+                    });
+                    container.innerHTML = html;
+                });
+            });
+        }
+
+        function approveGroupJoin(requestId) {
+            db.collection('group_requests').doc(requestId).update({ status: 'approved' }).then(() => {
+                alert("Group member approved successfully!");
+                loadMyGroupRequests(auth.currentUser.uid);
             }).catch(err => alert("Error: " + err.message));
         }
     </script>
