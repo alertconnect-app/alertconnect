@@ -68,7 +68,7 @@
             <div id="screen-pending" class="hidden flex flex-col items-center justify-center h-full text-center space-y-4 p-6 bg-slate-950">
                 <div class="w-16 h-16 bg-amber-500/25 border border-amber-500/50 text-amber-400 rounded-2xl flex items-center justify-center text-2xl font-bold">⏳</div>
                 <h2 class="text-lg font-bold text-slate-100">Approval Pending</h2>
-                <p class="text-xs text-slate-400">Wait for Admin Approval to access full features.</p>
+                <p class="text-xs text-slate-400">Wait for Master Admin Approval to access full features.</p>
                 <button onclick="requestGuestNotificationPermission()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold">Allow Notification Alert Only</button>
                 <button onclick="handleLogout()" class="mt-2 px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Logout</button>
             </div>
@@ -159,7 +159,7 @@
 
             <!-- PROFILE TAB -->
             <div id="tab-profile" class="hidden flex flex-col p-4 space-y-4">
-                <!-- User Profile Header & Photo Upload -->
+                <!-- User Profile Header & Auto Compressed Photo Upload -->
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col items-center text-center space-y-3 relative">
                     <div class="relative group">
                         <div id="profile-img-container" class="w-20 h-20 bg-emerald-600 text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg overflow-hidden border-2 border-emerald-500">
@@ -178,6 +178,15 @@
                 <div id="admin-approval-panel" class="hidden bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-4">
                     <div class="border-b border-slate-800 pb-2">
                         <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider">👑 Master Admin Controls</h4>
+                    </div>
+
+                    <!-- Media Upload Switch (Allow/Disallow Photo & Video Sharing) -->
+                    <div class="bg-slate-800/80 border border-slate-700 p-3 rounded-xl flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">📷 Media Upload Access</p>
+                            <p class="text-[10px] text-slate-400">Allow users to send compressed photos & media</p>
+                        </div>
+                        <input type="checkbox" id="toggle-media-upload" class="w-5 h-5 text-emerald-600 rounded cursor-pointer" onchange="toggleMediaPermissionSetting(this.checked)">
                     </div>
                     
                     <!-- Add Authorized Admin Gmail -->
@@ -209,7 +218,7 @@
                 <button onclick="handleLogout()" class="w-full py-3 bg-red-950 border border-red-800 text-red-400 font-bold text-xs rounded-2xl">Logout Account</button>
             </div>
 
-            <!-- CHAT ROOM VIEW (Group Chat / DM) -->
+            <!-- CHAT ROOM VIEW -->
             <div id="view-chat-room" class="hidden flex flex-col h-full absolute inset-0 bg-slate-900 z-20">
                 <div class="bg-slate-900 border-b border-slate-800 text-white p-3 flex items-center justify-between">
                     <div class="flex items-center space-x-2.5">
@@ -233,14 +242,14 @@
                 <!-- Chat Bottom Control -->
                 <div class="p-3 bg-slate-900 border-t border-slate-800 flex items-center space-x-2">
                     <input type="file" id="chat-image-input" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
-                    <button onclick="document.getElementById('chat-image-input').click()" class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-slate-300 text-xs font-bold" title="Send Image">📷</button>
+                    <button id="chat-media-btn" onclick="triggerMediaUpload()" class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-slate-300 text-xs font-bold" title="Send Image">📷</button>
                     <button onclick="sendLiveLocationInChat()" class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-amber-400 text-xs font-bold" title="Share Location">📍</button>
                     <input type="text" id="chat-input-msg" placeholder="Type message..." class="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none" onkeypress="if(event.key==='Enter') sendChatMessage();">
                     <button onclick="sendChatMessage()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-xl text-xs font-bold">Send</button>
                 </div>
             </div>
 
-            <!-- MODAL: Group Members List & Actions -->
+            <!-- MODAL: Group Members List -->
             <div id="modal-group-members" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-4 space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -253,7 +262,7 @@
                 </div>
             </div>
 
-            <!-- MODAL: Create & View Group Polls -->
+            <!-- MODAL: Group Polls -->
             <div id="modal-group-poll" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-4 space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -296,27 +305,42 @@
                     </div>
                 </div>
 
+                <!-- 5 High-Loud Alarm Tones Selection -->
                 <div class="space-y-2">
                     <label class="text-[11px] font-bold text-slate-400 uppercase">Select High-Loud Siren & Test (10 Sec Ring)</label>
                     <div class="space-y-2">
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
                             <div class="flex items-center space-x-2">
-                                <input type="radio" name="alert-sound" value="megaphone" id="sound-megaphone" checked class="text-emerald-600">
-                                <label for="sound-megaphone" class="text-xs font-bold text-slate-200 cursor-pointer">🔊 1. Loud Megaphone Siren</label>
+                                <input type="radio" name="alert-sound" value="ambulance" id="sound-ambulance" checked class="text-emerald-600">
+                                <label for="sound-ambulance" class="text-xs font-bold text-slate-200 cursor-pointer">🚑 1. High-Loud Ambulance Siren</label>
                             </div>
-                            <button onclick="playCustomAlarmSound('megaphone', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
+                            <button onclick="playCustomAlarmSound('ambulance', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
+                        </div>
+                        <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
+                            <div class="flex items-center space-x-2">
+                                <input type="radio" name="alert-sound" value="police" id="sound-police" class="text-emerald-600">
+                                <label for="sound-police" class="text-xs font-bold text-slate-200 cursor-pointer">🚓 2. Police Patrol Siren</label>
+                            </div>
+                            <button onclick="playCustomAlarmSound('police', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
                         </div>
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
                             <div class="flex items-center space-x-2">
                                 <input type="radio" name="alert-sound" value="siren" id="sound-siren" class="text-emerald-600">
-                                <label for="sound-siren" class="text-xs font-bold text-slate-200 cursor-pointer">🚨 2. Piercing Emergency Siren</label>
+                                <label for="sound-siren" class="text-xs font-bold text-slate-200 cursor-pointer">🚒 3. Classic Fire Truck Siren</label>
                             </div>
                             <button onclick="playCustomAlarmSound('siren', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
                         </div>
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
                             <div class="flex items-center space-x-2">
+                                <input type="radio" name="alert-sound" value="megaphone" id="sound-megaphone" class="text-emerald-600">
+                                <label for="sound-megaphone" class="text-xs font-bold text-slate-200 cursor-pointer">🔊 4. Megaphone Horn Siren</label>
+                            </div>
+                            <button onclick="playCustomAlarmSound('megaphone', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
+                        </div>
+                        <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
+                            <div class="flex items-center space-x-2">
                                 <input type="radio" name="alert-sound" value="warning" id="sound-warning" class="text-emerald-600">
-                                <label for="sound-warning" class="text-xs font-bold text-slate-200 cursor-pointer">🔔 3. Urgent Warning Beep</label>
+                                <label for="sound-warning" class="text-xs font-bold text-slate-200 cursor-pointer">🔔 5. Urgent Warning Beep</label>
                             </div>
                             <button onclick="playCustomAlarmSound('warning', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
                         </div>
@@ -377,6 +401,30 @@
         let messagesUnsubscribe = null;
         let cachedGroupsData = [];
         let isUserAdmin = false;
+        let isMediaUploadAllowed = true;
+
+        // Sync Global Media Upload Preference
+        db.collection('settings').doc('global').onSnapshot(doc => {
+            if (doc.exists && doc.data().allowMediaUpload !== undefined) {
+                isMediaUploadAllowed = doc.data().allowMediaUpload;
+                const toggle = document.getElementById('toggle-media-upload');
+                if (toggle) toggle.checked = isMediaUploadAllowed;
+            }
+        });
+
+        function toggleMediaPermissionSetting(allowed) {
+            db.collection('settings').doc('global').set({ allowMediaUpload: allowed }, { merge: true }).then(() => {
+                alert("Media Upload Permission Updated!");
+            });
+        }
+
+        function triggerMediaUpload() {
+            if (!isMediaUploadAllowed && !isUserAdmin) {
+                alert("🔒 Media/Image upload is currently disabled by Master Admin.");
+                return;
+            }
+            document.getElementById('chat-image-input').click();
+        }
 
         function navigateTo(viewName) {
             if (messagesUnsubscribe) { messagesUnsubscribe(); messagesUnsubscribe = null; }
@@ -469,13 +517,13 @@
 
         function handleLogout() { auth.signOut(); }
 
-        // Live Real-Time Emergency Alert Listener (10 Sec Alarm Sound Trigger)
+        // Live Emergency Listener
         db.collection('alerts').orderBy('timestamp', 'desc').limit(1).onSnapshot(snapshot => {
             snapshot.docChanges().forEach(change => {
                 if (change.type === 'added') {
                     const alertData = change.doc.data();
                     if (alertData && alertData.uid !== (auth.currentUser ? auth.currentUser.uid : '')) {
-                        playCustomAlarmSound(alertData.soundType || 'megaphone', 10);
+                        playCustomAlarmSound(alertData.soundType || 'ambulance', 10);
                         if (Notification.permission === 'granted') {
                             new Notification("🚨 Emergency SOS Alert Received!", {
                                 body: alertData.text,
@@ -497,6 +545,7 @@
             }
         }
 
+        // Compressed Profile Photo Upload Handler
         function uploadProfilePicture(e) {
             const file = e.target.files[0];
             if (!file || !auth.currentUser) return;
@@ -846,6 +895,7 @@
             }).then(() => loadGroupPolls());
         }
 
+        // Automatic High-Compression Image Handler for Chat Media
         function handleImageUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -886,7 +936,7 @@
             }
         }
 
-        // 10-Second High Loud Continuous Pip-Pip Alarm Ringing System
+        // High-Loud Synthesizer Alarm System
         function playCustomAlarmSound(soundType, durationSeconds = 10) {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -901,22 +951,44 @@
                     let osc = audioCtx.createOscillator();
                     let gain = audioCtx.createGain();
 
-                    osc.type = (soundType === 'siren') ? 'square' : 'sawtooth';
-                    let freq = (step % 2 === 0) ? 1200 : 700;
-                    if (soundType === 'warning') freq = 950;
+                    if (soundType === 'ambulance') {
+                        osc.type = 'sawtooth';
+                        let freq = (step % 2 === 0) ? 960 : 770;
+                        osc.frequency.setValueAtTime(freq, now);
+                        gain.gain.setValueAtTime(0.95, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                        osc.connect(gain); gain.connect(audioCtx.destination);
+                        osc.start(now); osc.stop(now + 0.36);
+                        step++;
+                        setTimeout(triggerBeepLoop, 380);
+                    } 
+                    else if (soundType === 'police') {
+                        osc.type = 'triangle';
+                        let startFreq = (step % 2 === 0) ? 600 : 1400;
+                        let endFreq = (step % 2 === 0) ? 1400 : 600;
+                        osc.frequency.setValueAtTime(startFreq, now);
+                        osc.frequency.linearRampToValueAtTime(endFreq, now + 0.2);
+                        gain.gain.setValueAtTime(0.9, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                        osc.connect(gain); gain.connect(audioCtx.destination);
+                        osc.start(now); osc.stop(now + 0.21);
+                        step++;
+                        setTimeout(triggerBeepLoop, 220);
+                    }
+                    else {
+                        osc.type = (soundType === 'siren') ? 'square' : 'sawtooth';
+                        let freq = (step % 2 === 0) ? 1200 : 700;
+                        if (soundType === 'warning') freq = 950;
 
-                    osc.frequency.setValueAtTime(freq, now);
-                    gain.gain.setValueAtTime(0.85, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+                        osc.frequency.setValueAtTime(freq, now);
+                        gain.gain.setValueAtTime(0.85, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
 
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-
-                    osc.start(now);
-                    osc.stop(now + 0.2);
-
-                    step++;
-                    setTimeout(triggerBeepLoop, 250);
+                        osc.connect(gain); gain.connect(audioCtx.destination);
+                        osc.start(now); osc.stop(now + 0.2);
+                        step++;
+                        setTimeout(triggerBeepLoop, 250);
+                    }
                 }
 
                 triggerBeepLoop();
