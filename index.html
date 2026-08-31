@@ -1189,35 +1189,62 @@
         }
         let allBloodDonorsCache = [];
 
+// പേജ് ലോഡ് ചെയ്യുമ്പോൾ ലിങ്ക് സെറ്റ് ചെയ്യാനും മോഡ് നോക്കാനും
+window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get('mode');
+
+    if (mode === 'blood') {
+        const allTabs = document.querySelectorAll('.flex.flex-col');
+        allTabs.forEach(tab => {
+            if(tab.id !== 'tab-blood-hub') tab.style.display = 'none';
+        });
+        const bloodHub = document.getElementById('tab-blood-hub');
+        if(bloodHub) bloodHub.classList.remove('hidden');
+    }
+
+    const shareInput = document.getElementById('app-share-link');
+    if(shareInput) {
+        const currentBaseUrl = window.location.origin + window.location.pathname;
+        shareInput.value = currentBaseUrl + '?mode=blood';
+    }
+    
+    loadBloodDonors();
+});
+
+function copyAppShareLink() {
+    const linkInput = document.getElementById('app-share-link');
+    if(!linkInput) return;
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(linkInput.value);
+    alert("Link copied to clipboard! Share it with others.");
+}
+
 function registerAsBloodDonor() {
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user) { alert("Please login first!"); return; }
+    
     const bloodGroup = document.getElementById('donor-blood-group').value;
     const phone = document.getElementById('donor-phone').value.trim();
-    const location = document.getElementById('donor-location').value.trim();
+    const location = document.getElementById('donor-location').value.trim().toLowerCase();
 
     if (!phone || !location) { alert("Please fill all fields"); return; }
 
     db.collection('blood_donors').doc(user.uid).set({
         uid: user.uid,
-        email: user.email,
         name: user.displayName || 'User',
         bloodGroup: bloodGroup,
         phone: phone,
         location: location
     }).then(() => {
-        alert("Registered as Blood Donor!");
+        alert("Successfully Registered as Blood Donor!");
         loadBloodDonors();
     });
 }
 
 function loadBloodDonors() {
-    const container = document.getElementById('blood-donors-list');
     db.collection('blood_donors').get().then(snapshot => {
-        if (snapshot.empty) {
-            container.innerHTML = `<p class="text-xs text-slate-500 italic">No donors registered.</p>`;
-            return;
-        }
         allBloodDonorsCache = [];
         snapshot.forEach(doc => {
             allBloodDonorsCache.push(doc.data());
@@ -1226,8 +1253,22 @@ function loadBloodDonors() {
     });
 }
 
+function filterBloodDonors() {
+    const selectedBlood = document.getElementById('search-blood-group').value;
+    const searchLocation = document.getElementById('search-location-input').value.toLowerCase().trim();
+
+    const filtered = allBloodDonorsCache.filter(donor => {
+        const matchBlood = selectedBlood === "" || donor.bloodGroup === selectedBlood;
+        const matchLocation = searchLocation === "" || donor.location.includes(searchLocation);
+        return matchBlood && matchLocation;
+    });
+
+    displayBloodDonors(filtered);
+}
+
 function displayBloodDonors(donors) {
     const container = document.getElementById('blood-donors-list');
+    if (!container) return;
     if (donors.length === 0) {
         container.innerHTML = `<p class="text-xs text-slate-500 italic">No matching blood donors found.</p>`;
         return;
@@ -1239,21 +1280,11 @@ function displayBloodDonors(donors) {
                 <h4 class="font-bold text-slate-200 text-xs">${donor.name} (${donor.bloodGroup})</h4>
                 <p class="text-[10px] text-slate-400">📍 ${donor.location} | 📞 ${donor.phone}</p>
             </div>
-            <a href="tel:${donor.phone}" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1 rounded-xl text-xs font-bold">Call Donor</a>
+            <a href="tel:${donor.phone}" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold">Call</a>
         </div>`;
     });
     container.innerHTML = html;
-}
-
-function filterBloodDonors() {
-            const query = document.getElementById('search-blood-input').value.toLowerCase();
-            const filtered = allBloodDonorsCache.filter(donor => 
-                donor.bloodGroup.toLowerCase().includes(query) || 
-                donor.location.toLowerCase().includes(query) ||
-                donor.name.toLowerCase().includes(query)
-            );
-            displayBloodDonors(filtered);
-        }            
+            }
     </script>
 </body>
 </html>
