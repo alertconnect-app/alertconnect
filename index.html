@@ -128,10 +128,16 @@
                 </div>
             </div>
 
-            <!-- TAB 2: BLOOD HUB -->
+                        <!-- TAB 2: BLOOD HUB -->
             <div id="tab-blood-hub" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
                     <h3 class="text-xs font-bold text-slate-200 uppercase">Register as Blood Donor</h3>
+                    
+                    <!-- 🔍 പുതിയ സെർച്ച് ബാർ ഇവിടെയാണ് ചേർക്കേണ്ടത് -->
+                    <div class="relative">
+                        <input type="text" id="search-blood-input" placeholder="🔍 Search blood group (e.g. A+, O+) or location..." oninput="filterBloodDonors()" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-rose-500">
+                    </div>
+
                     <div class="grid grid-cols-2 gap-2">
                         <select id="donor-blood-group" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200">
                             <option value="A+">A+ve</option><option value="A-">A-ve</option>
@@ -149,6 +155,7 @@
                     <p class="text-xs text-slate-500 italic">Loading donors...</p>
                 </div>
             </div>
+
 
             <!-- TAB 3: CHATS OVERVIEW -->
             <div id="tab-chats" class="hidden flex flex-col p-4 space-y-3">
@@ -1180,6 +1187,73 @@
                 loadMasterPendingUsers();
             });
         }
+        let allBloodDonorsCache = [];
+
+function registerAsBloodDonor() {
+    const user = auth.currentUser;
+    if (!user) return;
+    const bloodGroup = document.getElementById('donor-blood-group').value;
+    const phone = document.getElementById('donor-phone').value.trim();
+    const location = document.getElementById('donor-location').value.trim();
+
+    if (!phone || !location) { alert("Please fill all fields"); return; }
+
+    db.collection('blood_donors').doc(user.uid).set({
+        uid: user.uid,
+        email: user.email,
+        name: user.displayName || 'User',
+        bloodGroup: bloodGroup,
+        phone: phone,
+        location: location
+    }).then(() => {
+        alert("Registered as Blood Donor!");
+        loadBloodDonors();
+    });
+}
+
+function loadBloodDonors() {
+    const container = document.getElementById('blood-donors-list');
+    db.collection('blood_donors').get().then(snapshot => {
+        if (snapshot.empty) {
+            container.innerHTML = `<p class="text-xs text-slate-500 italic">No donors registered.</p>`;
+            return;
+        }
+        allBloodDonorsCache = [];
+        snapshot.forEach(doc => {
+            allBloodDonorsCache.push(doc.data());
+        });
+        displayBloodDonors(allBloodDonorsCache);
+    });
+}
+
+function displayBloodDonors(donors) {
+    const container = document.getElementById('blood-donors-list');
+    if (donors.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-500 italic">No matching blood donors found.</p>`;
+        return;
+    }
+    let html = '';
+    donors.forEach(donor => {
+        html += `<div class="bg-slate-900 border border-rose-900/40 p-3.5 rounded-2xl flex items-center justify-between">
+            <div>
+                <h4 class="font-bold text-slate-200 text-xs">${donor.name} (${donor.bloodGroup})</h4>
+                <p class="text-[10px] text-slate-400">📍 ${donor.location} | 📞 ${donor.phone}</p>
+            </div>
+            <a href="tel:${donor.phone}" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1 rounded-xl text-xs font-bold">Call Donor</a>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function filterBloodDonors() {
+            const query = document.getElementById('search-blood-input').value.toLowerCase();
+            const filtered = allBloodDonorsCache.filter(donor => 
+                donor.bloodGroup.toLowerCase().includes(query) || 
+                donor.location.toLowerCase().includes(query) ||
+                donor.name.toLowerCase().includes(query)
+            );
+            displayBloodDonors(filtered);
+        }            
     </script>
 </body>
 </html>
