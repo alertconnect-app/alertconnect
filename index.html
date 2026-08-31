@@ -8,7 +8,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- Modern Dynamic Emergency App Favicon / Icon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%23059669'/><path d='M50 20C33.4 20 20 33.4 20 50s13.4 30 30 30 30-13.4 30-30-13.4-30-30-30zm0 48c-9.9 0-18-8.1-18-18s8.1-18 18-18 18 8.1 18 18-8.1 18-18 18z' fill='%23ffffff'/><circle cx='50' cy='50' r='8' fill='%23DC2626'/></svg>">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -31,7 +30,6 @@
 <body class="h-full flex flex-col items-center justify-center bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-white font-sans">
     <div id="app-container" class="w-full max-w-md h-full sm:h-[844px] sm:max-h-[92vh] bg-slate-900 text-slate-100 sm:rounded-3xl sm:shadow-2xl sm:border sm:border-slate-800 flex flex-col relative overflow-hidden">
         
-        <!-- Modern Header -->
         <header id="app-header" class="hidden bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-white px-4 py-3.5 flex items-center justify-between shadow-sm z-10">
             <div class="flex items-center space-x-3">
                 <div id="header-back-btn" class="hidden cursor-pointer w-8 h-8 rounded-xl bg-slate-800 flex items-center justify-center text-base font-bold text-slate-200 hover:bg-slate-700 transition" onclick="navigateTo('home')">←</div>
@@ -46,10 +44,8 @@
             </div>
         </header>
 
-        <!-- Main Content Area -->
         <main id="view-root" class="flex-1 flex flex-col overflow-y-auto relative pb-24">
             
-            <!-- Loading Screen -->
             <div id="screen-loading" class="flex flex-col items-center justify-center h-full text-center space-y-4 p-6 bg-slate-950">
                 <div class="w-20 h-20 bg-gradient-to-tr from-emerald-600 to-teal-500 text-white rounded-3xl flex items-center justify-center text-3xl font-black shadow-2xl shadow-emerald-900/50 animate-bounce">AC</div>
                 <h2 class="text-xl font-bold text-slate-100 tracking-tight">AlertConnect</h2>
@@ -57,7 +53,6 @@
                 <div class="animate-spin rounded-full h-7 w-7 border-3 border-emerald-500 border-t-transparent"></div>
             </div>
 
-            <!-- Auth Screen -->
             <div id="screen-auth" class="hidden flex flex-col items-center justify-center h-full text-center space-y-6 p-6 bg-slate-950">
                 <div class="w-24 h-24 bg-gradient-to-tr from-emerald-600 to-teal-500 text-white rounded-3xl flex items-center justify-center text-4xl font-black shadow-2xl shadow-emerald-900/40">AC</div>
                 <div class="space-y-1.5">
@@ -72,7 +67,6 @@
                 </div>
             </div>
 
-            <!-- Approval Pending Screen -->
             <div id="screen-pending" class="hidden flex flex-col items-center justify-center h-full text-center space-y-4 p-6 bg-slate-950">
                 <div class="w-16 h-16 bg-amber-500/25 border border-amber-500/50 text-amber-400 rounded-2xl flex items-center justify-center text-2xl font-bold shadow-lg">⏳</div>
                 <h2 class="text-lg font-bold text-slate-100">Approval Pending</h2>
@@ -80,7 +74,6 @@
                 <button onclick="handleLogout()" class="mt-4 px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold hover:bg-slate-700 transition">Logout</button>
             </div>
 
-            <!-- Home Tab -->
             <div id="tab-home" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-gradient-to-br from-emerald-900/90 via-emerald-800/80 to-teal-900/90 border border-emerald-700/40 rounded-2xl p-4 text-white shadow-xl flex items-center justify-between relative overflow-hidden">
                     <div class="space-y-1 z-10 pr-2">
@@ -128,7 +121,6 @@
                 </div>
             </div>
 
-            <!-- Blood Donation & Medical Hub Tab -->
             <div id="tab-blood-hub" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-gradient-to-br from-rose-900/90 via-rose-800/80 to-red-950/90 border border-rose-700/40 rounded-2xl p-4 text-white shadow-xl flex items-center justify-between">
                     <div>
@@ -166,7 +158,6 @@
                 </div>
             </div>
 
-            <!-- Chats Tab -->
             <div id="tab-chats" class="hidden flex flex-col p-4 space-y-3">
                 <div class="flex items-center justify-between">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Chain Conversations</h3>
@@ -177,7 +168,6 @@
                 </div>
             </div>
 
-            <!-- Alerts Tab -->
             <div id="tab-alerts" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-md text-center space-y-3">
                     <div class="w-12 h-12 bg-red-500/20 text-red-500 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold border border-red-500/30">🚨</div>
@@ -187,7 +177,6 @@
                 </div>
             </div>
 
-            <!-- Profile Tab -->
             <div id="tab-profile" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-md flex flex-col items-center text-center space-y-3">
                     <div class="relative cursor-pointer group" onclick="triggerProfilePicUpload()">
@@ -205,7 +194,6 @@
                     <span id="profile-role-badge" class="px-3 py-1 bg-emerald-950 border border-emerald-800/60 text-emerald-400 text-[10px] font-bold rounded-full">Member</span>
                 </div>
 
-                <!-- Master Admin Feature Toggle Panel -->
                 <div id="admin-feature-toggle-panel" class="hidden bg-slate-900 border border-emerald-900/60 p-4 rounded-2xl shadow-md space-y-3">
                     <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Master Feature Controls (On / Off)</h4>
                     <div class="space-y-2 text-xs">
@@ -220,7 +208,6 @@
                     </div>
                 </div>
 
-                <!-- Master Admin Approval Panel -->
                 <div id="admin-approval-panel" class="hidden bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-md space-y-3">
                     <div class="flex items-center justify-between">
                         <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Pending Users</h4>
@@ -231,7 +218,6 @@
                     </div>
                 </div>
 
-                <!-- Master Admin Management Panel -->
                 <div id="admin-management-panel" class="hidden bg-slate-900 border border-emerald-900/50 p-4 rounded-2xl shadow-md space-y-3">
                     <div class="flex items-center justify-between">
                         <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Manage Admin Emails</h4>
@@ -254,7 +240,6 @@
                 </div>
             </div>
 
-            <!-- Chat Room View -->
             <div id="view-chat-room" class="hidden flex flex-col h-full absolute inset-0 bg-slate-900 z-20">
                 <div class="bg-slate-900 border-b border-slate-800 text-white p-3.5 flex items-center justify-between shadow-sm">
                     <div class="flex items-center space-x-3">
@@ -270,7 +255,6 @@
                     </div>
                 </div>
 
-                <!-- Reply Banner Preview -->
                 <div id="reply-preview-banner" class="hidden bg-slate-800/90 border-l-4 border-emerald-500 px-3 py-1.5 flex items-center justify-between text-[11px] text-slate-200">
                     <div>
                         <span class="font-bold text-emerald-400" id="reply-to-user">Replying</span>
@@ -279,23 +263,19 @@
                     <button onclick="cancelReply()" class="text-slate-400 hover:text-white font-bold text-xs">✕</button>
                 </div>
 
-                <!-- Chat Messages Container -->
                 <div id="chat-messages-container" class="flex-1 bg-slate-950 p-3 overflow-y-auto space-y-2.5 text-xs">
                     <p class="text-slate-500 text-center italic py-4">Loading messages...</p>
                 </div>
 
-                <!-- Input & Media / Live Location Bar -->
                 <div class="p-3 bg-slate-900 border-t border-slate-800 space-y-2">
                     <div class="flex items-center space-x-2">
                         <input type="text" id="chat-input-msg" placeholder="Type a message..." class="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" onkeypress="if(event.key === 'Enter') sendChatMessage();">
                         
-                        <!-- Media Compressed Upload Button -->
                         <label id="media-upload-label" class="cursor-pointer bg-slate-800 border border-slate-700 hover:bg-slate-700 p-2 rounded-xl text-emerald-400 text-xs font-bold flex items-center justify-center" title="Send Compressed Photo">
                             📷
                             <input type="file" id="chat-media-input" accept="image/*" class="hidden" onchange="handleCompressedMediaUpload(event)">
                         </label>
                         
-                        <!-- Live Location Button -->
                         <button onclick="sendLiveLocationInChat()" class="bg-slate-800 border border-slate-700 hover:bg-slate-700 p-2 rounded-xl text-amber-400 text-xs font-bold" title="Share Live GPS Location">📍</button>
                         
                         <button onclick="sendChatMessage()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-md shadow-emerald-950/50 transition">Send</button>
@@ -303,7 +283,6 @@
                 </div>
             </div>
 
-            <!-- Create Poll Modal View -->
             <div id="view-create-poll" class="hidden flex flex-col p-4 space-y-4 absolute inset-0 bg-slate-900 z-30">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <button onclick="closePollModal()" class="text-xs font-bold text-slate-300 bg-slate-800 px-3 py-1.5 rounded-xl">✕ Cancel</button>
@@ -327,7 +306,6 @@
                 </div>
             </div>
 
-            <!-- New Alert View -->
             <div id="view-new-alert" class="hidden flex flex-col p-4 space-y-4 absolute inset-0 bg-slate-900 z-25 overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <button onclick="navigateTo('home')" class="text-xs font-bold text-slate-300 bg-slate-800 px-3 py-1.5 rounded-xl hover:bg-slate-700 transition">← Back</button>
@@ -372,7 +350,6 @@
 
         </main>
 
-        <!-- Modern Bottom Navigation Bar -->
         <nav id="app-nav-bar" class="hidden absolute bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 py-2.5 px-6 flex justify-between items-center z-30 shadow-2xl">
             <div onclick="navigateTo('home')" class="nav-item flex flex-col items-center cursor-pointer text-emerald-400" data-target="home">
                 <span class="text-base">🏠</span>
@@ -396,7 +373,6 @@
         </nav>
     </div>
 
-    <!-- Script Logic -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAu91Nuo5lXUZGzarPiWjgVQlSnBR8_r30",
@@ -530,7 +506,6 @@
             auth.signOut();
         }
 
-        // E2EE Simulation Functions
         function encryptMessageText(text) {
             return b58Encode(text);
         }
@@ -540,7 +515,6 @@
         function b58Encode(str) { return btoa(encodeURIComponent(str)); }
         function b58Decode(cipher) { return decodeURIComponent(atob(cipher)); }
 
-        // Compressed Media Handler
         function handleCompressedMediaUpload(event) {
             const file = event.target.files[0];
             if (!file || !activeGroupId) return;
@@ -589,7 +563,7 @@
                 navigator.geolocation.getCurrentPosition(position => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    const mapsLink = `https://maps.google.com/?q=${lat},${lng}`;
+                    const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
                     
                     db.collection('groups').doc(activeGroupId).collection('messages').add({
                         uid: auth.currentUser.uid,
@@ -999,7 +973,7 @@
                 navigator.geolocation.getCurrentPosition(position => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    const mapsLink = `https://maps.google.com/?q=${lat},${lng}`;
+                    const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
                     const fullText = `${text}\n📍 Live GPS Location: ${mapsLink}`;
                     saveAlertToFirebase(fullText, scope, targetGroupId);
                 }, () => saveAlertToFirebase(text, scope, targetGroupId), { timeout: 10000 });
@@ -1022,7 +996,7 @@
                     db.collection('groups').doc(targetGroupId).collection('messages').add({
                         uid: auth.currentUser.uid,
                         email: auth.currentUser.email,
-                        text: encryptMessageText(`🚨 [SOS ALERT BROADCAST]:\n${text}`,
+                        text: encryptMessageText(`🚨 [SOS ALERT BROADCAST]:\n${text}`),
                         type: 'text',
                         seenBy: [auth.currentUser.uid],
                         reactions: {},
