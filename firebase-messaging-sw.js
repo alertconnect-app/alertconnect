@@ -13,10 +13,10 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const notificationTitle = payload.notification.title;
+  const notificationTitle = payload.notification?.title || "AlertConnect Notification";
   const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/icons/icon-192.png',
+    body: payload.notification?.body || "You have a new emergency alert.",
+    icon: './icons/icon-192.png',
     data: payload.data
   };
 
@@ -25,7 +25,19 @@ messaging.onBackgroundMessage((payload) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  // നിങ്ങളുടെ യഥാർത്ഥ ഗിറ്റ്ഹബ് പേജസ് ലിങ്ക് ഇവിടെ നൽകുക
+  const targetUrl = event.notification.data?.url || 'https://alertconnect-app.github.io/alertconnect/';
+  
   event.waitUntil(
-    clients.openWindow(event.notification.data?.url || 'https://roaring-marigold-00c03c.netlify.app/')
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (let client of windowClients) {
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
   );
 });
