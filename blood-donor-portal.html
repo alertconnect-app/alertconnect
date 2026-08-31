@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emergency Blood Donor Portal</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 15px; background: #fff5f5; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); margin-bottom: 20px; }
+    input, select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+    button { background: #d9534f; color: white; border: none; font-weight: bold; cursor: pointer; }
+    .donor-item { border-bottom: 1px solid #eee; padding: 10px 0; }
+  </style>
+</head>
+<body>
+
+  <!-- 🔗 ലിങ്ക് 1: ബ്ലഡ് ഡൊണേഷൻ രജിസ്ട്രേഷൻ ഫോം -->
+  <div class="card">
+    <h3>🩸 രക്തദാതാക്കളുടെ രജിസ്ട്രേഷൻ ഫോം</h3>
+    <input type="text" id="donor-name" placeholder="പൂർണ്ണ പേര്">
+    <select id="donor-blood">
+      <option value="O+ve">O+ve</option>
+      <option value="A+ve">A+ve</option>
+      <option value="B+ve">B+ve</option>
+      <option value="AB+ve">AB+ve</option>
+      <option value="O-ve">O-ve</option>
+      <option value="A-ve">A-ve</option>
+    </select>
+    <input type="tel" id="donor-phone" placeholder="ഫോൺ നമ്പർ">
+    <input type="text" id="donor-location" placeholder="സ്ഥലം / ജില്ല (ഉദാ: Koduvally)">
+    <button onclick="registerDonor()">Register As Donor</button>
+  </div>
+
+  <!-- 🔗 ലിങ്ക് 2: ലൈവ് അപ്ഡേറ്റ് ആകുന്ന ലൈവ് ലിസ്റ്റ് -->
+  <div class="card">
+    <h3>📋 ലൈവ് രക്തദാതാക്കളുടെ ഡയറക്ടറി (Live Updates)</h3>
+    <div id="live-donor-list">Loading live donors...</div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "YOUR_PROJECT_ID",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // 1. Submit Donor Data
+    function registerDonor() {
+      const name = document.getElementById("donor-name").value;
+      const bloodGroup = document.getElementById("donor-blood").value;
+      const phone = document.getElementById("donor-phone").value;
+      const location = document.getElementById("donor-location").value;
+
+      if(!name || !phone || !location) { alert("എല്ലാ വിവരങ്ങളും നൽകുക"); return; }
+
+      const newRef = database.ref('blood_donors').push();
+      newRef.set({
+        name: name,
+        bloodGroup: bloodGroup,
+        phone: phone,
+        location: location,
+        timestamp: Date.now()
+      }).then(() => {
+        alert("വിജയകരമായി രജിസ്റ്റർ ചെയ്തു!");
+        document.getElementById("donor-name").value = "";
+        document.getElementById("donor-phone").value = "";
+        document.getElementById("donor-location").value = "";
+      });
+    }
+
+    // 2. Real-time Live Donor Directory Listing
+    database.ref('blood_donors').on('value', (snapshot) => {
+      const listDiv = document.getElementById("live-donor-list");
+      listDiv.innerHTML = "";
+      snapshot.forEach((child) => {
+        const d = child.val();
+        listDiv.innerHTML += `
+          <div class="donor-item">
+            <strong>${d.name}</strong> (<span style="color:red;">${d.bloodGroup}</span>)<br>
+            📍 ${d.location} | 📞 <a href="tel:${d.phone}">${d.phone}</a>
+          </div>
+        `;
+      });
+    });
+  </script>
+</body>
+</html>
