@@ -129,32 +129,58 @@
             </div>
 
                         <!-- TAB 2: BLOOD HUB -->
-            <div id="tab-blood-hub" class="hidden flex flex-col p-4 space-y-4">
-                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
-                    <h3 class="text-xs font-bold text-slate-200 uppercase">Register as Blood Donor</h3>
-                    
-                    <!-- 🔍 പുതിയ സെർച്ച് ബാർ ഇവിടെയാണ് ചേർക്കേണ്ടത് -->
-                    <div class="relative">
-                        <input type="text" id="search-blood-input" placeholder="🔍 Search blood group (e.g. A+, O+) or location..." oninput="filterBloodDonors()" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-rose-500">
-                    </div>
+<div id="tab-blood-hub" class="hidden flex flex-col p-4 space-y-4">
+    
+    <!-- 1. പുറത്തുള്ളവർക്ക് അയച്ചു കൊടുക്കാനുള്ള ലിങ്ക് കോപ്പി ചെയ്യുന്ന ഭാഗം -->
+    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2">
+        <h3 class="text-xs font-bold text-slate-200 uppercase">Share App Link for Others</h3>
+        <p class="text-[10px] text-slate-400">ഈ ലിങ്ക് കോപ്പി ചെയ്ത് മറ്റുള്ളവർക്ക് അയച്ചു കൊടുക്കുക:</p>
+        <div class="flex gap-2">
+            <input type="text" id="app-share-link" readonly class="w-full p-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-300" value="">
+            <button onclick="copyAppShareLink()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold whitespace-nowrap">Copy</button>
+        </div>
+    </div>
 
-                    <div class="grid grid-cols-2 gap-2">
-                        <select id="donor-blood-group" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200">
-                            <option value="A+">A+ve</option><option value="A-">A-ve</option>
-                            <option value="B+">B+ve</option><option value="B-">B-ve</option>
-                            <option value="O+">O+ve</option><option value="O-">O-ve</option>
-                            <option value="AB+">AB+ve</option><option value="AB-">AB-ve</option>
-                        </select>
-                        <input type="text" id="donor-phone" placeholder="Phone Number" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
-                    </div>
-                    <input type="text" id="donor-location" placeholder="Location / City" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
-                    <button onclick="registerAsBloodDonor()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold">Register Donor</button>
-                </div>
+    <!-- 2. രജിസ്ട്രേഷൻ സെക്ഷൻ (Register) -->
+    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
+        <h3 class="text-xs font-bold text-slate-200 uppercase">Register as Blood Donor</h3>
+        
+        <div class="grid grid-cols-2 gap-2">
+            <select id="donor-blood-group" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200">
+                <option value="A+">A+ve</option><option value="A-">A-ve</option>
+                <option value="B+">B+ve</option><option value="B-">B-ve</option>
+                <option value="O+">O+ve</option><option value="O-">O-ve</option>
+                <option value="AB+">AB+ve</option><option value="AB-">AB-ve</option>
+            </select>
+            <input type="text" id="donor-phone" placeholder="Phone Number" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+        </div>
+        <input type="text" id="donor-location" placeholder="Location / City (e.g. Koduvally)" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+        <button onclick="registerAsBloodDonor()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold">Register Donor</button>
+    </div>
 
-                <div id="blood-donors-list" class="space-y-2">
-                    <p class="text-xs text-slate-500 italic">Loading donors...</p>
-                </div>
-            </div>
+    <!-- 3. സെർച്ച് സെക്ഷൻ (ബ്ലഡ് ഗ്രൂപ്പും ലൊക്കേഷനും വെച്ച് തിരയാൻ) -->
+    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
+        <h3 class="text-xs font-bold text-slate-200 uppercase">Search Blood Donors</h3>
+        
+        <div class="grid grid-cols-2 gap-2">
+            <select id="search-blood-group" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200">
+                <option value="">All Blood Groups</option>
+                <option value="A+">A+ve</option><option value="A-">A-ve</option>
+                <option value="B+">B+ve</option><option value="B-">B-ve</option>
+                <option value="O+">O+ve</option><option value="O-">O-ve</option>
+                <option value="AB+">AB+ve</option><option value="AB-">AB-ve</option>
+            </select>
+            <input type="text" id="search-location-input" placeholder="Location (e.g. Koduvally)" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+        </div>
+        
+        <button onclick="filterBloodDonors()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold">Search Donors</button>
+    </div>
+
+    <!-- 4. റിസൾട്ട് കാണിക്കുന്ന ലിസ്റ്റ് -->
+    <div id="blood-donors-list" class="space-y-2">
+        <p class="text-xs text-slate-500 italic">Click search to view donors...</p>
+    </div>
+</div>
 
 
             <!-- TAB 3: CHATS OVERVIEW -->
