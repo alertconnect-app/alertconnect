@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AlertConnect - Emergency & Community Hub</title>
     <meta name="theme-color" content="#059669">
+    <link rel="manifest" href="manifest.json">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -168,7 +169,7 @@
                 </div>
 
                 <div id="admin-approval-panel" class="hidden bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
-                    <h4 class="text-xs font-bold text-slate-300 uppercase">Pending User Approvals</h4>
+                    <h4 class="text-xs font-bold text-slate-300 uppercase">Pending User Approvals (Master Admin)</h4>
                     <div id="pending-users-list" class="space-y-2 text-xs text-slate-400"></div>
                 </div>
 
@@ -205,7 +206,7 @@
                 </div>
             </div>
 
-            <!-- MODAL: Group Members List & Actions (Direct Messaging & Direct SOS Alert) -->
+            <!-- MODAL: Group Members List & Actions -->
             <div id="modal-group-members" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-4 space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -235,7 +236,7 @@
                 </div>
             </div>
 
-            <!-- SOS ALERT VIEW (With Group & Member Targeting) -->
+            <!-- SOS ALERT VIEW -->
             <div id="view-new-alert" class="hidden flex flex-col p-4 space-y-4 absolute inset-0 bg-slate-900 z-25 overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <button onclick="navigateTo('home')" class="text-xs font-bold text-slate-300 bg-slate-800 px-3 py-1.5 rounded-xl">← Back</button>
@@ -243,7 +244,6 @@
                     <div class="w-12"></div>
                 </div>
 
-                <!-- Alert Target Selection Options -->
                 <div class="space-y-2">
                     <label class="text-[11px] font-bold text-slate-400 uppercase">Target Audience / Mention</label>
                     <div class="grid grid-cols-2 gap-2">
@@ -268,7 +268,7 @@
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
                             <div class="flex items-center space-x-2">
                                 <input type="radio" name="alert-sound" value="megaphone" id="sound-megaphone" checked class="text-emerald-600">
-                                <label for="sound-megaphone" class="text-xs font-bold text-slate-200 cursor-pointer">🔊 1. Loud Megaphone (പേ പേ പേ Siren)</label>
+                                <label for="sound-megaphone" class="text-xs font-bold text-slate-200 cursor-pointer">🔊 1. Loud Megaphone Siren</label>
                             </div>
                             <button onclick="playCustomAlarmSound('megaphone')" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test</button>
                         </div>
@@ -359,7 +359,7 @@
         const db = firebase.firestore();
 
         const MASTER_ADMIN_UID = "NT1cA2oRVQdvkJ8CWhSFhpcr60V2";
-        let activeChatType = 'group'; // 'group' or 'dm'
+        let activeChatType = 'group';
         let activeTargetId = null; 
         let messagesUnsubscribe = null;
         let cachedGroupsData = [];
@@ -608,7 +608,6 @@
             });
         }
 
-        // --- Direct Messaging & Direct Alert Trigger Options ---
         function toggleGroupMembersModal() {
             const modal = document.getElementById('modal-group-members');
             if (modal.classList.contains('hidden')) {
@@ -677,7 +676,6 @@
             }, 100);
         }
 
-        // --- Target Group & User Dropdown Logic for SOS Alert ---
         function setupAlertTargetOptions() {
             const groupSelect = document.getElementById('alert-target-group');
             groupSelect.innerHTML = `<option value="ALL">🌐 Broadcast to All</option>`;
@@ -712,7 +710,6 @@
             });
         }
 
-        // --- Group Poll System ---
         function toggleGroupPollModal() {
             const modal = document.getElementById('modal-group-poll');
             if (modal.classList.contains('hidden')) {
@@ -768,7 +765,6 @@
             }).then(() => loadGroupPolls());
         }
 
-        // --- Image & Location Functions ---
         function handleImageUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -809,7 +805,6 @@
             }
         }
 
-        // --- Siren & Alert Functions ---
         function playCustomAlarmSound(soundType) {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -905,7 +900,6 @@
             });
         }
 
-        // --- Blood Donor Registry ---
         function registerAsBloodDonor() {
             const user = auth.currentUser;
             if (!user) return;
