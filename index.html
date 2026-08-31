@@ -3,18 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AlertConnect - Secure Emergency Communication</title>
+    <title>AlertConnect - Emergency & Blood Donation Hub</title>
     <meta name="theme-color" content="#047857">
-    <!-- PWA Manifest & iOS Settings -->
     <link rel="manifest" href="manifest.webmanifest">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Single Page App redirect handler for PWA / GitHub Pages -->
+    <script type="text/javascript">
+        (function(l) {
+            if (l.search[1] === '/' ) {
+                var decoded = l.search.slice(1).split('&').map(function(s) { 
+                    return s.replace(/~and~/g, '&')
+                }).join('?');
+                window.history.replaceState(null, null,
+                    l.pathname.slice(0, -1) + decoded + l.hash
+                );
+            }
+        }(window.location))
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -29,7 +41,6 @@
     </script>
 </head>
 <body class="h-full flex flex-col items-center justify-center bg-slate-900 text-slate-100 selection:bg-emerald-500 selection:text-white">
-    <!-- App Container -->
     <div id="app-container" class="w-full max-w-md h-full sm:h-[844px] sm:max-h-[92vh] bg-slate-50 text-slate-900 sm:rounded-3xl sm:shadow-2xl flex flex-col relative overflow-hidden">
         
         <!-- Header -->
@@ -38,7 +49,7 @@
                 <div id="header-back-btn" class="hidden cursor-pointer text-lg font-bold" onclick="navigateTo('home')">←</div>
                 <h1 id="header-title" class="font-bold text-base tracking-wide">AlertConnect</h1>
             </div>
-            <div id="header-right-action" class="text-xs bg-emerald-800 px-2.5 py-1 rounded-lg font-medium">Secure</div>
+            <div id="header-right-action" class="text-xs bg-emerald-800 px-2.5 py-1 rounded-lg font-medium">Online</div>
         </header>
 
         <!-- Main Content -->
@@ -48,16 +59,16 @@
             <div id="screen-loading" class="flex flex-col items-center justify-center h-full text-center space-y-4 p-6">
                 <div class="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center text-2xl font-bold shadow-lg">AC</div>
                 <h2 class="text-2xl font-bold text-slate-800">AlertConnect</h2>
-                <p class="text-sm text-slate-500">Checking secure access...</p>
+                <p class="text-sm text-slate-500">Loading emergency network...</p>
                 <div class="animate-spin rounded-full h-8 w-8 border-4 border-emerald-600 border-t-transparent"></div>
             </div>
 
-            <!-- Auth Screen (Google Login) -->
+            <!-- Auth Screen -->
             <div id="screen-auth" class="hidden flex flex-col items-center justify-center h-full text-center space-y-6 p-6">
                 <div class="w-20 h-20 bg-emerald-600 text-white rounded-3xl flex items-center justify-center text-3xl font-bold shadow-xl">AC</div>
                 <div class="space-y-1">
                     <h1 class="text-2xl font-bold text-slate-800">Welcome Back!</h1>
-                    <p class="text-xs text-slate-500">Sign in to request access and connect</p>
+                    <p class="text-xs text-slate-500">Sign in to access Emergency Alerts & Blood Donation Hub</p>
                 </div>
                 <div class="w-full space-y-3 pt-4">
                     <button onclick="handleGoogleLogin()" class="w-full py-3 px-4 bg-white border border-slate-300 rounded-xl shadow-sm text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center justify-center space-x-3 transition">
@@ -79,9 +90,8 @@
             <div id="tab-home" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-gradient-to-r from-emerald-700 to-emerald-600 rounded-2xl p-4 text-white shadow-md flex items-center justify-between">
                     <div>
-                        <h2 class="font-bold text-base">Stay Connected.</h2>
-                        <h2 class="font-bold text-base">Stay Safe.</h2>
-                        <p class="text-[11px] text-emerald-100 mt-1">Emergency broadcast & secure groups.</p>
+                        <h2 class="font-bold text-base" id="home-welcome-text">Emergency Network.</h2>
+                        <p class="text-[11px] text-emerald-100 mt-1">Quick access to alerts, blood donors & groups.</p>
                     </div>
                     <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-xl">🛡️</div>
                 </div>
@@ -90,31 +100,91 @@
                     <button onclick="navigateTo('new-alert')" class="bg-red-50 border border-red-200 p-3 rounded-2xl flex items-center space-x-3 text-left shadow-sm hover:bg-red-100 transition">
                         <div class="w-10 h-10 bg-red-600 text-white rounded-xl flex items-center justify-center font-bold">🚨</div>
                         <div>
-                            <p class="text-xs font-bold text-red-700">Send Alert</p>
-                            <p class="text-[10px] text-red-500">Emergency push</p>
+                            <p class="text-xs font-bold text-red-700">Send SOS</p>
+                            <p class="text-[10px] text-red-500">Emergency alert</p>
                         </div>
                     </button>
-                    <button onclick="openCreateGroupModal()" class="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl flex items-center space-x-3 text-left shadow-sm hover:bg-emerald-100 transition">
-                        <div class="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center font-bold">👥</div>
+                    <button onclick="navigateTo('blood-hub')" class="bg-rose-50 border border-rose-200 p-3 rounded-2xl flex items-center space-x-3 text-left shadow-sm hover:bg-rose-100 transition">
+                        <div class="w-10 h-10 bg-rose-600 text-white rounded-xl flex items-center justify-center font-bold">🩸</div>
                         <div>
-                            <p class="text-xs font-bold text-emerald-700">New Group</p>
-                            <p class="text-[10px] text-emerald-500">Create channel</p>
+                            <p class="text-xs font-bold text-rose-700">Blood Bank</p>
+                            <p class="text-[10px] text-rose-500">Find donors</p>
                         </div>
                     </button>
                 </div>
 
-                <div class="flex items-center justify-between pt-2">
+                <!-- Quick Emergency Hotlines & Medical Support -->
+                <div class="bg-white border border-slate-200 p-3.5 rounded-2xl shadow-sm space-y-2">
+                    <h3 class="text-xs font-bold text-slate-700 uppercase">⚡ Quick Help Hotlines</h3>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <a href="tel:112" class="bg-slate-50 border border-slate-200 p-2 rounded-xl hover:bg-slate-100">
+                            <p class="text-xs font-bold text-slate-800">112</p>
+                            <p class="text-[9px] text-slate-500">SOS Police</p>
+                        </a>
+                        <a href="tel:108" class="bg-slate-50 border border-slate-200 p-2 rounded-xl hover:bg-slate-100">
+                            <p class="text-xs font-bold text-red-600">108</p>
+                            <p class="text-[9px] text-slate-500">Ambulance</p>
+                        </a>
+                        <a href="tel:101" class="bg-slate-50 border border-slate-200 p-2 rounded-xl hover:bg-slate-100">
+                            <p class="text-xs font-bold text-amber-600">101</p>
+                            <p class="text-[9px] text-slate-500">Fire Force</p>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">My Groups</h3>
-                    <span class="text-xs text-emerald-600 font-semibold cursor-pointer" onclick="loadGroups()">Refresh</span>
+                    <span class="text-xs text-emerald-600 font-semibold cursor-pointer px-2 py-1 bg-emerald-50 rounded-lg hover:bg-emerald-100" onclick="loadGroups()">🔄 Refresh</span>
                 </div>
                 <div id="home-groups-list" class="space-y-2">
                     <p class="text-xs text-slate-400 italic">Loading groups...</p>
                 </div>
             </div>
 
+            <!-- Blood Donation & Medical Hub Tab -->
+            <div id="tab-blood-hub" class="hidden flex flex-col p-4 space-y-4">
+                <div class="bg-gradient-to-r from-rose-700 to-rose-600 rounded-2xl p-4 text-white shadow-md flex items-center justify-between">
+                    <div>
+                        <h2 class="font-bold text-base">Blood Donation & Medical Hub</h2>
+                        <p class="text-[11px] text-rose-100 mt-1">Register as a donor or request urgent blood & medical support.</p>
+                    </div>
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-xl">🩸</div>
+                </div>
+
+                <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold text-slate-800 uppercase">Register / Update Your Donor Profile</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="donor-blood-group" class="p-2.5 border border-slate-300 rounded-xl text-xs bg-white font-semibold text-slate-700">
+                            <option value="A+">A+ve</option>
+                            <option value="A-">A-ve</option>
+                            <option value="B+">B+ve</option>
+                            <option value="B-">B-ve</option>
+                            <option value="O+">O+ve</option>
+                            <option value="O-">O-ve</option>
+                            <option value="AB+">AB+ve</option>
+                            <option value="AB-">AB-ve</option>
+                        </select>
+                        <input type="text" id="donor-phone" placeholder="Phone Number" class="p-2.5 border border-slate-300 rounded-xl text-xs">
+                    </div>
+                    <input type="text" id="donor-location" placeholder="Location / City (e.g. Maniyoor, Kozhikode)" class="w-full p-2.5 border border-slate-300 rounded-xl text-xs">
+                    <button onclick="registerAsBloodDonor()" class="w-full py-2.5 bg-rose-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-rose-700">Save / Register as Blood Donor</button>
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Available Donors Directory</h3>
+                    <span class="text-xs text-rose-600 font-semibold cursor-pointer px-2 py-1 bg-rose-50 rounded-lg" onclick="loadBloodDonors()">🔄 Refresh</span>
+                </div>
+                <div id="blood-donors-list" class="space-y-2">
+                    <p class="text-xs text-slate-400 italic">Loading donors directory...</p>
+                </div>
+            </div>
+
             <!-- Chats Tab -->
             <div id="tab-chats" class="hidden flex flex-col p-4 space-y-3">
-                <h3 class="text-sm font-bold text-slate-800">Active Conversations</h3>
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-slate-800">Active Conversations</h3>
+                    <span class="text-xs text-emerald-600 font-semibold cursor-pointer px-2 py-1 bg-emerald-50 rounded-lg" onclick="loadChatsList()">🔄 Refresh</span>
+                </div>
                 <div id="chats-groups-list" class="space-y-2">
                     <p class="text-xs text-slate-400 italic">Loading chats...</p>
                 </div>
@@ -124,31 +194,61 @@
             <div id="tab-alerts" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm text-center space-y-3">
                     <h2 class="text-base font-bold text-slate-800">Emergency Broadcast Hub</h2>
-                    <p class="text-xs text-slate-500">Trigger high-priority alert sound and push notification to members.</p>
+                    <p class="text-xs text-slate-500">Trigger high-priority alert alarms with live GPS location & custom sounds.</p>
                     <button onclick="navigateTo('new-alert')" class="w-full py-3 bg-red-600 text-white rounded-xl font-bold shadow-md hover:bg-red-700 text-sm transition">CREATE EMERGENCY ALERT</button>
                 </div>
             </div>
 
             <!-- Profile Tab -->
             <div id="tab-profile" class="hidden flex flex-col p-4 space-y-4">
-                <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col items-center text-center space-y-2">
-                    <div class="w-16 h-16 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-md" id="profile-initials">U</div>
-                    <h3 id="profile-name" class="font-bold text-slate-800 text-sm">User Name</h3>
-                    <p id="profile-email" class="text-xs text-slate-500">email@domain.com</p>
+                <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex flex-col items-center text-center space-y-3">
+                    <div class="relative cursor-pointer group" onclick="triggerProfilePicUpload()">
+                        <div id="profile-avatar-container" class="w-20 h-20 bg-emerald-600 text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-md overflow-hidden">
+                            <span id="profile-initials">U</span>
+                            <img id="profile-img" class="w-full h-full object-cover hidden" alt="Profile">
+                        </div>
+                        <div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition text-xs font-bold">Edit</div>
+                    </div>
+                    <input type="file" id="profile-pic-input" accept="image/*" class="hidden" onchange="handleProfilePicChange(event)">
+                    <div>
+                        <h3 id="profile-name" class="font-bold text-slate-800 text-sm">User Name</h3>
+                        <p id="profile-email" class="text-xs text-slate-500">email@domain.com</p>
+                    </div>
                     <span id="profile-role-badge" class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">Member</span>
                 </div>
 
-                <!-- Master Admin Approval Panel (Only for Master Admin) -->
+                <!-- Master Admin Approval Panel -->
                 <div id="admin-approval-panel" class="hidden bg-white border border-slate-200 p-4 rounded-2xl shadow-sm space-y-3">
-                    <h4 class="text-xs font-bold text-slate-700 uppercase">Master Admin: Pending User Approvals</h4>
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase">Master Admin: Pending Users</h4>
+                        <span class="text-xs text-emerald-600 cursor-pointer" onclick="loadMasterPendingUsers()">🔄 Refresh</span>
+                    </div>
                     <div id="pending-users-list" class="space-y-2 text-xs text-slate-500">
                         <p class="italic">No pending requests.</p>
                     </div>
                 </div>
 
-                <!-- Group Creator Approval Panel (For any user who created a group) -->
+                <!-- Master Admin Management Panel (Add/Remove other Admins) -->
+                <div id="admin-management-panel" class="hidden bg-white border border-emerald-200 p-4 rounded-2xl shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold text-emerald-700 uppercase">Manage Additional Admin Emails</h4>
+                        <span class="text-xs text-emerald-600 cursor-pointer" onclick="loadAdminEmailsList()">🔄 Refresh</span>
+                    </div>
+                    <div class="flex space-x-2">
+                        <input type="email" id="new-admin-email-input" placeholder="Enter Gmail to grant Admin" class="flex-1 px-3 py-2 border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-emerald-600">
+                        <button onclick="addNewAdminEmail()" class="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-sm">Add</button>
+                    </div>
+                    <div id="admin-emails-list" class="space-y-2 text-xs text-slate-500 pt-1">
+                        <p class="italic">Loading admin emails...</p>
+                    </div>
+                </div>
+
+                <!-- Group Creator Approval Panel -->
                 <div id="group-approval-panel" class="hidden bg-white border border-slate-200 p-4 rounded-2xl shadow-sm space-y-3">
-                    <h4 class="text-xs font-bold text-emerald-700 uppercase">My Group Join Requests</h4>
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold text-emerald-700 uppercase">My Group Join Requests</h4>
+                        <span class="text-xs text-emerald-600 cursor-pointer" onclick="loadMyGroupRequests(auth.currentUser.uid)">🔄 Refresh</span>
+                    </div>
                     <div id="pending-group-requests-list" class="space-y-2 text-xs text-slate-500">
                         <p class="italic">No pending requests for your groups.</p>
                     </div>
@@ -169,7 +269,7 @@
                         <button onclick="navigateTo('home')" class="text-lg font-bold">←</button>
                         <div>
                             <h3 id="chat-room-title" class="text-sm font-bold truncate max-w-[200px]">Group Chat</h3>
-                            <p class="text-[10px] text-emerald-100">End-to-end secure</p>
+                            <p class="text-[10px] text-emerald-100">Direct message channel</p>
                         </div>
                     </div>
                     <button onclick="inviteToGroup()" class="text-xs bg-emerald-800 px-2.5 py-1 rounded-lg font-medium">Invite</button>
@@ -183,33 +283,38 @@
                 </div>
             </div>
 
-            <!-- New Alert View -->
+            <!-- New Alert View with Sound & Location Options -->
             <div id="view-new-alert" class="hidden flex flex-col p-4 space-y-4 absolute inset-0 bg-slate-50 z-25">
                 <div class="flex items-center justify-between border-b border-slate-200 pb-3">
                     <button onclick="navigateTo('home')" class="text-sm font-bold text-slate-700">← Back</button>
-                    <h3 class="font-bold text-slate-800 text-sm">New Alert</h3>
+                    <h3 class="font-bold text-slate-800 text-sm">New SOS Alert</h3>
                     <div class="w-8"></div>
                 </div>
 
                 <div class="space-y-3">
-                    <label class="text-xs font-bold text-slate-600 uppercase">Alert Type</label>
-                    <div class="space-y-2">
-                        <label class="flex items-center p-3 bg-red-50 border border-red-200 rounded-xl cursor-pointer">
-                            <input type="radio" name="alertType" value="Emergency" checked class="text-red-600 focus:ring-red-500">
-                            <div class="ml-3">
-                                <p class="text-xs font-bold text-red-700">Emergency High-Priority Alert</p>
-                                <p class="text-[10px] text-red-500">Triggers sound and push notification on all devices</p>
-                            </div>
-                        </label>
-                    </div>
+                    <label class="text-xs font-bold text-slate-600 uppercase">Select Alert Sound Tone</label>
+                    <select id="alert-sound-select" class="w-full p-3 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:border-emerald-600 font-semibold text-slate-700">
+                        <option value="siren">🚨 High Siren (Loud Emergency)</option>
+                        <option value="beep">🔔 Rapid Beep Tone</option>
+                        <option value="bell">🛎️ Classic Bell Alarm</option>
+                        <option value="pulse">🔊 Heavy Pulse Alert</option>
+                    </select>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-600 uppercase">Message</label>
-                    <textarea id="alert-message-text" rows="4" placeholder="Type emergency broadcast message..." class="w-full p-3 border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-emerald-600">All family members, please come home immediately.</textarea>
+                    <label class="text-xs font-bold text-slate-600 uppercase">Emergency Message</label>
+                    <textarea id="alert-message-text" rows="3" placeholder="Type emergency broadcast message..." class="w-full p-3 border border-slate-300 rounded-xl text-xs focus:outline-none focus:border-emerald-600">Urgent help required! Please respond immediately.</textarea>
                 </div>
 
-                <button onclick="submitEmergencyAlert()" class="w-full py-3 bg-red-600 text-white rounded-xl font-bold shadow-lg hover:bg-red-700 text-sm transition">Send Emergency Alert with Sound</button>
+                <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-emerald-800">Attach Live GPS Location</p>
+                        <p class="text-[10px] text-emerald-600">Share your coordinates with the alert</p>
+                    </div>
+                    <input type="checkbox" id="attach-gps-checkbox" checked class="w-4 h-4 text-emerald-600 rounded">
+                </div>
+
+                <button onclick="submitEmergencyAlert()" class="w-full py-3 bg-red-600 text-white rounded-xl font-bold shadow-lg hover:bg-red-700 text-sm transition">Broadcast SOS Alert Now</button>
             </div>
 
         </main>
@@ -220,16 +325,16 @@
                 <span class="text-lg">🏠</span>
                 <span class="text-[10px] font-bold mt-0.5">Home</span>
             </div>
-            <div onclick="navigateTo('chats')" class="nav-item flex flex-col items-center cursor-pointer text-slate-400 hover:text-emerald-600" data-target="chats">
-                <span class="text-lg">💬</span>
-                <span class="text-[10px] font-bold mt-0.5">Chats</span>
+            <div onclick="navigateTo('blood-hub')" class="nav-item flex flex-col items-center cursor-pointer text-slate-400 hover:text-emerald-600" data-target="blood-hub">
+                <span class="text-lg">🩸</span>
+                <span class="text-[10px] font-bold mt-0.5">Blood Hub</span>
             </div>
             <div onclick="navigateTo('new-alert')" class="flex flex-col items-center cursor-pointer -mt-6">
                 <div class="w-12 h-12 bg-emerald-600 text-white rounded-full flex items-center justify-center text-2xl shadow-lg hover:bg-emerald-700">+</div>
             </div>
-            <div onclick="navigateTo('alerts')" class="nav-item flex flex-col items-center cursor-pointer text-slate-400 hover:text-emerald-600" data-target="alerts">
-                <span class="text-lg">🚨</span>
-                <span class="text-[10px] font-bold mt-0.5">Alerts</span>
+            <div onclick="navigateTo('chats')" class="nav-item flex flex-col items-center cursor-pointer text-slate-400 hover:text-emerald-600" data-target="chats">
+                <span class="text-lg">💬</span>
+                <span class="text-[10px] font-bold mt-0.5">Chats</span>
             </div>
             <div onclick="navigateTo('profile')" class="nav-item flex flex-col items-center cursor-pointer text-slate-400 hover:text-emerald-600" data-target="profile">
                 <span class="text-lg">👤</span>
@@ -259,11 +364,10 @@
         let activeGroupId = null;
         let messagesUnsubscribe = null;
 
-        // Navigation Controller
         function navigateTo(viewName) {
             if (messagesUnsubscribe) { messagesUnsubscribe(); messagesUnsubscribe = null; }
 
-            ['screen-loading', 'screen-auth', 'screen-pending', 'tab-home', 'tab-chats', 'tab-alerts', 'tab-profile', 'view-chat-room', 'view-new-alert'].forEach(id => {
+            ['screen-loading', 'screen-auth', 'screen-pending', 'tab-home', 'tab-blood-hub', 'tab-chats', 'tab-alerts', 'tab-profile', 'view-chat-room', 'view-new-alert'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.add('hidden');
             });
@@ -271,11 +375,11 @@
             const header = document.getElementById('app-header');
             const navBar = document.getElementById('app-nav-bar');
 
-            if (['home', 'chats', 'alerts', 'profile'].includes(viewName)) {
+            if (['home', 'blood-hub', 'chats', 'alerts', 'profile'].includes(viewName)) {
                 header.classList.remove('hidden');
                 navBar.classList.remove('hidden');
                 document.getElementById(`tab-${viewName}`).classList.remove('hidden');
-                document.getElementById('header-title').innerText = viewName.toUpperCase();
+                document.getElementById('header-title').innerText = viewName === 'blood-hub' ? 'Blood & Medical Hub' : viewName.toUpperCase();
                 document.getElementById('header-back-btn').classList.add('hidden');
 
                 document.querySelectorAll('.nav-item').forEach(item => {
@@ -289,6 +393,7 @@
                 });
 
                 if (viewName === 'home') loadGroups();
+                if (viewName === 'blood-hub') loadBloodDonors();
                 if (viewName === 'chats') loadChatsList();
                 if (viewName === 'profile') loadProfileData();
             } else {
@@ -299,28 +404,45 @@
             }
         }
 
-        // Auth Observer & Strict Access Control
+        async function checkIfUserIsAdmin(user) {
+            if (user.uid === MASTER_ADMIN_UID) return true;
+            try {
+                const doc = await db.collection('settings').doc('admins').get();
+                if (doc.exists) {
+                    const adminEmails = doc.data().emails || [];
+                    if (adminEmails.includes(user.email)) return true;
+                }
+            } catch(e) {
+                console.log("Admin check error:", e);
+            }
+            return false;
+        }
+
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 try {
                     const userRef = db.collection('users').doc(user.uid);
                     let doc = await userRef.get();
-                    const isMaster = (user.uid === MASTER_ADMIN_UID);
+                    const isAdmin = await checkIfUserIsAdmin(user);
 
                     if (!doc.exists) {
                         await userRef.set({
                             uid: user.uid,
                             email: user.email,
                             displayName: user.displayName || 'User',
-                            status: isMaster ? 'approved' : 'pending',
-                            role: isMaster ? 'admin' : 'member',
+                            photoURL: user.photoURL || '',
+                            status: isAdmin ? 'approved' : 'pending',
+                            role: isAdmin ? 'admin' : 'member',
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         }, { merge: true });
+                        doc = await userRef.get();
+                    } else if (isAdmin && doc.data().status !== 'approved') {
+                        await userRef.update({ status: 'approved', role: 'admin' });
                         doc = await userRef.get();
                     }
 
                     const userData = doc.data();
-                    if (isMaster || userData.status === 'approved') {
+                    if (isAdmin || userData.status === 'approved') {
                         document.getElementById('screen-auth').classList.add('hidden');
                         document.getElementById('screen-pending').classList.add('hidden');
                         document.getElementById('screen-loading').classList.add('hidden');
@@ -337,7 +459,7 @@
                 document.getElementById('screen-loading').classList.add('hidden');
                 document.getElementById('app-header').classList.add('hidden');
                 document.getElementById('app-nav-bar').classList.add('hidden');
-                ['tab-home', 'tab-chats', 'tab-alerts', 'tab-profile', 'view-chat-room', 'view-new-alert', 'screen-pending'].forEach(id => {
+                ['tab-home', 'tab-blood-hub', 'tab-chats', 'tab-alerts', 'tab-profile', 'view-chat-room', 'view-new-alert', 'screen-pending'].forEach(id => {
                     document.getElementById(id).classList.add('hidden');
                 });
                 document.getElementById('screen-auth').classList.remove('hidden');
@@ -353,26 +475,97 @@
             auth.signOut();
         }
 
-        function playAlertSound() {
+        function playCustomAlarmSound(soundType) {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                oscillator.type = 'square';
-                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                oscillator.start();
-                setTimeout(() => { oscillator.stop(); }, 1200);
+                let now = audioCtx.currentTime;
+
+                if (soundType === 'siren') {
+                    for (let i = 0; i < 4; i++) {
+                        let osc = audioCtx.createOscillator();
+                        let gain = audioCtx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(600, now + (i * 0.3));
+                        osc.frequency.linearRampToValueAtTime(1200, now + (i * 0.3) + 0.15);
+                        gain.gain.setValueAtTime(0.4, now + (i * 0.3));
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + (i * 0.3) + 0.28);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + (i * 0.3));
+                        osc.stop(now + (i * 0.3) + 0.3);
+                    }
+                } else if (soundType === 'beep') {
+                    for (let i = 0; i < 6; i++) {
+                        let osc = audioCtx.createOscillator();
+                        let gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(880, now + (i * 0.15));
+                        gain.gain.setValueAtTime(0.5, now + (i * 0.15));
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + (i * 0.15) + 0.1);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now + (i * 0.15));
+                        osc.stop(now + (i * 0.15) + 0.12);
+                    }
+                } else if (soundType === 'bell') {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(1046.5, now);
+                    gain.gain.setValueAtTime(0.7, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 1.2);
+                } else {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(440, now);
+                    gain.gain.setValueAtTime(0.5, now);
+                    gain.gain.setValueAtTime(0, now + 0.2);
+                    gain.gain.setValueAtTime(0.5, now + 0.4);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.8);
+                }
             } catch (e) {
                 console.log("Audio play error:", e);
             }
         }
 
-        // Groups & Chats Logic
+        function triggerProfilePicUpload() {
+            document.getElementById('profile-pic-input').click();
+        }
+
+        function handleProfilePicChange(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64Image = e.target.result;
+                const user = auth.currentUser;
+                if (!user) return;
+                
+                try {
+                    await db.collection('users').doc(user.uid).update({ photoURL: base64Image });
+                    document.getElementById('profile-img').src = base64Image;
+                    document.getElementById('profile-img').classList.remove('hidden');
+                    document.getElementById('profile-initials').classList.add('hidden');
+                    alert("Profile picture updated successfully!");
+                } catch (err) {
+                    alert("Error updating profile picture: " + err.message);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
         function loadGroups() {
             const container = document.getElementById('home-groups-list');
+            container.innerHTML = `<p class="text-xs text-slate-400 italic">Refreshing groups...</p>`;
             db.collection('groups').orderBy('createdAt', 'desc').get().then(snapshot => {
                 if (snapshot.empty) {
                     container.innerHTML = `<p class="text-xs text-slate-400 italic">No groups available. Create one using the + button.</p>`;
@@ -397,9 +590,63 @@
             });
         }
 
+        function registerAsBloodDonor() {
+            const user = auth.currentUser;
+            if (!user) return;
+            const bloodGroup = document.getElementById('donor-blood-group').value;
+            const phone = document.getElementById('donor-phone').value.trim();
+            const location = document.getElementById('donor-location').value.trim();
+
+            if (!phone || !location) {
+                alert("Please enter both phone number and location!");
+                return;
+            }
+
+            db.collection('blood_donors').doc(user.uid).set({
+                uid: user.uid,
+                email: user.email,
+                name: user.displayName || 'User',
+                bloodGroup: bloodGroup,
+                phone: phone,
+                location: location,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                alert("Successfully registered as a Blood Donor!");
+                loadBloodDonors();
+            }).catch(err => alert("Error: " + err.message));
+        }
+
+        function loadBloodDonors() {
+            const container = document.getElementById('blood-donors-list');
+            container.innerHTML = `<p class="text-xs text-slate-400 italic">Loading donors...</p>`;
+            db.collection('blood_donors').get().then(snapshot => {
+                if (snapshot.empty) {
+                    container.innerHTML = `<p class="text-xs text-slate-400 italic">No registered blood donors yet.</p>`;
+                    return;
+                }
+                let html = '';
+                snapshot.forEach(doc => {
+                    const donor = doc.data();
+                    html += `<div class="bg-white border border-rose-200 p-3.5 rounded-2xl flex items-center justify-between shadow-sm">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-rose-100 text-rose-700 rounded-xl flex items-center justify-center font-bold text-sm">${donor.bloodGroup}</div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-xs">${donor.name}</h4>
+                                <p class="text-[10px] text-slate-500">📍 ${donor.location}</p>
+                                <p class="text-[10px] text-slate-400">📞 ${donor.phone}</p>
+                            </div>
+                        </div>
+                        <a href="tel:${donor.phone}" class="bg-rose-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm">Call</a>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            });
+        }
+
         function loadChatsList() {
             loadGroups();
             const chatsContainer = document.getElementById('chats-groups-list');
+            chatsContainer.innerHTML = `<p class="text-xs text-slate-400 italic">Refreshing chats...</p>`;
             db.collection('groups').get().then(snapshot => {
                 let html = '';
                 snapshot.forEach(doc => {
@@ -411,19 +658,6 @@
                 });
                 chatsContainer.innerHTML = html || '<p class="text-xs text-slate-400">No active chats.</p>';
             });
-        }
-
-        function openCreateGroupModal() {
-            const name = prompt("Enter new group name:");
-            if (!name) return;
-            db.collection('groups').add({
-                name: name.trim(),
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                createdBy: auth.currentUser.uid
-            }).then(() => {
-                alert("Group created successfully!");
-                loadGroups();
-            }).catch(err => alert("Error: " + err.message));
         }
 
         function openChatRoom(groupId, groupName, createdBy) {
@@ -478,17 +712,37 @@
 
         function submitEmergencyAlert() {
             const text = document.getElementById('alert-message-text').value.trim();
+            const soundType = document.getElementById('alert-sound-select').value;
+            const attachGps = document.getElementById('attach-gps-checkbox').checked;
             if (!text) return;
-            playAlertSound();
+            
+            playCustomAlarmSound(soundType);
 
+            if (attachGps && navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const mapsLink = `https://maps.google.com/?q=${lat},${lng}`;
+                    const fullText = `${text}\n📍 My Live GPS Location: ${mapsLink}`;
+                    saveAlertToFirebase(fullText, soundType);
+                }, () => {
+                    saveAlertToFirebase(text, soundType);
+                }, { timeout: 10000 });
+            } else {
+                saveAlertToFirebase(text, soundType);
+            }
+        }
+
+        function saveAlertToFirebase(text, soundType) {
             db.collection('alerts').add({
                 uid: auth.currentUser.uid,
                 email: auth.currentUser.email,
                 text: text,
+                sound: soundType,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 status: 'Active'
             }).then(() => {
-                alert("🚨 Emergency Alert Broadcasted Successfully with Sound!");
+                alert("🚨 Emergency SOS Broadcasted Successfully!");
                 navigateTo('home');
             }).catch(err => alert("Error: " + err.message));
         }
@@ -498,23 +752,38 @@
             if (!user) return;
             document.getElementById('profile-email').innerText = user.email;
             document.getElementById('profile-name').innerText = user.displayName || 'User';
-            document.getElementById('profile-initials').innerText = (user.displayName || 'U')[0].toUpperCase();
 
-            const isMaster = (user.uid === MASTER_ADMIN_UID);
-            document.getElementById('profile-role-badge').innerText = isMaster ? 'Master Admin' : 'Group Member';
+            db.collection('users').doc(user.uid).get().then(doc => {
+                if (doc.exists && doc.data().photoURL) {
+                    const pUrl = doc.data().photoURL;
+                    document.getElementById('profile-img').src = pUrl;
+                    document.getElementById('profile-img').classList.remove('hidden');
+                    document.getElementById('profile-initials').classList.add('hidden');
+                } else {
+                    document.getElementById('profile-initials').innerText = (user.displayName || 'U')[0].toUpperCase();
+                }
+            });
 
-            if (isMaster) {
+            const isAdmin = await checkIfUserIsAdmin(user);
+            document.getElementById('profile-role-badge').innerText = isAdmin ? 'Master / Co-Admin' : 'Group Member';
+
+            if (isAdmin) {
                 document.getElementById('admin-approval-panel').classList.remove('hidden');
                 loadMasterPendingUsers();
+
+                if (user.uid === MASTER_ADMIN_UID) {
+                    document.getElementById('admin-management-panel').classList.remove('hidden');
+                    loadAdminEmailsList();
+                }
             }
 
-            // Show group creator approval panel for any user who owns groups
             document.getElementById('group-approval-panel').classList.remove('hidden');
             loadMyGroupRequests(user.uid);
         }
 
         function loadMasterPendingUsers() {
             const container = document.getElementById('pending-users-list');
+            container.innerHTML = `<p class="italic text-slate-400">Loading...</p>`;
             db.collection('users').where('status', '==', 'pending').get().then(snapshot => {
                 if (snapshot.empty) {
                     container.innerHTML = `<p class="italic text-slate-400">No pending user requests.</p>`;
@@ -534,38 +803,105 @@
 
         function approveMasterUser(uid) {
             db.collection('users').doc(uid).update({ status: 'approved' }).then(() => {
-                alert("User approved by Master Admin!");
+                alert("User approved successfully!");
                 loadMasterPendingUsers();
             }).catch(err => alert("Error: " + err.message));
         }
 
-        function loadMyGroupRequests(userId) {
-            const container = document.getElementById('pending-group-requests-list');
-            // Find groups created by this user and check join requests
-            db.collection('groups').where('createdBy', '==', userId).get().then(snapshot => {
-                if (snapshot.empty) {
-                    container.innerHTML = `<p class="italic text-slate-400">You have not created any groups yet.</p>`;
+        async function loadAdminEmailsList() {
+            const container = document.getElementById('admin-emails-list');
+            container.innerHTML = `<p class="italic text-slate-400">Loading admins...</p>`;
+            try {
+                const doc = await db.collection('settings').doc('admins').get();
+                let emails = [];
+                if (doc.exists) {
+                    emails = doc.data().emails || [];
+                }
+                if (emails.length === 0) {
+                    container.innerHTML = `<p class="italic text-slate-400">No additional admin emails added yet.</p>`;
                     return;
                 }
-                // For simplicity, checking group join requests collection
-                db.collection('group_requests').where('groupCreatorUid', '==', userId).where('status', '==', 'pending').get().then(reqSnap => {
-                    if (reqSnap.empty) {
-                        container.innerHTML = `<p class="italic text-slate-400">No pending requests for your groups.</p>`;
-                        return;
-                    }
-                    let html = '';
-                    reqSnap.forEach(doc => {
-                        const req = doc.data();
-                        html += `<div class="flex items-center justify-between bg-slate-50 p-2 rounded-xl border border-slate-200">
-                            <div>
-                                <p class="font-medium text-slate-700">${req.userEmail}</p>
-                                <p class="text-[9px] text-emerald-600">Wants to join your group</p>
-                            </div>
-                            <button onclick="approveGroupJoin('${doc.id}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">Approve</button>
-                        </div>`;
-                    });
-                    container.innerHTML = html;
+                let html = '';
+                emails.forEach(email => {
+                    html += `<div class="flex items-center justify-between bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                        <span class="truncate max-w-[180px] font-medium text-emerald-900">${email}</span>
+                        <button onclick="removeAdminEmail('${email}')" class="text-red-600 font-bold px-2 py-0.5 rounded text-xs hover:bg-red-100">Remove</button>
+                    </div>`;
                 });
+                container.innerHTML = html;
+            } catch(e) {
+                container.innerHTML = `<p class="italic text-slate-400">Error loading admins.</p>`;
+            }
+        }
+
+        async function addNewAdminEmail() {
+            const input = document.getElementById('new-admin-email-input');
+            const email = input.value.trim().toLowerCase();
+            if (!email || !email.includes('@')) {
+                alert("Please enter a valid Gmail address!");
+                return;
+            }
+
+            try {
+                const ref = db.collection('settings').doc('admins');
+                const doc = await ref.get();
+                let emails = [];
+                if (doc.exists) {
+                    emails = doc.data().emails || [];
+                }
+                if (!emails.includes(email)) {
+                    emails.push(email);
+                    await ref.set({ emails: emails }, { merge: true });
+                    input.value = '';
+                    alert("Admin email added successfully!");
+                    loadAdminEmailsList();
+                } else {
+                    alert("This email is already in the admin list.");
+                }
+            } catch(e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        async function removeAdminEmail(emailToRemove) {
+            if (!confirm(`Are you sure you want to remove ${emailToRemove} from Admin access?`)) return;
+            try {
+                const ref = db.collection('settings').doc('admins');
+                const doc = await ref.get();
+                if (doc.exists) {
+                    let emails = doc.data().emails || [];
+                    emails = emails.filter(e => e !== emailToRemove);
+                    await ref.set({ emails: emails }, { merge: true });
+                    alert("Admin removed successfully!");
+                    loadAdminEmailsList();
+                }
+            } catch(e) {
+                alert("Error: " + e.message);
+            }
+        }
+
+        function loadMyGroupRequests(userId) {
+            const container = document.getElementById('pending-group-requests-list');
+            container.innerHTML = `<p class="italic text-slate-400">Loading...</p>`;
+            db.collection('group_requests').where('groupCreatorUid', '==', userId).where('status', '==', 'pending').get().then(reqSnap => {
+                if (reqSnap.empty) {
+                    container.innerHTML = `<p class="italic text-slate-400">No pending requests for your groups.</p>`;
+                    return;
+                }
+                let html = '';
+                reqSnap.forEach(doc => {
+                    const req = doc.data();
+                    html += `<div class="flex items-center justify-between bg-slate-50 p-2 rounded-xl border border-slate-200">
+                        <div>
+                            <p class="font-medium text-slate-700">${req.userEmail}</p>
+                            <p class="text-[9px] text-emerald-600">Wants to join your group</p>
+                        </div>
+                        <button onclick="approveGroupJoin('${doc.id}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">Approve</button>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            }).catch(() => {
+                container.innerHTML = `<p class="italic text-slate-400">No pending requests for your groups.</p>`;
             });
         }
 
