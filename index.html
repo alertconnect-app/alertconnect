@@ -5,12 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AlertConnect - Emergency & Community Hub</title>
     <meta name="theme-color" content="#059669">
-    <link rel="manifest" href="manifest.json">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase Compatibility Libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -25,9 +28,10 @@
     </script>
 </head>
 <body class="h-full flex flex-col items-center justify-center bg-slate-950 text-slate-100 font-sans selection:bg-emerald-500 selection:text-white">
+    
     <div id="app-container" class="w-full max-w-md h-full sm:h-[844px] sm:max-h-[92vh] bg-slate-900 text-slate-100 sm:rounded-3xl sm:shadow-2xl sm:border sm:border-slate-800 flex flex-col relative overflow-hidden">
         
-        <!-- Header -->
+        <!-- App Header -->
         <header id="app-header" class="hidden bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-white px-4 py-3.5 flex items-center justify-between shadow-sm z-10">
             <div class="flex items-center space-x-3">
                 <div id="header-back-btn" class="hidden cursor-pointer w-8 h-8 rounded-xl bg-slate-800 flex items-center justify-center text-base font-bold text-slate-200 hover:bg-slate-700 transition" onclick="navigateTo('home')">←</div>
@@ -42,14 +46,14 @@
             </div>
         </header>
 
-        <!-- Main Views Root -->
+        <!-- Main Views Viewport -->
         <main id="view-root" class="flex-1 flex flex-col overflow-y-auto relative pb-20">
             
             <!-- Loading Screen -->
             <div id="screen-loading" class="flex flex-col items-center justify-center h-full text-center space-y-4 p-6 bg-slate-950">
                 <div class="w-20 h-20 bg-gradient-to-tr from-emerald-600 to-teal-500 text-white rounded-3xl flex items-center justify-center text-3xl font-black shadow-2xl animate-bounce">AC</div>
                 <h2 class="text-xl font-bold text-slate-100">AlertConnect</h2>
-                <div class="animate-spin rounded-full h-7 w-7 border-3 border-emerald-500 border-t-transparent"></div>
+                <div class="animate-spin rounded-full h-7 w-7 border-2 border-emerald-500 border-t-transparent"></div>
             </div>
 
             <!-- Auth Screen -->
@@ -68,44 +72,44 @@
             <div id="screen-pending" class="hidden flex flex-col items-center justify-center h-full text-center space-y-4 p-6 bg-slate-950">
                 <div class="w-16 h-16 bg-amber-500/25 border border-amber-500/50 text-amber-400 rounded-2xl flex items-center justify-center text-2xl font-bold">⏳</div>
                 <h2 class="text-lg font-bold text-slate-100">Approval Pending</h2>
-                <p class="text-xs text-slate-400">Wait for Master Admin Approval to access full features.</p>
-                <button onclick="requestGuestNotificationPermission()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold">Allow Notification Siren Alert Only</button>
+                <p class="text-xs text-slate-400">Wait for Master Admin Approval to access full network features.</p>
+                <button onclick="requestGuestNotificationPermission()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold">Allow Siren Alert Notifications</button>
                 <button onclick="handleLogout()" class="mt-2 px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Logout</button>
             </div>
 
-            <!-- HOME TAB -->
+            <!-- TAB 1: HOME -->
             <div id="tab-home" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-gradient-to-br from-emerald-900/90 via-emerald-800/80 to-teal-900/90 border border-emerald-700/40 rounded-2xl p-4 text-white flex items-center justify-between">
                     <div class="space-y-1">
                         <span class="text-[10px] bg-emerald-700/60 text-emerald-200 px-2 py-0.5 rounded-md font-bold uppercase">System Active</span>
-                        <h2 class="font-extrabold text-sm text-white pt-1">AlertConnect Network</h2>
+                        <h2 class="font-extrabold text-sm text-white pt-1">AlertConnect Hub</h2>
                     </div>
                     <button onclick="navigateTo('new-alert')" class="bg-red-600 hover:bg-red-500 text-white px-3.5 py-2.5 rounded-xl font-extrabold text-xs shadow-lg flex items-center space-x-1 shrink-0">
-                        <span>🚨 SOS Now</span>
+                        <span>🚨 SOS Broadcast</span>
                     </button>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
                     <button onclick="navigateTo('new-alert')" class="bg-red-950/40 border border-red-900/50 p-3 rounded-xl flex items-center justify-center space-x-2">
                         <span class="text-lg">🚨</span>
-                        <span class="text-xs font-bold text-red-400">Send SOS</span>
+                        <span class="text-xs font-bold text-red-400">Send SOS Alert</span>
                     </button>
                     <button onclick="navigateTo('blood-hub')" class="bg-rose-950/40 border border-rose-900/50 p-3 rounded-xl flex items-center justify-center space-x-2">
                         <span class="text-lg">🩸</span>
-                        <span class="text-xs font-bold text-rose-400">Blood Bank</span>
+                        <span class="text-xs font-bold text-rose-400">Blood Directory</span>
                     </button>
                 </div>
 
-                <!-- Create Group -->
+                <!-- Create Group Section -->
                 <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
-                    <h3 class="text-xs font-bold text-slate-200 uppercase">Create New Group</h3>
+                    <h3 class="text-xs font-bold text-slate-200 uppercase">Create New Community Group</h3>
                     <div class="flex space-x-2">
                         <input type="text" id="new-group-name-input" placeholder="Group Name..." class="flex-1 p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-emerald-500">
                         <button onclick="createNewChainGroup()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold">Create</button>
                     </div>
                 </div>
 
-                <!-- Emergency Contacts -->
+                <!-- Emergency Contact Numbers -->
                 <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl space-y-2">
                     <h3 class="text-[11px] font-bold text-slate-300 uppercase">Emergency Helplines</h3>
                     <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-bold">
@@ -116,7 +120,7 @@
                 </div>
 
                 <div class="flex items-center justify-between pt-1">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Groups List</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Community Groups</h3>
                     <button onclick="loadGroups()" class="text-xs bg-slate-800 border border-slate-700 text-emerald-400 font-bold px-3 py-1 rounded-xl hover:bg-slate-700">🔄 Refresh</button>
                 </div>
                 <div id="home-groups-list" class="space-y-2">
@@ -124,7 +128,7 @@
                 </div>
             </div>
 
-            <!-- BLOOD HUB TAB -->
+            <!-- TAB 2: BLOOD HUB -->
             <div id="tab-blood-hub" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
                     <h3 class="text-xs font-bold text-slate-200 uppercase">Register as Blood Donor</h3>
@@ -146,7 +150,7 @@
                 </div>
             </div>
 
-            <!-- CHATS TAB -->
+            <!-- TAB 3: CHATS OVERVIEW -->
             <div id="tab-chats" class="hidden flex flex-col p-4 space-y-3">
                 <div class="flex items-center justify-between">
                     <h3 class="text-xs font-bold uppercase text-slate-400">Conversations & Direct Messages</h3>
@@ -157,9 +161,8 @@
                 </div>
             </div>
 
-            <!-- PROFILE TAB -->
+            <!-- TAB 4: PROFILE & ADMIN PANEL -->
             <div id="tab-profile" class="hidden flex flex-col p-4 space-y-4">
-                <!-- User Profile Header & Auto Compressed Photo Upload -->
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col items-center text-center space-y-3 relative">
                     <div class="relative group">
                         <div id="profile-img-container" class="w-20 h-20 bg-emerald-600 text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg overflow-hidden border-2 border-emerald-500">
@@ -174,24 +177,24 @@
                     </div>
                 </div>
 
-                <!-- MASTER ADMIN CONTROL PANEL -->
+                <!-- Master / Sub-Admin Controls -->
                 <div id="admin-approval-panel" class="hidden bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-4">
                     <div class="border-b border-slate-800 pb-2">
-                        <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider">👑 Master Admin Controls</h4>
+                        <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider">👑 Master Admin Control Center</h4>
                     </div>
 
-                    <!-- Media Upload Switch (Allow/Disallow Photo & Video Sharing) -->
+                    <!-- Global Media Upload Toggle -->
                     <div class="bg-slate-800/80 border border-slate-700 p-3 rounded-xl flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-bold text-slate-200">📷 Allow Users to Upload Media</p>
-                            <p class="text-[10px] text-slate-400">Master Admin control to enable/disable photos in chats</p>
+                            <p class="text-xs font-bold text-slate-200">📷 Allow Media Sharing in Chats</p>
+                            <p class="text-[10px] text-slate-400">Global setting for photo uploads in channels</p>
                         </div>
                         <input type="checkbox" id="toggle-media-upload" class="w-5 h-5 text-emerald-600 rounded cursor-pointer" onchange="toggleMediaPermissionSetting(this.checked)">
                     </div>
                     
-                    <!-- Add Authorized Admin Gmail -->
+                    <!-- Authorized Admin Emails -->
                     <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase">Add Admin Gmail</label>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Authorize Sub-Admin Gmail</label>
                         <div class="flex space-x-2">
                             <input type="email" id="new-admin-email-input" placeholder="admin@gmail.com" class="flex-1 p-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
                             <button onclick="addAuthorizedAdminEmail()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-2 rounded-xl text-xs font-bold">Add Admin</button>
@@ -199,26 +202,26 @@
                         <div id="admin-emails-list" class="space-y-1 text-xs text-slate-400 pt-1"></div>
                     </div>
 
-                    <!-- Transfer Master Ownership -->
+                    <!-- Transfer Ownership -->
                     <div class="space-y-2 border-t border-slate-800 pt-3">
-                        <label class="text-[10px] font-bold text-red-400 uppercase">Transfer Master Admin Rights</label>
+                        <label class="text-[10px] font-bold text-red-400 uppercase">Transfer Master Rights</label>
                         <div class="flex space-x-2">
-                            <input type="text" id="transfer-master-uid-input" placeholder="New Master UID..." class="flex-1 p-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                            <input type="text" id="transfer-master-uid-input" placeholder="Target User UID..." class="flex-1 p-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
                             <button onclick="transferMasterAdminOwnership()" class="bg-red-700 hover:bg-red-600 text-white px-3 py-2 rounded-xl text-xs font-bold">Transfer</button>
                         </div>
                     </div>
 
                     <!-- Pending User Approvals -->
                     <div class="border-t border-slate-800 pt-3">
-                        <h5 class="text-[11px] font-bold text-slate-300 uppercase mb-2">Pending User Approvals</h5>
+                        <h5 class="text-[11px] font-bold text-slate-300 uppercase mb-2">Pending Member Approvals</h5>
                         <div id="pending-users-list" class="space-y-2 text-xs text-slate-400"></div>
                     </div>
                 </div>
 
-                <button onclick="handleLogout()" class="w-full py-3 bg-red-950 border border-red-800 text-red-400 font-bold text-xs rounded-2xl">Logout Account</button>
+                <button onclick="handleLogout()" class="w-full py-3 bg-red-950 border border-red-800 text-red-400 font-bold text-xs rounded-2xl">Sign Out Account</button>
             </div>
 
-            <!-- CHAT ROOM VIEW -->
+            <!-- VIEW: ACTIVE CHAT ROOM -->
             <div id="view-chat-room" class="hidden flex flex-col h-full absolute inset-0 bg-slate-900 z-20">
                 <div class="bg-slate-900 border-b border-slate-800 text-white p-3 flex items-center justify-between">
                     <div class="flex items-center space-x-2.5">
@@ -236,10 +239,9 @@
                 </div>
 
                 <div id="chat-messages-container" class="flex-1 bg-slate-950 p-3 overflow-y-auto space-y-2.5 text-xs">
-                    <p class="text-slate-500 text-center italic py-4">Connecting to chat...</p>
+                    <p class="text-slate-500 text-center italic py-4">Connecting to room...</p>
                 </div>
 
-                <!-- Chat Bottom Controls -->
                 <div class="p-3 bg-slate-900 border-t border-slate-800 flex items-center space-x-2">
                     <input type="file" id="chat-image-input" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
                     <button id="chat-media-btn" onclick="triggerMediaUpload()" class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-slate-300 text-xs font-bold" title="Send Image">📷</button>
@@ -249,7 +251,7 @@
                 </div>
             </div>
 
-            <!-- MODAL: Group Members List -->
+            <!-- MODAL: Group Members Modal -->
             <div id="modal-group-members" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-4 space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -262,7 +264,7 @@
                 </div>
             </div>
 
-            <!-- MODAL: Group Polls -->
+            <!-- MODAL: Group Polls Modal -->
             <div id="modal-group-poll" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-4 space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -270,7 +272,7 @@
                         <button onclick="toggleGroupPollModal()" class="text-xs font-bold text-slate-400">✕ Close</button>
                     </div>
                     <div class="space-y-2">
-                        <input type="text" id="group-poll-input" placeholder="Ask a question for this group..." class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                        <input type="text" id="group-poll-input" placeholder="Ask a question..." class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
                         <button onclick="createGroupPoll()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold">Create Group Poll</button>
                     </div>
                     <div id="group-polls-list" class="space-y-2 max-h-48 overflow-y-auto pt-2">
@@ -279,7 +281,7 @@
                 </div>
             </div>
 
-            <!-- SOS ALERT VIEW -->
+            <!-- VIEW: BROADCAST SOS ALERT -->
             <div id="view-new-alert" class="hidden flex flex-col p-4 space-y-4 absolute inset-0 bg-slate-900 z-25 overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <button onclick="navigateTo('home')" class="text-xs font-bold text-slate-300 bg-slate-800 px-3 py-1.5 rounded-xl">← Back</button>
@@ -288,16 +290,16 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[11px] font-bold text-slate-400 uppercase">Target Audience / Mention</label>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase">Target Audience</label>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <span class="text-[10px] text-slate-400 block mb-1">Select Group:</span>
+                            <span class="text-[10px] text-slate-400 block mb-1">Target Group:</span>
                             <select id="alert-target-group" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-200" onchange="populateAlertMemberDropdown()">
                                 <option value="ALL">🌐 Broadcast to All</option>
                             </select>
                         </div>
                         <div>
-                            <span class="text-[10px] text-slate-400 block mb-1">Mention Specific User:</span>
+                            <span class="text-[10px] text-slate-400 block mb-1">Target Specific User:</span>
                             <select id="alert-target-user" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-200">
                                 <option value="ALL">👥 Everyone in Group</option>
                             </select>
@@ -305,14 +307,14 @@
                     </div>
                 </div>
 
-                <!-- 5 Distinct Loud Alarm Tones Selection -->
+                <!-- 5 Synthesizer Alarm Tones -->
                 <div class="space-y-2">
-                    <label class="text-[11px] font-bold text-slate-400 uppercase">Select Alarm Tone & Test (10 Sec Ring)</label>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase">Select Alarm Tone & Test (10-Sec Ring)</label>
                     <div class="space-y-2">
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
                             <div class="flex items-center space-x-2">
                                 <input type="radio" name="alert-sound" value="ambulance" id="sound-ambulance" checked class="text-emerald-600">
-                                <label for="sound-ambulance" class="text-xs font-bold text-slate-200 cursor-pointer">🚑 1. Real Ambulance Siren Tone</label>
+                                <label for="sound-ambulance" class="text-xs font-bold text-slate-200 cursor-pointer">🚑 1. Ambulance Dual Siren</label>
                             </div>
                             <button onclick="playCustomAlarmSound('ambulance', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
                         </div>
@@ -333,14 +335,14 @@
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
                             <div class="flex items-center space-x-2">
                                 <input type="radio" name="alert-sound" value="fire_truck" id="sound-fire" class="text-emerald-600">
-                                <label for="sound-fire" class="text-xs font-bold text-slate-200 cursor-pointer">🚒 4. Classic Fire Truck Horn</label>
+                                <label for="sound-fire" class="text-xs font-bold text-slate-200 cursor-pointer">🚒 4. Classic Fire Horn</label>
                             </div>
                             <button onclick="playCustomAlarmSound('fire_truck', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
                         </div>
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
                             <div class="flex items-center space-x-2">
                                 <input type="radio" name="alert-sound" value="urgent_beep" id="sound-beep" class="text-emerald-600">
-                                <label for="sound-beep" class="text-xs font-bold text-slate-200 cursor-pointer">🔔 5. Loud Urgent Alarm Beep</label>
+                                <label for="sound-beep" class="text-xs font-bold text-slate-200 cursor-pointer">🔔 5. Urgent Rapid Beep</label>
                             </div>
                             <button onclick="playCustomAlarmSound('urgent_beep', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
                         </div>
@@ -357,7 +359,7 @@
 
         </main>
 
-        <!-- Nav Bar -->
+        <!-- Navigation Bar -->
         <nav id="app-nav-bar" class="hidden absolute bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 py-2.5 px-6 flex justify-between items-center z-30">
             <div onclick="navigateTo('home')" class="nav-item flex flex-col items-center cursor-pointer text-emerald-400" data-target="home">
                 <span class="text-base">🏠</span>
@@ -381,6 +383,7 @@
         </nav>
     </div>
 
+    <!-- Application Engine Logic -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAu91Nuo5lXUZGzarPiWjgVQlSnBR8_r30",
@@ -403,7 +406,7 @@
         let isUserAdmin = false;
         let isMediaUploadAllowed = true;
 
-        // Dynamic Media Permission Sync
+        // Dynamic Settings Sync
         db.collection('settings').doc('global').onSnapshot(doc => {
             if (doc.exists && doc.data().allowMediaUpload !== undefined) {
                 isMediaUploadAllowed = doc.data().allowMediaUpload;
@@ -420,7 +423,7 @@
 
         function triggerMediaUpload() {
             if (!isMediaUploadAllowed && !isUserAdmin) {
-                alert("🔒 Photo/Media upload is currently disabled by Master Admin.");
+                alert("🔒 Photo upload is currently disabled by Master Admin.");
                 return;
             }
             document.getElementById('chat-image-input').click();
@@ -467,6 +470,7 @@
             }
         }
 
+        // Authentication Observer
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 try {
@@ -517,17 +521,16 @@
 
         function handleLogout() { auth.signOut(); }
 
-        // Live Emergency Listener
+        // Live Emergency Alert Monitoring
         db.collection('alerts').orderBy('timestamp', 'desc').limit(1).onSnapshot(snapshot => {
             snapshot.docChanges().forEach(change => {
                 if (change.type === 'added') {
                     const alertData = change.doc.data();
                     if (alertData && alertData.uid !== (auth.currentUser ? auth.currentUser.uid : '')) {
                         playCustomAlarmSound(alertData.soundType || 'ambulance', 10);
-                        if (Notification.permission === 'granted') {
-                            new Notification("🚨 Emergency SOS Alert Received!", {
-                                body: alertData.text,
-                                icon: "icon-192.png"
+                        if ('Notification' in window && Notification.permission === 'granted') {
+                            new Notification("🚨 SOS Emergency Alert Broadcasted!", {
+                                body: alertData.text
                             });
                         }
                     }
@@ -539,13 +542,12 @@
             if ('Notification' in window) {
                 Notification.requestPermission().then(permission => {
                     if (permission === 'granted') {
-                        alert("Notifications allowed! Emergency siren alerts will sound on receiving messages.");
+                        alert("Notifications allowed! Sirens will trigger upon emergency alerts.");
                     }
                 });
             }
         }
 
-        // Compressed Profile Photo Upload
         function uploadProfilePicture(e) {
             const file = e.target.files[0];
             if (!file || !auth.currentUser) return;
@@ -578,7 +580,7 @@
             if (!activeTargetId) return;
             const inviteUrl = `${window.location.origin}${window.location.pathname}?joinGroup=${activeTargetId}`;
             navigator.clipboard.writeText(inviteUrl).then(() => {
-                alert("🔗 Group Invitation Link Copied to Clipboard!");
+                alert("🔗 Group Invite Link Copied!");
             });
         }
 
@@ -620,7 +622,7 @@
                             <div class="w-10 h-10 bg-emerald-950 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-sm">⛓️</div>
                             <div>
                                 <h4 class="font-bold text-slate-200 text-xs">${group.name}</h4>
-                                <p class="text-[10px] text-slate-400">By: ${group.creatorEmail || 'User'}</p>
+                                <p class="text-[10px] text-slate-400">Created by: ${group.creatorEmail || 'User'}</p>
                             </div>
                         </div>
                         <button onclick="openChatRoom('${gId}', '${escapedName}', 'group')" class="text-xs text-emerald-400 font-bold px-2 py-1">Open →</button>
@@ -648,7 +650,7 @@
                 const myUid = auth.currentUser.uid;
                 db.collection('direct_messages').where('participants', 'array-contains', myUid).get().then(dmSnapshot => {
                     if (!dmSnapshot.empty) {
-                        html += '<h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-3 mb-1">Private Direct Messages</h4>';
+                        html += '<h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-3 mb-1">Direct Messages</h4>';
                         dmSnapshot.forEach(doc => {
                             const dm = doc.data();
                             const otherEmail = dm.userEmails ? dm.userEmails.find(e => e !== auth.currentUser.email) : 'Private Chat';
@@ -667,7 +669,7 @@
             activeTargetId = targetId;
             activeChatType = type;
             document.getElementById('chat-room-title').innerText = titleName;
-            document.getElementById('chat-room-subtitle').innerText = type === 'group' ? 'Group Chat' : 'Private Direct Message';
+            document.getElementById('chat-room-subtitle').innerText = type === 'group' ? 'Group Room' : 'Private Direct Message';
 
             const groupActionBtns = document.getElementById('group-action-buttons');
             if (type === 'group') {
@@ -687,7 +689,7 @@
             document.getElementById('header-back-btn').classList.remove('hidden');
 
             const container = document.getElementById('chat-messages-container');
-            container.innerHTML = `<p class="text-slate-500 text-center italic py-4">Connecting to chat...</p>`;
+            container.innerHTML = `<p class="text-slate-500 text-center italic py-4">Connecting to room...</p>`;
 
             if (messagesUnsubscribe) messagesUnsubscribe();
 
@@ -697,7 +699,7 @@
 
             messagesUnsubscribe = collectionRef.orderBy('timestamp', 'asc').onSnapshot(snapshot => {
                 if (snapshot.empty) {
-                    container.innerHTML = `<p class="text-slate-500 text-center italic py-4">No messages yet. Start chatting!</p>`;
+                    container.innerHTML = `<p class="text-slate-500 text-center italic py-4">No messages yet. Send a greeting!</p>`;
                     return;
                 }
                 let html = '';
@@ -895,7 +897,6 @@
             }).then(() => loadGroupPolls());
         }
 
-        // Automatic Compressed Media Upload Handler
         function handleImageUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -936,7 +937,7 @@
             }
         }
 
-        // Distinct Synthesizer Alarm Tones Audio Engine
+        // Real-Time Audio Synthesizer Engine
         function playCustomAlarmSound(soundType, durationSeconds = 10) {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -951,7 +952,6 @@
                     let osc = audioCtx.createOscillator();
                     let gain = audioCtx.createGain();
 
-                    // 1. Real Ambulance Oscillating Dual Siren
                     if (soundType === 'ambulance') {
                         osc.type = 'sawtooth';
                         let freq = (step % 2 === 0) ? 960 : 720;
@@ -963,7 +963,6 @@
                         step++;
                         setTimeout(triggerSoundLoop, 400);
                     } 
-                    // 2. Govt Emergency Alert (Fast Dual Frequency Rapid Beep)
                     else if (soundType === 'govt_alert') {
                         osc.type = 'square';
                         osc.frequency.setValueAtTime(853, now);
@@ -975,7 +974,6 @@
                         step++;
                         setTimeout(triggerSoundLoop, 280);
                     }
-                    // 3. Police Fast Pitch Ramp Siren
                     else if (soundType === 'police') {
                         osc.type = 'triangle';
                         let startFreq = (step % 2 === 0) ? 500 : 1500;
@@ -989,7 +987,6 @@
                         step++;
                         setTimeout(triggerSoundLoop, 210);
                     }
-                    // 4. Fire Truck Low Loud Horn
                     else if (soundType === 'fire_truck') {
                         osc.type = 'sawtooth';
                         osc.frequency.setValueAtTime(440, now);
@@ -1000,7 +997,6 @@
                         step++;
                         setTimeout(triggerSoundLoop, 550);
                     }
-                    // 5. Loud Urgent Sharp Beep
                     else {
                         osc.type = 'sine';
                         osc.frequency.setValueAtTime(1050, now);
@@ -1036,7 +1032,7 @@
                 targetUser: targetUser,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
-                alert("🚨 SOS Emergency Alert Broadcasted! 10-Second Alarm Siren Triggered.");
+                alert("🚨 SOS Emergency Alert Broadcasted! 10-Second Siren Triggered.");
                 navigateTo('home');
             });
         }
