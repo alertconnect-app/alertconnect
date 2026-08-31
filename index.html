@@ -69,7 +69,7 @@
                 <div class="w-16 h-16 bg-amber-500/25 border border-amber-500/50 text-amber-400 rounded-2xl flex items-center justify-center text-2xl font-bold">⏳</div>
                 <h2 class="text-lg font-bold text-slate-100">Approval Pending</h2>
                 <p class="text-xs text-slate-400">Wait for Master Admin Approval to access full features.</p>
-                <button onclick="requestGuestNotificationPermission()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold">Allow Notification Alert Only</button>
+                <button onclick="requestGuestNotificationPermission()" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold">Allow Notification Siren Alert Only</button>
                 <button onclick="handleLogout()" class="mt-2 px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Logout</button>
             </div>
 
@@ -105,7 +105,7 @@
                     </div>
                 </div>
 
-                <!-- Emergency Helpline Contacts -->
+                <!-- Emergency Contacts -->
                 <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl space-y-2">
                     <h3 class="text-[11px] font-bold text-slate-300 uppercase">Emergency Helplines</h3>
                     <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-bold">
@@ -117,7 +117,7 @@
 
                 <div class="flex items-center justify-between pt-1">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Groups List</h3>
-                    <span class="text-xs text-emerald-400 font-bold cursor-pointer" onclick="loadGroups()">🔄 Refresh</span>
+                    <button onclick="loadGroups()" class="text-xs bg-slate-800 border border-slate-700 text-emerald-400 font-bold px-3 py-1 rounded-xl hover:bg-slate-700">🔄 Refresh</button>
                 </div>
                 <div id="home-groups-list" class="space-y-2">
                     <p class="text-xs text-slate-500 italic">Loading groups...</p>
@@ -150,7 +150,7 @@
             <div id="tab-chats" class="hidden flex flex-col p-4 space-y-3">
                 <div class="flex items-center justify-between">
                     <h3 class="text-xs font-bold uppercase text-slate-400">Conversations & Direct Messages</h3>
-                    <span class="text-xs text-emerald-400 font-bold cursor-pointer" onclick="loadChatsList()">🔄 Refresh</span>
+                    <button onclick="loadChatsList()" class="text-xs bg-slate-800 border border-slate-700 text-emerald-400 font-bold px-3 py-1 rounded-xl hover:bg-slate-700">🔄 Refresh</button>
                 </div>
                 <div id="chats-groups-list" class="space-y-2">
                     <p class="text-xs text-slate-500 italic">Loading chats...</p>
@@ -174,7 +174,7 @@
                     </div>
                 </div>
 
-                <!-- MASTER ADMIN PANEL -->
+                <!-- MASTER ADMIN CONTROL PANEL -->
                 <div id="admin-approval-panel" class="hidden bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-4">
                     <div class="border-b border-slate-800 pb-2">
                         <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider">👑 Master Admin Controls</h4>
@@ -183,8 +183,8 @@
                     <!-- Media Upload Switch (Allow/Disallow Photo & Video Sharing) -->
                     <div class="bg-slate-800/80 border border-slate-700 p-3 rounded-xl flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-bold text-slate-200">📷 Media Upload Access</p>
-                            <p class="text-[10px] text-slate-400">Allow users to send compressed photos & media</p>
+                            <p class="text-xs font-bold text-slate-200">📷 Allow Users to Upload Media</p>
+                            <p class="text-[10px] text-slate-400">Master Admin control to enable/disable photos in chats</p>
                         </div>
                         <input type="checkbox" id="toggle-media-upload" class="w-5 h-5 text-emerald-600 rounded cursor-pointer" onchange="toggleMediaPermissionSetting(this.checked)">
                     </div>
@@ -239,7 +239,7 @@
                     <p class="text-slate-500 text-center italic py-4">Connecting to chat...</p>
                 </div>
 
-                <!-- Chat Bottom Control -->
+                <!-- Chat Bottom Controls -->
                 <div class="p-3 bg-slate-900 border-t border-slate-800 flex items-center space-x-2">
                     <input type="file" id="chat-image-input" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
                     <button id="chat-media-btn" onclick="triggerMediaUpload()" class="bg-slate-800 border border-slate-700 p-2 rounded-xl text-slate-300 text-xs font-bold" title="Send Image">📷</button>
@@ -305,44 +305,44 @@
                     </div>
                 </div>
 
-                <!-- 5 High-Loud Alarm Tones Selection -->
+                <!-- 5 Distinct Loud Alarm Tones Selection -->
                 <div class="space-y-2">
-                    <label class="text-[11px] font-bold text-slate-400 uppercase">Select High-Loud Siren & Test (10 Sec Ring)</label>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase">Select Alarm Tone & Test (10 Sec Ring)</label>
                     <div class="space-y-2">
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
                             <div class="flex items-center space-x-2">
                                 <input type="radio" name="alert-sound" value="ambulance" id="sound-ambulance" checked class="text-emerald-600">
-                                <label for="sound-ambulance" class="text-xs font-bold text-slate-200 cursor-pointer">🚑 1. High-Loud Ambulance Siren</label>
+                                <label for="sound-ambulance" class="text-xs font-bold text-slate-200 cursor-pointer">🚑 1. Real Ambulance Siren Tone</label>
                             </div>
                             <button onclick="playCustomAlarmSound('ambulance', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
                         </div>
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
                             <div class="flex items-center space-x-2">
+                                <input type="radio" name="alert-sound" value="govt_alert" id="sound-govt" class="text-emerald-600">
+                                <label for="sound-govt" class="text-xs font-bold text-slate-200 cursor-pointer">⚠️ 2. Govt Emergency Alert Tone</label>
+                            </div>
+                            <button onclick="playCustomAlarmSound('govt_alert', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
+                        </div>
+                        <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
+                            <div class="flex items-center space-x-2">
                                 <input type="radio" name="alert-sound" value="police" id="sound-police" class="text-emerald-600">
-                                <label for="sound-police" class="text-xs font-bold text-slate-200 cursor-pointer">🚓 2. Police Patrol Siren</label>
+                                <label for="sound-police" class="text-xs font-bold text-slate-200 cursor-pointer">🚓 3. Police Patrol Siren</label>
                             </div>
                             <button onclick="playCustomAlarmSound('police', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
                         </div>
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
                             <div class="flex items-center space-x-2">
-                                <input type="radio" name="alert-sound" value="siren" id="sound-siren" class="text-emerald-600">
-                                <label for="sound-siren" class="text-xs font-bold text-slate-200 cursor-pointer">🚒 3. Classic Fire Truck Siren</label>
+                                <input type="radio" name="alert-sound" value="fire_truck" id="sound-fire" class="text-emerald-600">
+                                <label for="sound-fire" class="text-xs font-bold text-slate-200 cursor-pointer">🚒 4. Classic Fire Truck Horn</label>
                             </div>
-                            <button onclick="playCustomAlarmSound('siren', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
+                            <button onclick="playCustomAlarmSound('fire_truck', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
                         </div>
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
                             <div class="flex items-center space-x-2">
-                                <input type="radio" name="alert-sound" value="megaphone" id="sound-megaphone" class="text-emerald-600">
-                                <label for="sound-megaphone" class="text-xs font-bold text-slate-200 cursor-pointer">🔊 4. Megaphone Horn Siren</label>
+                                <input type="radio" name="alert-sound" value="urgent_beep" id="sound-beep" class="text-emerald-600">
+                                <label for="sound-beep" class="text-xs font-bold text-slate-200 cursor-pointer">🔔 5. Loud Urgent Alarm Beep</label>
                             </div>
-                            <button onclick="playCustomAlarmSound('megaphone', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
-                        </div>
-                        <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
-                            <div class="flex items-center space-x-2">
-                                <input type="radio" name="alert-sound" value="warning" id="sound-warning" class="text-emerald-600">
-                                <label for="sound-warning" class="text-xs font-bold text-slate-200 cursor-pointer">🔔 5. Urgent Warning Beep</label>
-                            </div>
-                            <button onclick="playCustomAlarmSound('warning', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
+                            <button onclick="playCustomAlarmSound('urgent_beep', 10)" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test (10s)</button>
                         </div>
                     </div>
                 </div>
@@ -403,7 +403,7 @@
         let isUserAdmin = false;
         let isMediaUploadAllowed = true;
 
-        // Sync Global Media Upload Preference
+        // Dynamic Media Permission Sync
         db.collection('settings').doc('global').onSnapshot(doc => {
             if (doc.exists && doc.data().allowMediaUpload !== undefined) {
                 isMediaUploadAllowed = doc.data().allowMediaUpload;
@@ -414,13 +414,13 @@
 
         function toggleMediaPermissionSetting(allowed) {
             db.collection('settings').doc('global').set({ allowMediaUpload: allowed }, { merge: true }).then(() => {
-                alert("Media Upload Permission Updated!");
+                alert("Media Upload Permission Status Updated!");
             });
         }
 
         function triggerMediaUpload() {
             if (!isMediaUploadAllowed && !isUserAdmin) {
-                alert("🔒 Media/Image upload is currently disabled by Master Admin.");
+                alert("🔒 Photo/Media upload is currently disabled by Master Admin.");
                 return;
             }
             document.getElementById('chat-image-input').click();
@@ -539,13 +539,13 @@
             if ('Notification' in window) {
                 Notification.requestPermission().then(permission => {
                     if (permission === 'granted') {
-                        alert("Notifications allowed! You will now receive continuous 10-second emergency siren alerts.");
+                        alert("Notifications allowed! Emergency siren alerts will sound on receiving messages.");
                     }
                 });
             }
         }
 
-        // Compressed Profile Photo Upload Handler
+        // Compressed Profile Photo Upload
         function uploadProfilePicture(e) {
             const file = e.target.files[0];
             if (!file || !auth.currentUser) return;
@@ -566,7 +566,7 @@
                         photoURL: photoBase64
                     }).then(() => {
                         loadProfileData();
-                        alert("Profile photo updated!");
+                        alert("Profile photo updated successfully!");
                     });
                 };
                 img.src = evt.target.result;
@@ -578,7 +578,7 @@
             if (!activeTargetId) return;
             const inviteUrl = `${window.location.origin}${window.location.pathname}?joinGroup=${activeTargetId}`;
             navigator.clipboard.writeText(inviteUrl).then(() => {
-                alert("🔗 Group Invitation Link Copied to Clipboard!\nShare this link to let others receive group alerts.");
+                alert("🔗 Group Invitation Link Copied to Clipboard!");
             });
         }
 
@@ -632,7 +632,7 @@
 
         function loadChatsList() {
             const chatsContainer = document.getElementById('chats-groups-list');
-            chatsContainer.innerHTML = `<p class="text-xs text-slate-500 italic">Loading chats...</p>`;
+            chatsContainer.innerHTML = `<p class="text-xs text-slate-500 italic">Refreshing chats...</p>`;
             
             db.collection('groups').get().then(snapshot => {
                 let html = '<h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Groups</h4>';
@@ -895,7 +895,7 @@
             }).then(() => loadGroupPolls());
         }
 
-        // Automatic High-Compression Image Handler for Chat Media
+        // Automatic Compressed Media Upload Handler
         function handleImageUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -936,7 +936,7 @@
             }
         }
 
-        // High-Loud Synthesizer Alarm System
+        // Distinct Synthesizer Alarm Tones Audio Engine
         function playCustomAlarmSound(soundType, durationSeconds = 10) {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -944,54 +944,76 @@
                 const endTime = startTime + durationSeconds;
                 let step = 0;
 
-                function triggerBeepLoop() {
+                function triggerSoundLoop() {
                     const now = audioCtx.currentTime;
                     if (now >= endTime) return;
 
                     let osc = audioCtx.createOscillator();
                     let gain = audioCtx.createGain();
 
+                    // 1. Real Ambulance Oscillating Dual Siren
                     if (soundType === 'ambulance') {
                         osc.type = 'sawtooth';
-                        let freq = (step % 2 === 0) ? 960 : 770;
+                        let freq = (step % 2 === 0) ? 960 : 720;
                         osc.frequency.setValueAtTime(freq, now);
                         gain.gain.setValueAtTime(0.95, now);
-                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.38);
                         osc.connect(gain); gain.connect(audioCtx.destination);
-                        osc.start(now); osc.stop(now + 0.36);
+                        osc.start(now); osc.stop(now + 0.39);
                         step++;
-                        setTimeout(triggerBeepLoop, 380);
+                        setTimeout(triggerSoundLoop, 400);
                     } 
+                    // 2. Govt Emergency Alert (Fast Dual Frequency Rapid Beep)
+                    else if (soundType === 'govt_alert') {
+                        osc.type = 'square';
+                        osc.frequency.setValueAtTime(853, now);
+                        osc.frequency.setValueAtTime(960, now + 0.1);
+                        gain.gain.setValueAtTime(0.9, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                        osc.connect(gain); gain.connect(audioCtx.destination);
+                        osc.start(now); osc.stop(now + 0.26);
+                        step++;
+                        setTimeout(triggerSoundLoop, 280);
+                    }
+                    // 3. Police Fast Pitch Ramp Siren
                     else if (soundType === 'police') {
                         osc.type = 'triangle';
-                        let startFreq = (step % 2 === 0) ? 600 : 1400;
-                        let endFreq = (step % 2 === 0) ? 1400 : 600;
+                        let startFreq = (step % 2 === 0) ? 500 : 1500;
+                        let endFreq = (step % 2 === 0) ? 1500 : 500;
                         osc.frequency.setValueAtTime(startFreq, now);
-                        osc.frequency.linearRampToValueAtTime(endFreq, now + 0.2);
+                        osc.frequency.linearRampToValueAtTime(endFreq, now + 0.18);
                         gain.gain.setValueAtTime(0.9, now);
-                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                        osc.connect(gain); gain.connect(audioCtx.destination);
-                        osc.start(now); osc.stop(now + 0.21);
-                        step++;
-                        setTimeout(triggerBeepLoop, 220);
-                    }
-                    else {
-                        osc.type = (soundType === 'siren') ? 'square' : 'sawtooth';
-                        let freq = (step % 2 === 0) ? 1200 : 700;
-                        if (soundType === 'warning') freq = 950;
-
-                        osc.frequency.setValueAtTime(freq, now);
-                        gain.gain.setValueAtTime(0.85, now);
-                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
-
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.19);
                         osc.connect(gain); gain.connect(audioCtx.destination);
                         osc.start(now); osc.stop(now + 0.2);
                         step++;
-                        setTimeout(triggerBeepLoop, 250);
+                        setTimeout(triggerSoundLoop, 210);
+                    }
+                    // 4. Fire Truck Low Loud Horn
+                    else if (soundType === 'fire_truck') {
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(440, now);
+                        gain.gain.setValueAtTime(0.9, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                        osc.connect(gain); gain.connect(audioCtx.destination);
+                        osc.start(now); osc.stop(now + 0.52);
+                        step++;
+                        setTimeout(triggerSoundLoop, 550);
+                    }
+                    // 5. Loud Urgent Sharp Beep
+                    else {
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(1050, now);
+                        gain.gain.setValueAtTime(0.85, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                        osc.connect(gain); gain.connect(audioCtx.destination);
+                        osc.start(now); osc.stop(now + 0.16);
+                        step++;
+                        setTimeout(triggerSoundLoop, 200);
                     }
                 }
 
-                triggerBeepLoop();
+                triggerSoundLoop();
             } catch (e) {}
         }
 
@@ -1014,7 +1036,7 @@
                 targetUser: targetUser,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
-                alert("🚨 SOS Emergency Alert Broadcasted! 10-Second Alarm Sound Triggered.");
+                alert("🚨 SOS Emergency Alert Broadcasted! 10-Second Alarm Siren Triggered.");
                 navigateTo('home');
             });
         }
@@ -1125,7 +1147,7 @@
             const newUid = document.getElementById('transfer-master-uid-input').value.trim();
             if (!newUid) return;
 
-            if (confirm("Are you sure you want to transfer Master Admin ownership to UID: " + newUid + "?")) {
+            if (confirm("Transfer Master Admin Ownership to UID: " + newUid + "?")) {
                 db.collection('admin_keys').doc(newUid).set({
                     role: 'master_admin',
                     transferredBy: auth.currentUser.uid,
