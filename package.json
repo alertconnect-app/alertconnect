@@ -1,0 +1,12 @@
+{
+  "name": "alertconnect",
+  "version": "1.0.0",
+  "description": "Secure emergency communication PWA",
+  "private": true,
+  "scripts": {
+    "start": "npx serve"
+  },
+  "dependencies": {
+    "firebase": "^10.8.0"
+  }
+}
