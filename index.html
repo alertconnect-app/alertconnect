@@ -11,19 +11,6 @@
     <!-- Modern Dynamic Emergency App Favicon / Icon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%23059669'/><path d='M50 20C33.4 20 20 33.4 20 50s13.4 30 30 30 30-13.4 30-30-13.4-30-30-30zm0 48c-9.9 0-18-8.1-18-18s8.1-18 18-18 18 8.1 18 18-8.1 18-18 18z' fill='%23ffffff'/><circle cx='50' cy='50' r='8' fill='%23DC2626'/></svg>">
 
-    <script type="text/javascript">
-        (function(l) {
-            if (l.search[1] === '/' ) {
-                var decoded = l.search.slice(1).split('&').map(function(s) { 
-                    return s.replace(/~and~/g, '&')
-                }).join('?');
-                window.history.replaceState(null, null,
-                    l.pathname.slice(0, -1) + decoded + l.hash
-                );
-            }
-        }(window.location))
-    </script>
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -267,7 +254,7 @@
                 </div>
             </div>
 
-            <!-- Chat Room View (With Media Compression, Polls, Reactions, Replies, E2EE, Live Location, Admin Controls) -->
+            <!-- Chat Room View -->
             <div id="view-chat-room" class="hidden flex flex-col h-full absolute inset-0 bg-slate-900 z-20">
                 <div class="bg-slate-900 border-b border-slate-800 text-white p-3.5 flex items-center justify-between shadow-sm">
                     <div class="flex items-center space-x-3">
@@ -300,7 +287,7 @@
                 <!-- Input & Media / Live Location Bar -->
                 <div class="p-3 bg-slate-900 border-t border-slate-800 space-y-2">
                     <div class="flex items-center space-x-2">
-                        <input type="text" id="chat-input-msg" placeholder="Type a message (support @mentions)..." class="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="chat-input-msg" placeholder="Type a message..." class="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" onkeypress="if(event.key === 'Enter') sendChatMessage();">
                         
                         <!-- Media Compressed Upload Button -->
                         <label id="media-upload-label" class="cursor-pointer bg-slate-800 border border-slate-700 hover:bg-slate-700 p-2 rounded-xl text-emerald-400 text-xs font-bold flex items-center justify-center" title="Send Compressed Photo">
@@ -340,7 +327,7 @@
                 </div>
             </div>
 
-            <!-- New Alert View with Sound Testing & Scope Selection -->
+            <!-- New Alert View -->
             <div id="view-new-alert" class="hidden flex flex-col p-4 space-y-4 absolute inset-0 bg-slate-900 z-25 overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <button onclick="navigateTo('home')" class="text-xs font-bold text-slate-300 bg-slate-800 px-3 py-1.5 rounded-xl hover:bg-slate-700 transition">← Back</button>
@@ -543,9 +530,9 @@
             auth.signOut();
         }
 
-        // E2EE Mock Cipher Simulation
+        // E2EE Simulation Functions
         function encryptMessageText(text) {
-            return b58Encode(text); // Simple secure encoding layer for E2EE representation
+            return b58Encode(text);
         }
         function decryptMessageText(cipher) {
             try { return b58Decode(cipher); } catch(e) { return cipher; }
@@ -578,7 +565,6 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    // Compressed JPEG data URI (quality 0.6)
                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
                     
                     db.collection('groups').doc(activeGroupId).collection('messages').add({
@@ -590,8 +576,6 @@
                         seenBy: [auth.currentUser.uid],
                         reactions: {},
                         timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    }).then(() => {
-                        alert("Compressed image sent successfully!");
                     }).catch(err => alert("Error: " + err.message));
                 };
                 img.src = e.target.result;
@@ -637,7 +621,6 @@
                     document.getElementById('profile-img').src = base64Image;
                     document.getElementById('profile-img').classList.remove('hidden');
                     document.getElementById('profile-initials').classList.add('hidden');
-                    alert("Profile picture updated!");
                 } catch (err) {}
             };
             reader.readAsDataURL(file);
@@ -660,7 +643,6 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 input.value = '';
-                alert("Chain group created successfully!");
                 loadGroups();
             }).catch(err => alert("Error: " + err.message));
         }
@@ -780,7 +762,6 @@
             const gDoc = await db.collection('groups').doc(groupId).get();
             activeGroupData = gDoc.exists ? gDoc.data() : null;
 
-            // Check if master toggles disabled media or polls
             const settingsDoc = await db.collection('settings').doc('features').get();
             if (settingsDoc.exists) {
                 const feats = settingsDoc.data();
@@ -805,14 +786,13 @@
                     }
                     let html = '';
                     snapshot.forEach(doc => {
-                        const msg = doc.id;
+                        const msgId = doc.id;
                         const m = doc.data();
                         const isMe = m.uid === auth.currentUser.uid;
                         const decryptedText = decryptMessageText(m.text || '');
 
-                        // Mark as read (seenBy array update)
                         if (!m.seenBy || !m.seenBy.includes(auth.currentUser.uid)) {
-                            db.collection('groups').doc(groupId).collection('messages').doc(msg).update({
+                            db.collection('groups').doc(groupId).collection('messages').doc(msgId).update({
                                 seenBy: firebase.firestore.FieldValue.arrayUnion(auth.currentUser.uid)
                             });
                         }
@@ -831,8 +811,8 @@
                             contentDisplay = `<div class="bg-slate-800 p-2.5 rounded-xl space-y-2 mt-1 border border-slate-700">
                                 <p class="font-bold text-slate-100">📊 ${m.pollData.question}</p>
                                 <div class="space-y-1">
-                                    <button onclick="votePoll('${msg}', 'opt1')" class="w-full text-left bg-slate-700 hover:bg-slate-600 p-1.5 rounded text-[11px]">1. ${m.pollData.opt1} (${(m.pollData.votes1 || []).length})</button>
-                                    <button onclick="votePoll('${msg}', 'opt2')" class="w-full text-left bg-slate-700 hover:bg-slate-600 p-1.5 rounded text-[11px]">2. ${m.pollData.opt2} (${(m.pollData.votes2 || []).length})</button>
+                                    <button onclick="votePoll('${msgId}', 'opt1')" class="w-full text-left bg-slate-700 hover:bg-slate-600 p-1.5 rounded text-[11px]">1. ${m.pollData.opt1} (${(m.pollData.votes1 || []).length})</button>
+                                    <button onclick="votePoll('${msgId}', 'opt2')" class="w-full text-left bg-slate-700 hover:bg-slate-600 p-1.5 rounded text-[11px]">2. ${m.pollData.opt2} (${(m.pollData.votes2 || []).length})</button>
                                 </div>
                             </div>`;
                         } else {
@@ -845,7 +825,7 @@
                         html += `<div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} group">
                             <span class="text-[9px] text-slate-400 px-1 pb-0.5">${m.email || 'User'}</span>
                             <div class="px-3.5 py-2.5 rounded-2xl text-xs max-w-[85%] relative ${isMe ? 'bg-emerald-600 text-white font-medium shadow-md shadow-emerald-950/50' : 'bg-slate-800 border border-slate-700 text-slate-200'}">
-                                ${m.replyTo ? `<div class="bg-black/20 border-l-2 border-white p-1 rounded mb-1 text-[10px] truncate max-w-[180px]">Repplied to: ${m.replyTo}</div>` : ''}
+                                ${m.replyTo ? `<div class="bg-black/20 border-l-2 border-white p-1 rounded mb-1 text-[10px] truncate max-w-[180px]">Replying to: ${m.replyTo}</div>` : ''}
                                 ${contentDisplay}
                                 <div class="flex items-center justify-end mt-1 space-x-1">
                                     ${tickMark}
@@ -854,8 +834,8 @@
                             </div>
                             <div class="flex space-x-2 text-[10px] text-slate-400 pt-0.5 px-1">
                                 <span class="cursor-pointer hover:text-emerald-400" onclick="setReplyMessage('${decryptedText}')">Reply</span>
-                                <span class="cursor-pointer hover:text-emerald-400" onclick="addReaction('${msg}', '👍')">👍</span>
-                                <span class="cursor-pointer hover:text-emerald-400" onclick="addReaction('${msg}', '❤️')">❤️</span>
+                                <span class="cursor-pointer hover:text-emerald-400" onclick="addReaction('${msgId}', '👍')">👍</span>
+                                <span class="cursor-pointer hover:text-emerald-400" onclick="addReaction('${msgId}', '❤️')">❤️</span>
                             </div>
                         </div>`;
                     });
@@ -923,7 +903,6 @@
                 if (doc.exists) {
                     let data = doc.data().pollData;
                     const uid = auth.currentUser.uid;
-                    // Remove existing votes
                     data.votes1 = (data.votes1 || []).filter(id => id !== uid);
                     data.votes2 = (data.votes2 || []).filter(id => id !== uid);
                     if (opt === 'opt1') data.votes1.push(uid);
@@ -943,7 +922,6 @@
             const text = input.value.trim();
             if (!text || !activeGroupId) return;
 
-            // Check if group admin restriction applies (onlyAdminsCanSend)
             if (activeGroupData && activeGroupData.onlyAdminsCanSend && activeGroupData.createdBy !== auth.currentUser.uid) {
                 alert("Only group owner/admin can send messages in this group.");
                 return;
@@ -1044,7 +1022,7 @@
                     db.collection('groups').doc(targetGroupId).collection('messages').add({
                         uid: auth.currentUser.uid,
                         email: auth.currentUser.email,
-                        text: encryptMessageText(`🚨 [SOS ALERT BROADCAST]:\n${text}`),
+                        text: encryptMessageText(`🚨 [SOS ALERT BROADCAST]:\n${text}`,
                         type: 'text',
                         seenBy: [auth.currentUser.uid],
                         reactions: {},
@@ -1134,10 +1112,7 @@
                     mediaEnabled: mediaEnabled,
                     pollsEnabled: pollsEnabled
                 }, { merge: true });
-                alert("Master feature settings updated successfully!");
-            } catch(e) {
-                alert("Error updating settings: " + e.message);
-            }
+            } catch(e) {}
         }
 
         async function loadAdminEmailsList() {
@@ -1172,7 +1147,6 @@
                     emails.push(email);
                     await ref.set({ emails: emails }, { merge: true });
                     input.value = '';
-                    alert("Admin email added!");
                     loadAdminEmailsList();
                 }
             } catch(e) {}
