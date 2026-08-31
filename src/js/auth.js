@@ -59,10 +59,10 @@ export const AuthService = {
         }
     },
 
-    async registerFCMToken(uid) {
+        async registerFCMToken(uid) {
         try {
             if ('serviceWorker' in navigator) {
-                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
                 const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration });
                 if (token) {
                     const tokenRef = doc(db, `users/${uid}/deviceTokens`, token);
@@ -73,4 +73,3 @@ export const AuthService = {
             console.error("FCM Token Registration Error:", error);
         }
     }
-};
