@@ -76,6 +76,52 @@
                 <button onclick="handleLogout()" class="mt-2 px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Logout</button>
             </div>
 
+            <!-- EXTERNAL BLOOD HUB VIEW (Standalone Link Page) -->
+            <div id="view-external-blood" class="hidden flex flex-col p-4 space-y-4 bg-slate-950 h-full">
+                <div class="bg-rose-950/60 border border-rose-800 p-4 rounded-2xl text-center space-y-1">
+                    <h2 class="text-base font-extrabold text-rose-400">🩸 Emergency Blood Hub</h2>
+                    <p class="text-[11px] text-slate-300">Public Donor Directory & Registration Portal</p>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
+                    <h3 class="text-xs font-bold text-slate-200 uppercase">Register as Blood Donor</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="ext-donor-blood-group" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200">
+                            <option value="A+">A+ve</option><option value="A-">A-ve</option>
+                            <option value="B+">B+ve</option><option value="B-">B-ve</option>
+                            <option value="O+">O+ve</option><option value="O-">O-ve</option>
+                            <option value="AB+">AB+ve</option><option value="AB-">AB-ve</option>
+                        </select>
+                        <input type="text" id="ext-donor-name" placeholder="Your Full Name" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="ext-donor-phone" placeholder="Phone Number" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                        <input type="text" id="ext-donor-location" placeholder="City / Location" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                    </div>
+                    <button onclick="registerExternalBloodDonor()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold">Register as Donor Now</button>
+                </div>
+
+                <!-- Find Donors Section -->
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
+                    <h3 class="text-xs font-bold text-slate-200 uppercase">🔍 Find Blood Donors</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <select id="search-blood-group" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200">
+                            <option value="ALL">All Blood Groups</option>
+                            <option value="A+">A+ve</option><option value="A-">A-ve</option>
+                            <option value="B+">B+ve</option><option value="B-">B-ve</option>
+                            <option value="O+">O+ve</option><option value="O-">O-ve</option>
+                            <option value="AB+">AB+ve</option><option value="AB-">AB-ve</option>
+                        </select>
+                        <input type="text" id="search-location-input" placeholder="Filter Location (e.g. Koduvally)" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100" oninput="filterExternalDonors()">
+                    </div>
+                    <button onclick="filterExternalDonors()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold">Search Donors</button>
+                </div>
+
+                <div id="external-donors-results" class="space-y-2 flex-1 overflow-y-auto">
+                    <p class="text-xs text-slate-500 italic text-center">Loading available donors...</p>
+                </div>
+            </div>
+
             <!-- TAB 1: HOME -->
             <div id="tab-home" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-gradient-to-br from-emerald-900/90 via-emerald-800/80 to-teal-900/90 border border-emerald-700/40 rounded-2xl p-4 text-white flex items-center justify-between">
@@ -130,10 +176,10 @@
             <!-- TAB 2: BLOOD HUB -->
             <div id="tab-blood-hub" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2">
-                    <h3 class="text-xs font-bold text-slate-200 uppercase">Share App Link for Others</h3>
+                    <h3 class="text-xs font-bold text-slate-200 uppercase">Blood Hub External Link for Public</h3>
                     <div class="flex gap-2">
-                        <input type="text" id="app-share-link" readonly class="w-full p-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-300" value="">
-                        <button onclick="copyAppShareLink()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold whitespace-nowrap">Copy</button>
+                        <input type="text" id="blood-share-link" readonly class="w-full p-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-300" value="">
+                        <button onclick="copyBloodShareLink()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold whitespace-nowrap">Copy Link</button>
                     </div>
                 </div>
 
@@ -175,8 +221,6 @@
                         <div id="profile-img-container" class="w-20 h-20 bg-emerald-600 text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg overflow-hidden border-2 border-emerald-500">
                             <span id="profile-initials">U</span>
                         </div>
-                        <input type="file" id="profile-photo-input" accept="image/*" class="hidden" onchange="uploadProfilePicture(event)">
-                        <button onclick="document.getElementById('profile-photo-input').click()" class="absolute bottom-0 right-0 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs p-1.5 rounded-full shadow-md">📷</button>
                     </div>
                     <div>
                         <h3 id="profile-name" class="font-bold text-slate-100 text-sm">User</h3>
@@ -196,6 +240,14 @@
                             <p class="text-[10px] text-slate-400">Global setting for photo uploads in channels</p>
                         </div>
                         <input type="checkbox" id="toggle-media-upload" class="w-5 h-5 text-emerald-600 rounded cursor-pointer" onchange="toggleMediaPermissionSetting(this.checked)">
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">App Share Link (Master Control)</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="app-share-link" readonly class="flex-1 p-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-300">
+                            <button onclick="copyAppShareLink()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold">Copy</button>
+                        </div>
                     </div>
 
                     <div class="space-y-2">
@@ -229,14 +281,16 @@
                 <div class="bg-slate-900 border-b border-slate-800 text-white p-3 flex items-center justify-between">
                     <div class="flex items-center space-x-2.5">
                         <button onclick="navigateTo('home')" class="w-8 h-8 rounded-xl bg-slate-800 flex items-center justify-center text-sm font-bold">←</button>
-                        <div>
-                            <h3 id="chat-room-title" class="text-xs font-bold text-slate-100 truncate max-w-[130px]">Chat</h3>
-                            <p id="chat-room-subtitle" class="text-[9px] text-emerald-400 font-medium">Group Chat</p>
+                        <div class="flex items-center space-x-2 cursor-pointer" onclick="toggleGroupEditModal()">
+                            <div id="chat-header-avatar" class="w-9 h-9 bg-emerald-950 text-emerald-400 rounded-full flex items-center justify-center font-bold text-xs overflow-hidden border border-emerald-700">⛓️</div>
+                            <div>
+                                <h3 id="chat-room-title" class="text-xs font-bold text-slate-100 truncate max-w-[120px]">Chat</h3>
+                                <p id="chat-room-subtitle" class="text-[9px] text-emerald-400 font-medium">Group Chat (Tap to Edit)</p>
+                            </div>
                         </div>
                     </div>
                     <div id="group-action-buttons" class="flex items-center space-x-1.5">
-                        <button onclick="toggleGroupEditModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-slate-200">⚙️ Edit</button>
-                        <button onclick="copyGroupInviteLink()" class="bg-emerald-950 border border-emerald-800 px-2 py-1.5 rounded-xl text-[10px] font-bold text-emerald-400">🔗 Invite</button>
+                        <button onclick="copyGroupInviteLink()" class="bg-emerald-950 border border-emerald-800 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-emerald-400">🔗 Invite</button>
                         <button onclick="toggleGroupMembersModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-slate-200">👥 Members</button>
                         <button onclick="toggleGroupPollModal()" class="bg-indigo-950 border border-indigo-800 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-indigo-300">📊 Poll</button>
                     </div>
@@ -276,15 +330,15 @@
                 </div>
             </div>
 
-            <!-- MODAL: Group Members Modal -->
+            <!-- MODAL: Group Members Modal (WhatsApp Style with Profiles & Call) -->
             <div id="modal-group-members" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-4 space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                        <h3 class="text-xs font-bold text-slate-100">Group Members</h3>
+                        <h3 class="text-xs font-bold text-slate-100">Group Members & Profiles</h3>
                         <button onclick="toggleGroupMembersModal()" class="text-xs font-bold text-slate-400">✕ Close</button>
                     </div>
-                    <div id="group-members-list-content" class="space-y-2 max-h-60 overflow-y-auto">
-                        <p class="text-xs text-slate-500">Loading members...</p>
+                    <div id="group-members-list-content" class="space-y-2 max-h-72 overflow-y-auto">
+                        <p class="text-xs text-slate-500 italic">Loading members...</p>
                     </div>
                 </div>
             </div>
@@ -431,6 +485,18 @@
         let isUserAdmin = false;
         let isMediaUploadAllowed = true;
 
+        // Check URL parameters on load for External Blood Hub link
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('bloodhub')) {
+                document.getElementById('screen-loading').classList.add('hidden');
+                document.getElementById('view-external-blood').classList.remove('hidden');
+                document.getElementById('app-header').classList.remove('hidden');
+                document.getElementById('header-title').innerText = "Emergency Blood Hub";
+                loadExternalDonors();
+            }
+        });
+
         function checkUserRole(user) {
             const masterSection = document.getElementById('admin-approval-panel');
             if (user && user.uid === MASTER_ADMIN_UID) {
@@ -441,6 +507,9 @@
         }
 
         auth.onAuthStateChanged(async (user) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('bloodhub')) return; // Don't intercept external blood page
+
             if (user) {
                 checkUserRole(user);
                 try {
@@ -494,7 +563,7 @@
         function navigateTo(viewName) {
             if (messagesUnsubscribe) { messagesUnsubscribe(); messagesUnsubscribe = null; }
 
-            ['screen-loading', 'screen-auth', 'screen-pending', 'tab-home', 'tab-blood-hub', 'tab-chats', 'tab-profile', 'view-chat-room', 'view-new-alert'].forEach(id => {
+            ['screen-loading', 'screen-auth', 'screen-pending', 'view-external-blood', 'tab-home', 'tab-blood-hub', 'tab-chats', 'tab-profile', 'view-chat-room', 'view-new-alert'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.add('hidden');
             });
@@ -520,7 +589,7 @@
                 });
 
                 if (viewName === 'home') loadGroups();
-                if (viewName === 'blood-hub') { loadBloodDonors(); setupAppShareLink(); }
+                if (viewName === 'blood-hub') { loadBloodDonors(); setupBloodShareLink(); }
                 if (viewName === 'chats') loadChatsList();
                 if (viewName === 'profile') loadProfileData();
             } else {
@@ -568,7 +637,7 @@
                     const escapedName = group.name.replace(/'/g, "\\'");
                     html += `<div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex items-center justify-between">
                         <div class="flex items-center space-x-3 cursor-pointer flex-1" onclick="openChatRoom('${gId}', '${escapedName}', 'group')">
-                            ${group.photo ? `<img src="${group.photo}" class="w-10 h-10 rounded-xl object-cover">` : `<div class="w-10 h-10 bg-emerald-950 text-emerald-400 rounded-xl flex items-center justify-center font-bold text-sm">⛓️</div>`}
+                            ${group.photo ? `<img src="${group.photo}" class="w-10 h-10 rounded-full object-cover border border-emerald-600">` : `<div class="w-10 h-10 bg-emerald-950 text-emerald-400 rounded-full flex items-center justify-center font-bold text-sm border border-emerald-800">⛓️</div>`}
                             <div>
                                 <h4 class="font-bold text-slate-200 text-xs">${group.name}</h4>
                                 <p class="text-[10px] text-slate-400">Created by: ${group.creatorEmail || 'User'}</p>
@@ -591,8 +660,11 @@
                     const group = doc.data();
                     const escapedName = group.name.replace(/'/g, "\\'");
                     html += `<div onclick="openChatRoom('${doc.id}', '${escapedName}', 'group')" class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex items-center justify-between cursor-pointer mb-2">
-                        <span class="font-bold text-xs text-slate-200">⛓️ ${group.name}</span>
-                        <span class="text-[10px] text-emerald-400 font-bold">Group Chat →</span>
+                        <div class="flex items-center space-x-2.5">
+                            ${group.photo ? `<img src="${group.photo}" class="w-8 h-8 rounded-full object-cover">` : `<div class="w-8 h-8 bg-emerald-950 text-emerald-400 rounded-full flex items-center justify-center font-bold text-xs">⛓️</div>`}
+                            <span class="font-bold text-xs text-slate-200">${group.name}</span>
+                        </div>
+                        <span class="text-[10px] text-emerald-400 font-bold">Open Chat →</span>
                     </div>`;
                 });
                 chatsContainer.innerHTML = html;
@@ -603,7 +675,24 @@
             activeTargetId = targetId;
             activeChatType = type;
             document.getElementById('chat-room-title').innerText = titleName;
-            document.getElementById('chat-room-subtitle').innerText = type === 'group' ? 'Group Room' : 'Private Direct Message';
+            document.getElementById('chat-room-subtitle').innerText = 'Group Chat (Tap to Edit)';
+
+            // Ensure current user is added to group members list
+            db.collection('groups').doc(targetId).get().then(doc => {
+                if(doc.exists) {
+                    const data = doc.data();
+                    const members = data.members || [];
+                    if(!members.includes(auth.currentUser.uid)) {
+                        members.push(auth.currentUser.uid);
+                        db.collection('groups').doc(targetId).update({ members: members });
+                    }
+                    if(data.photo) {
+                        document.getElementById('chat-header-avatar').innerHTML = `<img src="${data.photo}" class="w-full h-full rounded-full object-cover">`;
+                    } else {
+                        document.getElementById('chat-header-avatar').innerHTML = `⛓️`;
+                    }
+                }
+            });
 
             ['tab-home', 'tab-blood-hub', 'tab-chats', 'tab-profile', 'view-new-alert'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
@@ -737,6 +826,7 @@
                     alert("Group profile updated successfully!");
                     toggleGroupEditModal();
                     if(newName) document.getElementById('chat-room-title').innerText = newName;
+                    if(photoBase64) document.getElementById('chat-header-avatar').innerHTML = `<img src="${photoBase64}" class="w-full h-full rounded-full object-cover">`;
                     loadGroups();
                 });
             };
@@ -765,6 +855,47 @@
         function toggleGroupMembersModal() {
             const modal = document.getElementById('modal-group-members');
             modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden') && activeTargetId) {
+                loadGroupMembersList();
+            }
+        }
+
+        function loadGroupMembersList() {
+            const container = document.getElementById('group-members-list-content');
+            container.innerHTML = `<p class="text-xs text-slate-500 italic">Loading members...</p>`;
+
+            db.collection('groups').doc(activeTargetId).get().then(async doc => {
+                if(!doc.exists) return;
+                const membersUids = doc.data().members || [];
+                if(membersUids.length === 0) {
+                    container.innerHTML = `<p class="text-xs text-slate-500 italic">No members found.</p>`;
+                    return;
+                }
+
+                let html = '';
+                for(let uid of membersUids) {
+                    const userDoc = await db.collection('users').doc(uid).get();
+                    const uData = userDoc.exists ? userDoc.data() : { displayName: 'Member', email: 'User' };
+                    const donorDoc = await db.collection('blood_donors').doc(uid).get();
+                    const bloodGroup = donorDoc.exists ? donorDoc.data().bloodGroup : null;
+                    const phone = donorDoc.exists ? donorDoc.data().phone : null;
+
+                    html += `<div class="bg-slate-800 p-2.5 rounded-xl flex items-center justify-between">
+                        <div class="flex items-center space-x-2.5">
+                            ${uData.photoURL ? `<img src="${uData.photoURL}" class="w-9 h-9 rounded-full object-cover border border-emerald-500">` : `<div class="w-9 h-9 bg-emerald-950 text-emerald-400 rounded-full flex items-center justify-center font-bold text-xs">${uData.displayName ? uData.displayName[0] : 'U'}</div>`}
+                            <div>
+                                <div class="flex items-center space-x-1.5">
+                                    <h5 class="font-bold text-xs text-slate-100">${uData.displayName || 'Member'}</h5>
+                                    ${bloodGroup ? `<span class="bg-rose-950 text-rose-400 border border-rose-800 px-1.5 py-0.5 rounded text-[9px] font-black">${bloodGroup}</span>` : ''}
+                                </div>
+                                <p class="text-[10px] text-slate-400">${uData.email || ''}</p>
+                            </div>
+                        </div>
+                        ${phone ? `<a href="tel:${phone}" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded-xl text-[10px] font-bold flex items-center space-x-1"><span>📞 Call</span></a>` : `<span class="text-[9px] text-slate-500 italic">No Phone</span>`}
+                    </div>`;
+                }
+                container.innerHTML = html;
+            });
         }
 
         function toggleGroupPollModal() {
@@ -779,10 +910,23 @@
             });
         }
 
-        function setupAppShareLink() {
-            const shareInput = document.getElementById('app-share-link');
+        function setupBloodShareLink() {
+            const shareInput = document.getElementById('blood-share-link');
             if(shareInput) {
-                shareInput.value = window.location.origin + window.location.pathname;
+                shareInput.value = window.location.origin + window.location.pathname + "?bloodhub=true";
+            }
+            const appShareInput = document.getElementById('app-share-link');
+            if(appShareInput) {
+                appShareInput.value = window.location.origin + window.location.pathname;
+            }
+        }
+
+        function copyBloodShareLink() {
+            const shareInput = document.getElementById('blood-share-link');
+            if(shareInput) {
+                navigator.clipboard.writeText(shareInput.value).then(() => {
+                    alert("External Blood Hub Link Copied! Share it with outsiders.");
+                });
             }
         }
 
@@ -907,6 +1051,35 @@
             });
         }
 
+        function registerExternalBloodDonor() {
+            const bloodGroup = document.getElementById('ext-donor-blood-group').value;
+            const name = document.getElementById('ext-donor-name').value.trim();
+            const phone = document.getElementById('ext-donor-phone').value.trim();
+            const location = document.getElementById('ext-donor-location').value.trim();
+
+            if(!name || !phone || !location) {
+                alert("Please fill in all details.");
+                return;
+            }
+
+            const donorId = 'ext_' + Date.now();
+            db.collection('blood_donors').doc(donorId).set({
+                uid: donorId,
+                name: name,
+                email: 'external@donor.com',
+                bloodGroup: bloodGroup,
+                phone: phone,
+                location: location,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                alert("Successfully registered as Blood Donor!");
+                document.getElementById('ext-donor-name').value = '';
+                document.getElementById('ext-donor-phone').value = '';
+                document.getElementById('ext-donor-location').value = '';
+                loadExternalDonors();
+            });
+        }
+
         function loadBloodDonors() {
             const container = document.getElementById('blood-donors-list');
             container.innerHTML = `<p class="text-xs text-slate-500 italic">Loading donors directory...</p>`;
@@ -934,6 +1107,66 @@
                 });
                 container.innerHTML = html;
             });
+        }
+
+        function loadExternalDonors() {
+            const container = document.getElementById('external-donors-results');
+            container.innerHTML = `<p class="text-xs text-slate-500 italic text-center">Loading donors...</p>`;
+
+            db.collection('blood_donors').get().then(snapshot => {
+                window.allExternalDonors = [];
+                snapshot.forEach(doc => { window.allExternalDonors.push(doc.data()); });
+                renderExternalDonors(window.allExternalDonors);
+            });
+        }
+
+        function filterExternalDonors() {
+            const selectedBlood = document.getElementById('search-blood-group').value;
+            const queryLocation = document.getElementById('search-location-input').value.toLowerCase().trim();
+
+            if (!window.allExternalDonors) return;
+
+            let filtered = window.allExternalDonors.filter(d => {
+                const matchBlood = (selectedBlood === 'ALL' || d.bloodGroup === selectedBlood);
+                const matchLoc = (!queryLocation || d.location.toLowerCase().includes(queryLocation));
+                return matchBlood && matchLoc;
+            });
+
+            // Prioritize exact location matches first (e.g. Koduvally)
+            if (queryLocation) {
+                filtered.sort((a, b) => {
+                    const aExact = a.location.toLowerCase().includes(queryLocation) ? 0 : 1;
+                    const bExact = b.location.toLowerCase().includes(queryLocation) ? 0 : 1;
+                    return aExact - bExact;
+                });
+            }
+
+            renderExternalDonors(filtered);
+        }
+
+        function renderExternalDonors(donorsList) {
+            const container = document.getElementById('external-donors-results');
+            if (donorsList.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 italic text-center">No matching blood donors found.</p>`;
+                return;
+            }
+
+            let html = '<h4 class="text-[10px] font-bold text-rose-400 uppercase tracking-wider mb-2">Matching Donors</h4>';
+            donorsList.forEach(d => {
+                html += `<div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex items-center justify-between mb-2">
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-rose-950 text-rose-400 border border-rose-800 px-2 py-0.5 rounded-lg text-xs font-black">${d.bloodGroup}</span>
+                            <h4 class="font-bold text-slate-100 text-xs">${d.name}</h4>
+                        </div>
+                        <p class="text-[10px] text-slate-400">📍 Location: ${d.location}</p>
+                    </div>
+                    <a href="tel:${d.phone}" class="bg-rose-600 hover:bg-rose-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-1 shadow-md">
+                        <span>📞 Call</span>
+                    </a>
+                </div>`;
+            });
+            container.innerHTML = html;
         }
 
         function toggleMediaPermissionSetting(allowed) {
@@ -1009,16 +1242,11 @@
             if(user) {
                 document.getElementById('profile-name').innerText = user.displayName || 'User';
                 document.getElementById('profile-email').innerText = user.email || '';
-                if(user.photoURL) {
-                    document.getElementById('profile-img-container').innerHTML = `<img src="${user.photoURL}" class="w-full h-full object-cover">`;
-                }
             }
             if(auth.currentUser && auth.currentUser.uid === MASTER_ADMIN_UID) {
                 loadAdminPanelData();
             }
         }
-
-        function uploadProfilePicture(e) {}
     </script>
 </body>
 </html>
