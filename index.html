@@ -208,29 +208,7 @@
                         <h3 id="profile-name" class="font-bold text-slate-100 text-sm">User</h3>
                         <p id="profile-email" class="text-xs text-slate-400">email@domain.com</p>
                     </div>
-                        <!-- ഗ്രൂപ്പ് പ്രൊഫൈൽ എഡിറ്റ് ചെയ്യുന്ന സെക്ഷൻ -->
-    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
-        <h3 class="text-xs font-bold text-slate-200 uppercase">Edit Group Profile</h3>
-        
-        <!-- ഗ്രൂപ്പ് പേര് മാറ്റാൻ -->
-        <div class="space-y-1">
-            <label class="text-[10px] text-slate-400">Group / Profile Name</label>
-            <div class="flex gap-2">
-                <input type="text" id="edit-group-name" placeholder="Enter group name" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
-                <button onclick="updateGroupName()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold">Save</button>
-            </div>
-        </div>
-
-        <!-- പ്രൊഫൈൽ ഫോട്ടോ മാറ്റാൻ -->
-        <div class="space-y-1">
-            <label class="text-[10px] text-slate-400">Profile Photo URL</label>
-            <input type="text" id="edit-group-photo-url" placeholder="Paste image URL here" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
-            <button onclick="updateGroupPhoto()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold">Update Photo</button>
-        </div>
-    </div>
-
-                </div>
-
+                        
                 <!-- Master / Sub-Admin Controls -->
                 <div id="admin-approval-panel" class="hidden bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-4">
                     <div class="border-b border-slate-800 pb-2">
@@ -279,6 +257,15 @@
             <div id="view-chat-room" class="hidden flex flex-col h-full absolute inset-0 bg-slate-900 z-20">
                 <div class="bg-slate-900 border-b border-slate-800 text-white p-3 flex items-center justify-between">
                     <div class="flex items-center space-x-2.5">
+                        <!-- ഗ്രൂപ്പ് പ്രൊഫൈൽ എഡിറ്റ് ചെയ്യുന്ന ചെറിയ സെക്ഷൻ -->
+<div class="bg-slate-800 p-3 rounded-lg my-2 flex flex-col gap-2">
+    <input type="text" id="edit-group-name-input" placeholder="പുതിയ ഗ്രൂപ്പ് പേര് നൽകുക" class="w-full p-2 text-xs rounded bg-slate-700 text-white">
+    <div class="flex items-center justify-between">
+        <input type="file" id="edit-group-photo-input" accept="image/*" class="text-xs text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-emerald-600 file:text-white">
+        <button onclick="updateCurrentGroupProfile()" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1 rounded text-xs font-bold text-white">സേവ് ചെയ്യുക</button>
+    </div>
+</div>
+
                         <button onclick="navigateTo('home')" class="w-8 h-8 rounded-xl bg-slate-800 flex items-center justify-center text-sm font-bold">←</button>
                         <div>
                             <h3 id="chat-room-title" class="text-xs font-bold text-slate-100 truncate max-w-[130px]">Chat</h3>
@@ -1402,6 +1389,52 @@ function updateGroupPhoto() {
         alert("Error updating photo: " + error.message);
     });
 }
+        async function updateCurrentGroupProfile() {
+    // activeTargetId എന്നത് ഇപ്പോൾ ഓപ്പൺ ചെയ്തിരിക്കുന്ന ഗ്രൂപ്പിന്റെ ID ആണ്
+    if (!activeTargetId) {
+        alert("ഒരു ഗ്രൂപ്പ് തിരഞ്ഞെടുത്തിട്ടില്ല!");
+        return;
+    }
+
+    const newGroupName = document.getElementById('edit-group-name-input').value.trim();
+    const photoInput = document.getElementById('edit-group-photo-input');
+    const file = photoInput.files[0];
+
+    try {
+        let updatedData = {};
+
+        // പേര് മാറ്റിയിട്ടുണ്ടെങ്കിൽ അത് ചേർക്കുക
+        if (newGroupName) {
+            updatedData.name = newGroupName;
+        }
+
+        // ഫോട്ടോ സെലക്റ്റ് ചെയ്തിട്ടുണ്ടെങ്കിൽ ഫയർബേസ് സ്റ്റോറേജിലേക്ക് അപ്‌ലോഡ് ചെയ്യുക
+        if (file) {
+            const storageRef = firebase.storage().ref().child(`group_photos/${activeTargetId}_${Date.now()}`);
+            const snapshot = await storageRef.put(file);
+            const downloadURL = await snapshot.ref.getDownloadURL();
+            updatedData.photoURL = downloadURL;
+        }
+
+        if (Object.keys(updatedData).length === 0) {
+            alert("മാറ്റം വരുത്താൻ പുതിയ പേരോ ഫോട്ടോയോ നൽകുക!");
+            return;
+        }
+
+        // ഫയർബേസ് ഫൈറോസ്റ്റോറിൽ ഗ്രൂപ്പ് ഡാറ്റ അപ്ഡേറ്റ് ചെയ്യുക
+        await db.collection('groups').doc(activeTargetId).update(updatedData);
+        
+        alert("ഗ്രൂപ്പ് പ്രൊഫൈൽ വിജയകരമായി അപ്ഡേറ്റ് ചെയ്തു!");
+        
+        // ഫീൽഡുകൾ ക്ലിയർ ചെയ്യുക
+        document.getElementById('edit-group-name-input').value = '';
+        photoInput.value = '';
+
+    } catch (error) {
+        console.error("Error updating group profile: ", error);
+        alert("പ്രൊഫൈൽ അപ്ഡേറ്റ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു: " + error.message);
+    }
+ }
     </script>
 </body>
 </html>
