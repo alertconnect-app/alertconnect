@@ -1702,6 +1702,46 @@
                 }
             });
         }
+            // (നിലവിലുള്ള അവസാനത്തെ ഫങ്ഷൻ ഇവിടെ അവസാനിക്കുന്നു...)
+    }
+  }
+});
+
+// 👇 പുതിയതായി താഴെ കൊടുക്കുന്ന കോഡ് ഇവിടെ പേസ്റ്റ് ചെയ്യുക
+const messaging = firebase.messaging();
+
+async function requestNotificationPermission() {
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      console.log('Notification permission granted.');
+      const token = await messaging.getToken({ 
+        vapidKey: 'BEgr7aecThStfASiimhDZgVkIbm4nEtN3CgPiW_5kRG-Lc2ZOP9ED9zLIyTa-U1UJC2tpZYSQAzOOWvdm1pJ7Wk' 
+      });
+      if (token) {
+        console.log('FCM Token received:', token);
+        if (typeof saveTokenToDatabase === 'function') {
+          saveTokenToDatabase(token);
+        }
+      } else {
+        console.warn('No registration token available.');
+      }
+    } else {
+      console.log('Unable to get permission to notify.');
+    }
+  } catch (error) {
+    console.error('An error occurred while retrieving token. ', error);
+  }
+}
+
+requestNotificationPermission();
+
+messaging.onMessage((payload) => {
+  console.log('Message received in foreground: ', payload);
+  alert((payload.notification?.title || "Alert") + ": " + (payload.notification?.body || "New emergency alert!"));
+});
+
+// 👆 ഇവിടെ വരെയുള്ള കോഡ് ചേർക്കുക
     </script>
 </body>
 </html>
