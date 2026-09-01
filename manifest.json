@@ -4,8 +4,8 @@
   "start_url": "/alertconnect/",
   "scope": "/alertconnect/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#047857",
+  "background_color": "#020617",
+  "theme_color": "#020617",
   "icons": [
     {
       "src": "icon-192.png",
