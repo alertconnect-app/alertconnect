@@ -10,6 +10,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Firebase Compatibility Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -1389,52 +1391,49 @@ function updateGroupPhoto() {
         alert("Error updating photo: " + error.message);
     });
 }
-        async function updateCurrentGroupProfile() {
-    // activeTargetId എന്നത് ഇപ്പോൾ ഓപ്പൺ ചെയ്തിരിക്കുന്ന ഗ്രൂപ്പിന്റെ ID ആണ്
-    if (!activeTargetId) {
-        alert("ഒരു ഗ്രൂപ്പ് തിരഞ്ഞെടുത്തിട്ടില്ല!");
-        return;
-    }
-
-    const newGroupName = document.getElementById('edit-group-name-input').value.trim();
+function updateCurrentGroupProfile() {
+    const newName = document.getElementById('edit-group-name-input').value.trim();
     const photoInput = document.getElementById('edit-group-photo-input');
     const file = photoInput.files[0];
 
-    try {
-        let updatedData = {};
-
-        // പേര് മാറ്റിയിട്ടുണ്ടെങ്കിൽ അത് ചേർക്കുക
-        if (newGroupName) {
-            updatedData.name = newGroupName;
-        }
-
-        // ഫോട്ടോ സെലക്റ്റ് ചെയ്തിട്ടുണ്ടെങ്കിൽ ഫയർബേസ് സ്റ്റോറേജിലേക്ക് അപ്‌ലോഡ് ചെയ്യുക
-        if (file) {
-            const storageRef = firebase.storage().ref().child(`group_photos/${activeTargetId}_${Date.now()}`);
-            const snapshot = await storageRef.put(file);
-            const downloadURL = await snapshot.ref.getDownloadURL();
-            updatedData.photoURL = downloadURL;
-        }
-
-        if (Object.keys(updatedData).length === 0) {
-            alert("മാറ്റം വരുത്താൻ പുതിയ പേരോ ഫോട്ടോയോ നൽകുക!");
-            return;
-        }
-
-        // ഫയർബേസ് ഫൈറോസ്റ്റോറിൽ ഗ്രൂപ്പ് ഡാറ്റ അപ്ഡേറ്റ് ചെയ്യുക
-        await db.collection('groups').doc(activeTargetId).update(updatedData);
-        
-        alert("ഗ്രൂപ്പ് പ്രൊഫൈൽ വിജയകരമായി അപ്ഡേറ്റ് ചെയ്തു!");
-        
-        // ഫീൽഡുകൾ ക്ലിയർ ചെയ്യുക
-        document.getElementById('edit-group-name-input').value = '';
-        photoInput.value = '';
-
-    } catch (error) {
-        console.error("Error updating group profile: ", error);
-        alert("പ്രൊഫൈൽ അപ്ഡേറ്റ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു: " + error.message);
+    if (!currentGroupId) {
+        alert("ഗ്രൂപ്പ് സെലക്ട് ചെയ്തിട്ടില്ല!");
+        return;
     }
- }
+
+    if (!newName && !file) {
+        alert("മാറ്റങ്ങൾ വരുത്താൻ പേരോ ഫോട്ടോയോ നൽകുക.");
+        return;
+    }
+
+    const groupRef = db.collection('groups').doc(currentGroupId);
+
+    // ഫോട്ടോയുണ്ടെങ്കിൽ ആദ്യം ഫയർബേസ് സ്റ്റോറേജിലേക്ക് അപ്ലോഡ് ചെയ്യുക
+    if (file) {
+        const storageRef = firebase.storage().ref(`group_profiles/${currentGroupId}_${Date.now()}`);
+        storageRef.put(file).then(snapshot => {
+            snapshot.ref.getDownloadURL().then(downloadURL => {
+                let updatedData = {};
+                if (newName) updatedData.name = newName;
+                updatedData.photoURL = downloadURL;
+
+                groupRef.update(updatedData).then(() => {
+                    alert('ഗ്രൂപ്പ് പ്രൊഫൈൽ വിജയകരമായി മാറ്റം വരുത്തി!');
+                    loadGroupDetails(currentGroupId);
+                });
+            });
+        }).catch(error => {
+            console.error("ഫോട്ടോ അപ്ലോഡ് ചെയ്യുന്നതിൽ പിശക്:", error);
+            alert("ഫോട്ടോ അപ്ലോഡ് ചെയ്യാനായില്ല.");
+        });
+    } else if (newName) {
+        groupRef.update({ name: newName }).then(() => {
+            alert('ഗ്രൂപ്പ് പേര് മാറ്റിക്കഴിഞ്ഞു!');
+            loadGroupDetails(currentGroupId);
+        });
+    }
+}
+
     </script>
 </body>
 </html>
