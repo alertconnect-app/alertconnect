@@ -1,7 +1,8 @@
 {
   "name": "AlertConnect",
   "short_name": "AlertConnect",
-  "start_url": "/",
+  "start_url": "/alertconnect/",
+  "scope": "/alertconnect/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#047857",
