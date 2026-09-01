@@ -575,9 +575,18 @@
             appId: "1:556004754007:web:c00286f1030afdd4c21912"
         };
 
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ലോക്കൽ പെർസിസ്റ്റൻസ് ഉറപ്പുവരുത്താൻ
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .catch((error) => {
+        console.error("Auth persistence error:", error);
+    });
+
 
         const MASTER_ADMIN_UID = "NT1cA2oRVQdvkJ8CWhSFhpcr60V2"; 
         const MASTER_ADMIN_EMAIL = ""; 
@@ -751,9 +760,11 @@
         });
 
         function handleGoogleLogin() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(err => alert("Login Error: " + err.message));
-        }
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithRedirect(provider).catch(err => {
+        alert("Login Error: " + err.message);
+    });
+}
 
         function handleLogout() { auth.signOut(); }
 
