@@ -208,6 +208,27 @@
                         <h3 id="profile-name" class="font-bold text-slate-100 text-sm">User</h3>
                         <p id="profile-email" class="text-xs text-slate-400">email@domain.com</p>
                     </div>
+                        <!-- ഗ്രൂപ്പ് പ്രൊഫൈൽ എഡിറ്റ് ചെയ്യുന്ന സെക്ഷൻ -->
+    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
+        <h3 class="text-xs font-bold text-slate-200 uppercase">Edit Group Profile</h3>
+        
+        <!-- ഗ്രൂപ്പ് പേര് മാറ്റാൻ -->
+        <div class="space-y-1">
+            <label class="text-[10px] text-slate-400">Group / Profile Name</label>
+            <div class="flex gap-2">
+                <input type="text" id="edit-group-name" placeholder="Enter group name" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                <button onclick="updateGroupName()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold">Save</button>
+            </div>
+        </div>
+
+        <!-- പ്രൊഫൈൽ ഫോട്ടോ മാറ്റാൻ -->
+        <div class="space-y-1">
+            <label class="text-[10px] text-slate-400">Profile Photo URL</label>
+            <input type="text" id="edit-group-photo-url" placeholder="Paste image URL here" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+            <button onclick="updateGroupPhoto()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold">Update Photo</button>
+        </div>
+    </div>
+
                 </div>
 
                 <!-- Master / Sub-Admin Controls -->
@@ -502,10 +523,23 @@
                 if (viewName === 'new-alert') setupAlertTargetOptions();
             }
         }
+        // മാസ്റ്റർ അഡ്മിൻ ആണോ എന്ന് പരിശോധിക്കാനുള്ള ഫങ്ഷൻ
+function checkUserRole(user) {
+    const masterSection = document.getElementById('admin-approval-panel'); // നിങ്ങളുടെ മാസ്റ്റർ അഡ്മിൻ പാനലിന്റെ ID
+    
+    if (user && user.uid === MASTER_ADMIN_UID) {
+        // മാസ്റ്റർ അഡ്മിൻ ആണെങ്കിൽ മാത്രം പാനൽ കാണിക്കുക
+        if(masterSection) masterSection.classList.remove('hidden');
+    } else {
+        // സാധാരണ യൂസർ ആണെങ്കിൽ പാനൽ ഹൈഡ് ചെയ്യുക
+        if(masterSection) masterSection.classList.add('hidden');
+    }
+}
 
         // Authentication Observer
         auth.onAuthStateChanged(async (user) => {
             if (user) {
+                checkUserRole(user);
                 try {
                     const adminDoc = await db.collection('admin_emails').doc(user.email).get();
                     isUserAdmin = (user.uid === MASTER_ADMIN_UID) || adminDoc.exists;
@@ -1221,18 +1255,24 @@ window.addEventListener('DOMContentLoaded', () => {
     const mode = urlParams.get('mode');
 
     if (mode === 'blood') {
-        const allTabs = document.querySelectorAll('.flex.flex-col');
-        allTabs.forEach(tab => {
-            if(tab.id !== 'tab-blood-hub') tab.style.display = 'none';
+        const navBars = document.querySelectorAll('nav, .fixed.bottom-0');
+        navBars.forEach(nav => nav.style.display = 'none');
+
+        ['tab-home', 'tab-chats', 'tab-profile'].forEach(id => {
+            const tab = document.getElementById(id);
+            if(tab) tab.remove();
         });
+
         const bloodHub = document.getElementById('tab-blood-hub');
-        if(bloodHub) bloodHub.classList.remove('hidden');
+        if(bloodHub) {
+            bloodHub.classList.remove('hidden');
+            bloodHub.style.display = 'flex';
+        }
     }
 
     const shareInput = document.getElementById('app-share-link');
     if(shareInput) {
-        const currentBaseUrl = window.location.origin + window.location.pathname;
-        shareInput.value = currentBaseUrl + '?mode=blood';
+        shareInput.value = window.location.origin + window.location.pathname + '?mode=blood';
     }
     
     loadBloodDonors();
@@ -1285,8 +1325,16 @@ function filterBloodDonors() {
 
     const filtered = allBloodDonorsCache.filter(donor => {
         const matchBlood = selectedBlood === "" || donor.bloodGroup === selectedBlood;
-        const matchLocation = searchLocation === "" || donor.location.includes(searchLocation);
+        const matchLocation = searchLocation === "" || donor.location.toLowerCase().includes(searchLocation);
         return matchBlood && matchLocation;
+    });
+
+    // കൊടുക്കുന്ന ലൊക്കേഷനുമായി കൃത്യമായി സാമ്യമുള്ളവരെ ഏറ്റവും മുകളിലേക്ക് സോർട്ട് ചെയ്യുക
+    filtered.sort((a, b) => {
+        if (!searchLocation) return 0;
+        const aMatch = a.location.toLowerCase() === searchLocation ? 1 : 0;
+        const bMatch = b.location.toLowerCase() === searchLocation ? 1 : 0;
+        return bMatch - aMatch;
     });
 
     displayBloodDonors(filtered);
@@ -1311,6 +1359,49 @@ function displayBloodDonors(donors) {
     });
     container.innerHTML = html;
             }
+        // ഗ്രൂപ്പ് അല്ലെങ്കിൽ പ്രൊഫൈൽ പേര് അപ്ഡേറ്റ് ചെയ്യാൻ
+function updateGroupName() {
+    const user = auth.currentUser;
+    if (!user) { alert("Please login first!"); return; }
+    
+    const newName = document.getElementById('edit-group-name').value.trim();
+    if (!newName) { alert("Please enter a name"); return; }
+
+    user.updateProfile({
+        displayName: newName
+    }).then(() => {
+        db.collection('users').doc(user.uid).update({
+            name: newName
+        }).then(() => {
+            alert("Group/Profile name updated successfully!");
+            location.reload();
+        });
+    }).catch(error => {
+        alert("Error updating name: " + error.message);
+    });
+}
+
+// പ്രൊഫൈൽ ഫോട്ടോ അപ്ഡേറ്റ് ചെയ്യാൻ
+function updateGroupPhoto() {
+    const user = auth.currentUser;
+    if (!user) { alert("Please login first!"); return; }
+    
+    const photoUrl = document.getElementById('edit-group-photo-url').value.trim();
+    if (!photoUrl) { alert("Please enter a valid image URL"); return; }
+
+    user.updateProfile({
+        photoURL: photoUrl
+    }).then(() => {
+        db.collection('users').doc(user.uid).update({
+            photoURL: photoUrl
+        }).then(() => {
+            alert("Profile photo updated successfully!");
+            location.reload();
+        });
+    }).catch(error => {
+        alert("Error updating photo: " + error.message);
+    });
+}
     </script>
 </body>
 </html>
