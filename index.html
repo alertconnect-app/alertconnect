@@ -480,6 +480,89 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+// ==========================================
+// MASTER ADMIN CONFIGURATION & PERMISSIONS
+// ==========================================
+const MASTER_ADMIN_UID = "NT1cA2oRVQdvkJ8CWhSFhpcr60V2"; 
+const MASTER_ADMIN_EMAIL = ""; // ആവശ്യമെങ്കിൽ മാസ്റ്റർ അഡ്മിൻ ഇമെയിൽ നൽകാം
+
+function verifyMasterAdmin(user) {
+    if (user && (user.uid === MASTER_ADMIN_UID || user.email === MASTER_ADMIN_EMAIL)) {
+        return true; // മാസ്റ്റർ അഡ്മിൻ ആക്സസ് അനുവദിക്കുന്നു
+    }
+    return false; // പ്രവേശനം തടയുന്നു
+}
+
+// ==========================================
+// 1. MEDIA & PHOTO CONTROL (മാസ്റ്റർ സ്വിച്ച്)
+// ==========================================
+let mediaEnabledState = true;
+function toggleMediaSharing(enable, adminUser) {
+    if (verifyMasterAdmin(adminUser)) {
+        mediaEnabledState = enable;
+        database.ref('settings/mediaEnabled').set(enable);
+        return `Media sharing is now ${enable ? 'Enabled' : 'Disabled'}`;
+    }
+    actionUnauthorized();
+}
+
+// ==========================================
+// 2. POWER TRANSFER & EMAIL MANAGEMENT
+// ==========================================
+function transferAdminPower(newAdminUid, currentAdminUser) {
+    if (verifyMasterAdmin(currentAdminUser)) {
+        database.ref('settings/masterAdminUid').set(newAdminUid);
+        return `Admin power successfully transferred.`;
+    }
+    actionUnauthorized();
+}
+
+// ==========================================
+// 3. MANUAL USER ADDITION (SECOND GROUP)
+// ==========================================
+function manualAddUserToGroup(groupTarget, identifier, adminUser) {
+    if (verifyMasterAdmin(adminUser) || isRegisteredAdmin(adminUser)) {
+        database.ref('groups/' + groupTarget + '/members').push({
+            userIdentifier: identifier,
+            joinedDate: new Date().toISOString(),
+            status: 'Approved'
+        });
+        return "User added successfully to the group.";
+    }
+    actionUnauthorized();
+}
+
+// ==========================================
+// 4. PROFILE PICTURE UPDATE FROM GALLERY
+// ==========================================
+function updateProfilePicture(user, imageFile) {
+    if (!user) return;
+    const storageRef = firebase.storage().ref('profiles/' + user.uid);
+    storageRef.put(imageFile).then((snapshot) => {
+        snapshot.ref.getDownloadURL().then((url) => {
+            database.ref('users/' + user.uid).update({ profilePic: url });
+        });
+    });
+}
+
+// ==========================================
+// 5. ALARMS, LIVE LOCATION & POLLS MODULES
+// ==========================================
+function initAlarmsAndFeatures() {
+    // നിലവിലുള്ള അലാറം സംവിധാനം ലോഡ് ചെയ്യുക
+    loadOriginalAlarmsModule();
+    
+    // ഗ്രൂപ്പുകളിലെ ലൈവ് ലൊക്കേഷൻ ഫീച്ചർ റീസെറ്റ് ചെയ്ത് സജ്ജമാക്കുക
+    setupLiveLocationTracking();
+    
+    // ഗ്രൂപ്പ് പോളുകൾ പ്രവർത്തനക്ഷമമാക്കുക
+    setupGroupPolls();
+}
+
+function actionUnauthorized() {
+    alert("Access Denied: You do not have Master Admin privileges.");
+    throw new Error("Unauthorized Access Attempt");
+}
 
         let activeChatType = 'group';
         let activeTargetId = null; 
