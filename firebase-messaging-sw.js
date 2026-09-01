@@ -13,14 +13,13 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// പശ്ചാത്തലത്തിൽ ഉള്ളപ്പോഴും ലോക്ക് സ്ക്രീനിലും വരാൻ വേണ്ടി
 messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/icon.png', // നിങ്ങളുടെ ആപ്പിന്റെ ഐക്കൺ
+    icon: './icon-192.png', // ഇവിടെ മാറ്റം വരുത്തിയിരിക്കുന്നു
     vibrate: [200, 100, 200, 100, 200, 100, 200],
-    requireInteraction: true // ഉപയോക്താവ് ക്ലോസ് ചെയ്യുന്നത് വരെ സ്ക്രീനിൽ നിൽക്കും
+    requireInteraction: true
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
