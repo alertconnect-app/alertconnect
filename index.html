@@ -55,11 +55,24 @@
         <main id="view-root" class="flex-1 flex flex-col overflow-y-auto relative pb-20">
             
             <!-- Loading Screen -->
-            <div id="screen-loading" class="flex flex-col items-center justify-center h-full text-center space-y-4 p-6 bg-slate-950">
-                <div class="w-20 h-20 bg-gradient-to-tr from-emerald-600 to-teal-500 text-white rounded-3xl flex items-center justify-center text-3xl font-black shadow-2xl animate-bounce">AC</div>
-                <h2 class="text-xl font-bold text-slate-100">AlertConnect</h2>
-                <div class="animate-spin rounded-full h-7 w-7 border-2 border-emerald-500 border-t-transparent"></div>
-            </div>
+<div id="screen-loading" class="flex flex-col items-center justify-center h-full text-center space-y-6 p-6 bg-slate-950">
+  <div class="relative flex items-center justify-center">
+    <!-- പുറകിലെ ഗ്ലോ ആനിമേഷൻ -->
+    <div class="absolute w-28 h-28 bg-emerald-500/20 rounded-full animate-ping"></div>
+    <!-- ഐക്കൺ ബോക്സ് -->
+    <div class="relative w-24 h-24 bg-slate-900 border border-emerald-500/30 rounded-3xl flex items-center justify-center shadow-2xl backdrop-blur-md">
+      <img src="./icon-192.png" alt="App Icon" class="w-16 h-16 object-contain rounded-2xl animate-pulse">
+    </div>
+  </div>
+  <div class="flex flex-col items-center space-y-2">
+    <h2 class="text-white font-bold text-lg tracking-wide">AlertConnect</h2>
+    <div class="flex space-x-1.5">
+      <div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+      <div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+      <div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+    </div>
+  </div>
+</div>
 
             <!-- Auth Screen -->
             <div id="screen-auth" class="hidden flex flex-col items-center justify-center h-full text-center space-y-6 p-6 bg-slate-950">
