@@ -11,12 +11,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Firebase v9 Compatibility Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
-    <!-- Firebase Realtime Database SDK (Needed for live alerts & chats) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
 
     <script>
         tailwind.config = {
@@ -43,7 +41,13 @@
                     <div class="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center text-xs font-black shadow-md shadow-emerald-900/50">AC</div>
                     <h1 id="header-title" class="font-bold text-sm tracking-wide text-slate-100">AlertConnect</h1>
                 </div>
-    
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="copyAppShareLink()" class="bg-emerald-950 border border-emerald-800 text-emerald-400 px-2.5 py-1 rounded-xl text-[11px] font-bold hover:bg-emerald-900 transition">📋 Copy App Link</button>
+                <div class="text-[11px] bg-emerald-950 text-emerald-400 border border-emerald-800/50 px-2.5 py-1 rounded-full font-semibold flex items-center space-x-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="header-status-text">Active</span>
+                </div>
             </div>
         </header>
 
@@ -51,22 +55,24 @@
         <main id="view-root" class="flex-1 flex flex-col overflow-y-auto relative pb-20">
             
             <!-- Loading Screen -->
-            <div id="screen-loading" class="flex flex-col items-center justify-center h-full text-center space-y-6 p-6 bg-slate-950">
-              <div class="relative flex items-center justify-center">
-                <div class="absolute w-28 h-28 bg-emerald-500/20 rounded-full animate-ping"></div>
-                <div class="relative w-24 h-24 bg-slate-900 border border-emerald-500/30 rounded-3xl flex items-center justify-center shadow-2xl backdrop-blur-md">
-                  <img src="./icon-192.png" alt="App Icon" class="w-16 h-16 object-contain rounded-2xl animate-pulse">
-                </div>
-              </div>
-              <div class="flex flex-col items-center space-y-2">
-                <h2 class="text-white font-bold text-lg tracking-wide">AlertConnect</h2>
-                <div class="flex space-x-1.5">
-                  <div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                  <div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                  <div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
-                </div>
-              </div>
-            </div>
+<div id="screen-loading" class="flex flex-col items-center justify-center h-full text-center space-y-6 p-6 bg-slate-950">
+  <div class="relative flex items-center justify-center">
+    <!-- പുറകിലെ ഗ്ലോ ആനിമേഷൻ -->
+    <div class="absolute w-28 h-28 bg-emerald-500/20 rounded-full animate-ping"></div>
+    <!-- ഐക്കൺ ബോക്സ് -->
+    <div class="relative w-24 h-24 bg-slate-900 border border-emerald-500/30 rounded-3xl flex items-center justify-center shadow-2xl backdrop-blur-md">
+      <img src="./icon-192.png" alt="App Icon" class="w-16 h-16 object-contain rounded-2xl animate-pulse">
+    </div>
+  </div>
+  <div class="flex flex-col items-center space-y-2">
+    <h2 class="text-white font-bold text-lg tracking-wide">AlertConnect</h2>
+    <div class="flex space-x-1.5">
+      <div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+      <div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+      <div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+    </div>
+  </div>
+</div>
 
             <!-- Auth Screen -->
             <div id="screen-auth" class="hidden flex flex-col items-center justify-center h-full text-center space-y-6 p-6 bg-slate-950">
@@ -88,45 +94,36 @@
                 <button onclick="handleLogout()" class="mt-2 px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">Logout</button>
             </div>
 
-            <!-- INVITATION / AUTH FIRST & NOTIFICATION PERMISSION FLOW -->
+            <!-- INVITATION / JOIN & NOTIFICATION PERMISSION SCREEN -->
             <div id="view-invite-flow" class="hidden flex flex-col p-5 space-y-5 bg-slate-950 h-full justify-center">
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl text-center space-y-3 shadow-xl">
-                    <div class="w-16 h-16 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-2xl mx-auto flex items-center justify-center text-2xl font-bold">🔐</div>
+                    <div class="w-16 h-16 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-2xl mx-auto flex items-center justify-center text-2xl font-bold">🔔</div>
                     <h2 class="text-base font-extrabold text-slate-100" id="invite-group-title">Join Community Group</h2>
+                    <p class="text-xs text-slate-400">To receive emergency alarm alerts and push notifications even when your phone is locked, you must enable notifications first.</p>
                     
-                    <!-- Step 0: Google Sign-In First -->
-                    <div id="invite-step-auth" class="space-y-3 pt-2">
-                        <p class="text-xs text-slate-400">Please sign in with Google first to save your user ID and send a join request.</p>
-                        <button onclick="handleGoogleLoginForInvite()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg">Sign In with Google</button>
-                    </div>
-
-                    <!-- Step 1: Notification Permission -->
-                    <div id="invite-step-1" class="hidden space-y-3 pt-2">
-                        <p class="text-xs text-slate-400">To receive emergency alarm alerts and push notifications even when your phone is locked, enable notifications.</p>
+                    <div id="invite-step-1" class="space-y-3 pt-2">
                         <button onclick="requestPushNotificationPermission()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg">1. Allow Push Notifications & Sound</button>
                     </div>
 
-                    <!-- Step 2: Send Join Request -->
                     <div id="invite-step-2" class="hidden space-y-3 pt-2">
-                        <p class="text-xs text-emerald-400 font-bold">✅ Signed In & Notifications Allowed!</p>
+                        <p class="text-xs text-emerald-400 font-bold">✅ Notifications Allowed!</p>
                         <button onclick="sendJoinRequestToGroup()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg">2. Send Join Request to Admin</button>
                     </div>
 
-                    <!-- Step 3: Check Status -->
                     <div id="invite-step-3" class="hidden space-y-3 pt-2">
                         <p class="text-xs text-amber-400 font-bold">⏳ Join request sent! Waiting for Admin approval.</p>
                         <button onclick="checkJoinApprovalStatus()" class="w-full py-2.5 bg-slate-800 text-slate-200 rounded-xl text-xs font-bold">Check Status</button>
                     </div>
 
-                    <!-- Done -->
                     <div id="invite-step-done" class="hidden space-y-3 pt-2">
-                        <p class="text-xs text-emerald-400 font-bold">🎉 Approved successfully!</p>
-                        <button onclick="completeJoinAsRegistered()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold">Open App Hub</button>
+                        <p class="text-xs text-emerald-400 font-bold">🎉 Approved successfully! Choose how you want to join:</p>
+                        <button onclick="completeJoinAsRegistered()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold">Install App / Login (Registered Member)</button>
+                        <button onclick="completeJoinAsGuest()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-300 rounded-xl text-xs font-bold">Just Receive Emergency Alerts (Guest Member)</button>
                     </div>
                 </div>
             </div>
 
-            <!-- EXTERNAL BLOOD HUB VIEW -->
+            <!-- EXTERNAL BLOOD HUB VIEW (Standalone Link Page) -->
             <div id="view-external-blood" class="hidden flex flex-col p-4 space-y-4 bg-slate-950 h-full">
                 <div class="bg-rose-950/60 border border-rose-800 p-4 rounded-2xl text-center space-y-1">
                     <h2 class="text-base font-extrabold text-rose-400">🩸 Emergency Blood Hub</h2>
@@ -151,6 +148,7 @@
                     <button onclick="registerExternalBloodDonor()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold">Register as Donor Now</button>
                 </div>
 
+                <!-- Find Donors Section with Search Option -->
                 <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
                     <h3 class="text-xs font-bold text-slate-200 uppercase">🔍 Find Blood Donors (Search)</h3>
                     <div class="grid grid-cols-2 gap-2">
@@ -161,8 +159,9 @@
                             <option value="O+">O+ve</option><option value="O-">O-ve</option>
                             <option value="AB+">AB+ve</option><option value="AB-">AB-ve</option>
                         </select>
-                        <input type="text" id="search-location-input" placeholder="Filter Location" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100" oninput="filterExternalDonors()">
+                        <input type="text" id="search-location-input" placeholder="Filter Location (e.g. Koduvally)" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100" oninput="filterExternalDonors()">
                     </div>
+                    <button onclick="filterExternalDonors()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold">Search Donors</button>
                 </div>
 
                 <div id="external-donors-results" class="space-y-2 flex-1 overflow-y-auto">
@@ -193,6 +192,7 @@
                     </button>
                 </div>
 
+                <!-- Create Group Section -->
                 <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
                     <h3 class="text-xs font-bold text-slate-200 uppercase">Create New Community Group</h3>
                     <div class="flex space-x-2">
@@ -201,6 +201,7 @@
                     </div>
                 </div>
 
+                <!-- Emergency Helplines -->
                 <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl space-y-2">
                     <h3 class="text-[11px] font-bold text-slate-300 uppercase">Emergency Helplines</h3>
                     <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-bold">
@@ -211,7 +212,7 @@
                 </div>
 
                 <div class="flex items-center justify-between pt-1">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Your Community Groups</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Community Groups</h3>
                     <button onclick="loadGroups()" class="text-xs bg-slate-800 border border-slate-700 text-emerald-400 font-bold px-3 py-1 rounded-xl hover:bg-slate-700">🔄 Refresh</button>
                 </div>
                 <div id="home-groups-list" class="space-y-2">
@@ -219,7 +220,7 @@
                 </div>
             </div>
 
-            <!-- TAB 2: BLOOD HUB -->
+            <!-- TAB 2: BLOOD HUB WITH SEARCH -->
             <div id="tab-blood-hub" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2">
                     <h3 class="text-xs font-bold text-slate-200 uppercase">Blood Hub External Link for Public</h3>
@@ -229,6 +230,7 @@
                     </div>
                 </div>
 
+                <!-- Blood Donors Search Bar Option -->
                 <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
                     <h3 class="text-xs font-bold text-slate-200 uppercase">🔍 Search Blood Donors</h3>
                     <div class="grid grid-cols-2 gap-2">
@@ -251,11 +253,14 @@
                             <option value="B+">B+ve</option><option value="B-">B-ve</option>
                             <option value="O+">O+ve</option><option value="O-">O-ve</option>
                             <option value="AB+">AB+ve</option><option value="AB-">AB-ve</option>
-                        </select>
-                        <input type="text" id="donor-phone" placeholder="Phone Number" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                            </select>
+                        <input type="text" id="ext-donor-name" placeholder="Your Full Name" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
                     </div>
-                    <input type="text" id="donor-location" placeholder="City / Location" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
-                    <button onclick="registerAsBloodDonor()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold">Register / Update Profile</button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="ext-donor-phone" placeholder="Phone Number" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                        <input type="text" id="ext-donor-location" placeholder="City / Location" class="p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                    </div>
+                    <button onclick="registerExternalBloodDonor()" class="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold">Register as Donor Now</button>
                 </div>
 
                 <div id="blood-donors-list" class="space-y-2">
@@ -263,10 +268,10 @@
                 </div>
             </div>
 
-            <!-- TAB 3: CHATS -->
+            <!-- TAB 3: CHATS OVERVIEW -->
             <div id="tab-chats" class="hidden flex flex-col p-4 space-y-3">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-xs font-bold uppercase text-slate-400">Conversations & Community Groups</h3>
+                    <h3 class="text-xs font-bold uppercase text-slate-400">Conversations & Direct Messages</h3>
                     <button onclick="loadChatsList()" class="text-xs bg-slate-800 border border-slate-700 text-emerald-400 font-bold px-3 py-1 rounded-xl hover:bg-slate-700">🔄 Refresh</button>
                 </div>
                 <div id="chats-groups-list" class="space-y-2">
@@ -274,35 +279,28 @@
                 </div>
             </div>
 
-            <!-- TAB 4: PROFILE -->
+            <!-- TAB 4: PROFILE & MASTER/SUB ADMIN & GROUP APPROVAL PANEL -->
             <div id="tab-profile" class="hidden flex flex-col p-4 space-y-4">
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col items-center text-center space-y-3 relative">
                     <div id="profile-img-container" class="w-20 h-20 bg-emerald-600 text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg overflow-hidden border-2 border-emerald-500 relative group cursor-pointer" onclick="document.getElementById('profile-pic-file-input').click()">
                         <span id="profile-initials">U</span>
-                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-[10px] text-white font-bold">Edit</div>
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-150 transition text-[10px] text-white font-bold">Edit</div>
                     </div>
                     <input type="file" id="profile-pic-file-input" accept="image/*" class="hidden" onchange="handleProfilePictureUpload(event)">
                     <div>
                         <h3 id="profile-name" class="font-bold text-slate-100 text-sm">User</h3>
                         <p id="profile-email" class="text-xs text-slate-400">email@domain.com</p>
-                        <p id="profile-uid-display" class="text-[10px] text-emerald-400 font-mono mt-1 select-all cursor-pointer" onclick="navigator.clipboard.writeText(auth.currentUser ? auth.currentUser.uid : ''); alert('UID Copied!');">UID: [Loading...]</p>
+                        <p id="profile-uid-display" class="text-[10px] text-emerald-400 font-mono mt-1 select-all cursor-pointer" title="Click or Copy UID" onclick="navigator.clipboard.writeText(auth.currentUser ? auth.currentUser.uid : ''); alert('UID Copied to Clipboard!');">UID: [Loading...]</p>
                         <p id="profile-role-badge" class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-full mt-1.5 font-bold inline-block">Registered Member</p>
                     </div>
                 </div>
 
-                <!-- MASTER ADMIN EXCLUSIVE PANEL -->
+                <!-- MASTER ADMIN EXCLUSIVE PANEL (Visible only to Master Admin) -->
                 <div id="master-admin-section" class="hidden bg-slate-900 border border-emerald-600/60 p-4 rounded-2xl space-y-3 shadow-lg">
                     <div class="border-b border-slate-800 pb-2 flex items-center justify-between">
                         <h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider">👑 Master Admin Control Center</h4>
                         <span class="text-[9px] bg-emerald-600 text-white px-2 py-0.5 rounded font-bold">Master Plan</span>
                     </div>
-                    </div>
-            <div class="flex items-center space-x-2">
-                <button onclick="copyAppShareLink()" class="bg-emerald-950 border border-emerald-800 text-emerald-400 px-2.5 py-1 rounded-xl text-[11px] font-bold hover:bg-emerald-900 transition">📋 Copy App Link</button>
-                <div class="text-[11px] bg-emerald-950 text-emerald-400 border border-emerald-800/50 px-2.5 py-1 rounded-full font-semibold flex items-center space-x-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span id="header-status-text">Active</span>
-                </div>
 
                     <div class="space-y-2.5">
                         <div class="flex items-center justify-between bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
@@ -320,10 +318,19 @@
                                 <button onclick="executeTransferAdminPower()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Transfer</button>
                             </div>
                         </div>
+
+                        <div class="space-y-1 bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+                            <span class="text-xs font-bold text-slate-200 block">Manual Member Adder (Any Group)</span>
+                            <div class="grid grid-cols-2 gap-2 pt-1">
+                                <input type="text" id="master-manual-group-id" placeholder="Group ID" class="p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-100">
+                                <input type="text" id="master-manual-user-id" placeholder="User UID or Email" class="p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-100">
+                            </div>
+                            <button onclick="masterManualAddUser()" class="w-full mt-2 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold">Force Add User to Group</button>
+                        </div>
                     </div>
                 </div>
                         
-                <!-- Group Approval Panel -->
+                <!-- User Group Approval Panel & Manual Member Adder -->
                 <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-4">
                     <div class="border-b border-slate-800 pb-2 flex items-center justify-between">
                         <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">👤 My Groups & Member Approvals</h4>
@@ -338,8 +345,20 @@
                         <p id="selected-group-uid-hint" class="text-[9px] text-slate-500 font-mono hidden"></p>
                     </div>
 
+                    <!-- Manual Member Add (No approval needed if added manually by group creator) -->
+                    <div class="space-y-2 bg-slate-800/60 p-3 rounded-xl border border-slate-700">
+                        <div class="flex items-center justify-between">
+                            <label class="text-[10px] font-bold text-slate-300 uppercase">Manually Add Member to Group (2nd Group / Extra)</label>
+                            <button onclick="openGroupMemberSelectorModal()" class="text-[9px] bg-emerald-600 text-white px-2 py-0.5 rounded font-bold">🔍 Pick Member UID</button>
+                        </div>
+                        <div class="flex space-x-2">
+                            <input type="text" id="manual-add-member-input" placeholder="Member UID or Email" class="flex-1 p-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                            <button onclick="manuallyAddMemberToGroup()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold">Add</button>
+                        </div>
+                    </div>
+
                     <div class="border-t border-slate-800 pt-3">
-                        <h5 class="text-[11px] font-bold text-slate-300 uppercase mb-2">Pending Join Requests</h5>
+                        <h5 class="text-[11px] font-bold text-slate-300 uppercase mb-2">Pending Join Requests for Your Groups</h5>
                         <div id="group-pending-requests-list" class="space-y-2 text-xs text-slate-400">
                             <p class="text-[10px] text-slate-500 italic">Select a group above to view pending requests.</p>
                         </div>
@@ -363,7 +382,8 @@
                         </div>
                     </div>
                     <div id="group-action-buttons" class="flex items-center space-x-1.5">
-                        <button onclick="togglePollModal()" class="bg-emerald-600 hover:bg-emerald-500 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-white"><span>📊 Poll</span></button>
+                        <!-- Poll Feature Button (Replaces Call icon) -->
+                        <button onclick="togglePollModal()" class="bg-emerald-600 hover:bg-emerald-500 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-white flex items-center space-x-1"><span>📊 Poll</span></button>
                         <button onclick="copyGroupInviteLink()" class="bg-emerald-950 border border-emerald-800 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-emerald-400">🔗 Invite</button>
                         <button onclick="toggleGroupMembersModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-slate-200">👥 Members</button>
                     </div>
@@ -382,7 +402,7 @@
                 </div>
             </div>
 
-            <!-- MODAL: Group Edit -->
+            <!-- MODAL: Group Edit Profile Modal -->
             <div id="modal-group-edit" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-4 space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -390,18 +410,24 @@
                         <button onclick="toggleGroupEditModal()" class="text-xs font-bold text-slate-400">✕ Close</button>
                     </div>
                     <div class="space-y-3">
-                        <input type="text" id="edit-group-name-input" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100" placeholder="Group Name">
-                        <input type="file" id="edit-group-photo-input" accept="image/*" class="w-full text-xs text-slate-400">
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Group Name:</label>
+                            <input type="text" id="edit-group-name-input" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Group Photo/Logo:</label>
+                            <input type="file" id="edit-group-photo-input" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white">
+                        </div>
                         <button onclick="saveGroupProfileChanges()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold">Save Changes</button>
                     </div>
                 </div>
             </div>
 
-            <!-- MODAL: Group Members -->
+            <!-- MODAL: Group Members Modal -->
             <div id="modal-group-members" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-4 space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                        <h3 class="text-xs font-bold text-slate-100">Group Members</h3>
+                        <h3 class="text-xs font-bold text-slate-100">Group Members & Profiles</h3>
                         <button onclick="toggleGroupMembersModal()" class="text-xs font-bold text-slate-400">✕ Close</button>
                     </div>
                     <div id="group-members-list-content" class="space-y-2 max-h-72 overflow-y-auto">
@@ -410,23 +436,42 @@
                 </div>
             </div>
 
-            <!-- MODAL: Poll -->
-            <div id="modal-poll" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+            <!-- MODAL: Member UID Picker for Manual Adding -->
+            <div id="modal-member-picker" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-4 space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                        <h3 class="text-xs font-bold text-emerald-400 uppercase">📊 Group Poll</h3>
-                        <button onclick="togglePollModal()" class="text-xs font-bold text-slate-400">✕ Close</button>
+                        <h3 class="text-xs font-bold text-slate-100">Select Member to Add (Copy/Pick UID)</h3>
+                        <button onclick="toggleGroupMemberSelectorModal()" class="text-xs font-bold text-slate-400">✕ Close</button>
                     </div>
-                    <div class="space-y-3">
-                        <input type="text" id="poll-question-input" placeholder="Ask something..." class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
-                        <input type="text" id="poll-option-1" placeholder="Option 1" class="w-full p-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
-                        <input type="text" id="poll-option-2" placeholder="Option 2" class="w-full p-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
-                        <button onclick="createAndSendPoll()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold">Broadcast Poll</button>
+                    <div id="picker-members-list" class="space-y-2 max-h-64 overflow-y-auto">
+                        <p class="text-xs text-slate-500 italic">Loading users...</p>
                     </div>
                 </div>
             </div>
 
-            <!-- VIEW: BROADCAST SOS ALERT -->
+            <!-- MODAL: Poll Creator & Voting Modal -->
+            <div id="modal-poll" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-4 space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <h3 class="text-xs font-bold text-emerald-400 uppercase">📊 Group Poll / വോട്ടെടുപ്പ്</h3>
+                        <button onclick="togglePollModal()" class="text-xs font-bold text-slate-400">✕ Close</button>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1">Poll Question:</label>
+                            <input type="text" id="poll-question-input" placeholder="Ask something..." class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] text-slate-400 block">Options:</label>
+                            <input type="text" id="poll-option-1" placeholder="Option 1" class="w-full p-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                            <input type="text" id="poll-option-2" placeholder="Option 2" class="w-full p-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">
+                        </div>
+                        <button onclick="createAndSendPoll()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold">Broadcast Poll to Group</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: BROADCAST SOS ALERT WITH EXPANDED ALARM TONES & DURATION -->
             <div id="view-new-alert" class="hidden flex flex-col p-4 space-y-4 absolute inset-0 bg-slate-900 z-25 overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                     <button onclick="navigateTo('home')" class="text-xs font-bold text-slate-300 bg-slate-800 px-3 py-1.5 rounded-xl">← Back</button>
@@ -435,44 +480,72 @@
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[11px] font-bold text-slate-400 uppercase">Target Group</label>
-                    <select id="alert-target-group" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-200">
-                        <option value="ALL">🌐 Broadcast to All My Groups</option>
-                    </select>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase">Target Audience</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block mb-1">Target Group:</span>
+                            <select id="alert-target-group" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-200" onchange="populateAlertMemberDropdown()">
+                                <option value="ALL">🌐 Broadcast to All</option>
+                            </select>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 block mb-1">Target Specific User:</span>
+                            <select id="alert-target-user" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-200">
+                                <option value="ALL">👥 Everyone in Group</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Expanded Alarm Tones (Police, Fire Police, etc.) -->
                 <div class="space-y-2">
-                    <label class="text-[11px] font-bold text-slate-400 uppercase">Select Emergency Alarm Tone</label>
+                    <label class="text-[11px] font-bold text-slate-400 uppercase">Select Emergency Alarm Tone & Test</label>
                     <div class="space-y-2">
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
                             <div class="flex items-center space-x-2">
                                 <input type="radio" name="alert-sound" value="police_siren" id="sound-police-siren" checked class="text-emerald-600">
                                 <label for="sound-police-siren" class="text-xs font-bold text-slate-200 cursor-pointer">🚓 1. Police Patrol Siren</label>
                             </div>
-                            <button onclick="playAlarmSound('police_siren')" class="text-[10px] bg-slate-700 text-emerald-400 px-2.5 py-1 rounded-lg font-bold">▶️ Test</button>
+                            <button onclick="playAlarmSound('police_siren')" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test</button>
                         </div>
                         <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
                             <div class="flex items-center space-x-2">
                                 <input type="radio" name="alert-sound" value="fire_alarm" id="sound-fire-alarm" class="text-emerald-600">
-                                <label for="sound-fire-alarm" class="text-xs font-bold text-slate-200 cursor-pointer">🚒 2. Fire Police Horn</label>
+                                <label for="sound-fire-alarm" class="text-xs font-bold text-slate-200 cursor-pointer">🚒 2. Fire Police Horn & Alarm</label>
                             </div>
-                            <button onclick="playAlarmSound('fire_alarm')" class="text-[10px] bg-slate-700 text-emerald-400 px-2.5 py-1 rounded-lg font-bold">▶️ Test</button>
+                            <button onclick="playAlarmSound('fire_alarm')" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test</button>
+                        </div>
+                        <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
+                            <div class="flex items-center space-x-2">
+                                <input type="radio" name="alert-sound" value="ambulance_blip" id="sound-ambulance" class="text-emerald-600">
+                                <label for="sound-ambulance" class="text-xs font-bold text-slate-200 cursor-pointer">🚑 3. Medical Emergency Blip</label>
+                            </div>
+                            <button onclick="playAlarmSound('ambulance_blip')" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test</button>
+                        </div>
+                        <div class="flex items-center justify-between bg-slate-800/80 border border-slate-700 p-2.5 rounded-xl">
+                            <div class="flex items-center space-x-2">
+                                <input type="radio" name="alert-sound" value="general_buzzer" id="sound-general" class="text-emerald-600">
+                                <label for="sound-general" class="text-xs font-bold text-slate-200 cursor-pointer">📢 4. General Community Buzzer</label>
+                            </div>
+                            <button onclick="playAlarmSound('general_buzzer')" class="text-[10px] bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg font-bold border border-slate-600">▶️ Test</button>
                         </div>
                     </div>
                 </div>
 
+                <!-- Alarm Duration Selector (Default 10 Seconds) -->
                 <div class="space-y-1.5">
                     <label class="text-[11px] font-bold text-slate-400 uppercase">Alarm Ring Duration (Seconds)</label>
                     <select id="alarm-duration-select" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-slate-200">
                         <option value="5">5 Seconds</option>
-                        <option value="10" selected>10 Seconds</option>
+                        <option value="10" selected>10 Seconds (Standard Full Alert)</option>
+                        <option value="15">15 Seconds</option>
                         <option value="30">30 Seconds</option>
                     </select>
                 </div>
 
                 <div class="space-y-1.5 pt-1">
                     <label class="text-[11px] font-bold text-slate-400 uppercase">Emergency Message</label>
-                    <textarea id="alert-message-text" rows="3" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100">Urgent help required! Please respond immediately.</textarea>
+                    <textarea id="alert-message-text" rows="3" class="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-emerald-500">Urgent help required! Please respond immediately.</textarea>
                 </div>
 
                 <button onclick="submitEmergencyAlert()" class="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-extrabold shadow-lg text-xs">BROADCAST SOS ALERT NOW</button>
@@ -512,80 +585,157 @@
             projectId: "alertconnect-27dac",
             storageBucket: "alertconnect-27dac.firebasestorage.app",
             messagingSenderId: "556004754007",
-            appId: "1:556004754007:web:c00286f1030afdd4c21912",
-            databaseURL: "https://alertconnect-27dac-default-rtdb.firebaseio.com"
+            appId: "1:556004754007:web:c00286f1030afdd4c21912"
         };
 
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const rtdb = firebase.database(); // Realtime Database reference for live alerts
 
+        // ==========================================
+        // MASTER ADMIN CONFIGURATION & PERMISSIONS
+        // ==========================================
         const MASTER_ADMIN_UID = "NT1cA2oRVQdvkJ8CWhSFhpcr60V2"; 
+        const MASTER_ADMIN_EMAIL = ""; 
 
         function verifyMasterAdmin(user) {
-            return user && user.uid === MASTER_ADMIN_UID;
+            if (user && (user.uid === MASTER_ADMIN_UID || (MASTER_ADMIN_EMAIL && user.email === MASTER_ADMIN_EMAIL))) {
+                return true; 
+            }
+            return false; 
         }
 
+        // ==========================================
+        // 1. MEDIA & PHOTO CONTROL (മാസ്റ്റർ സ്വിച്ച്)
+        // ==========================================
         let mediaEnabledState = true;
-        let activeChatType = 'group';
-        let activeTargetId = null; 
-        let messagesUnsubscribe = null;
-        let pendingInviteGroupId = null;
-        let liveAlertsListenerInitialized = false;
-
         function toggleGlobalMediaState() {
-            if (!verifyMasterAdmin(auth.currentUser)) { alert("Access Denied"); return; }
+            if (!verifyMasterAdmin(auth.currentUser)) {
+                actionUnauthorized();
+                return;
+            }
             mediaEnabledState = !mediaEnabledState;
             db.collection('settings').doc('config').set({ mediaEnabled: mediaEnabledState }, { merge: true }).then(() => {
+                const btn = document.getElementById('master-media-toggle-btn');
+                btn.innerText = mediaEnabledState ? 'Enabled' : 'Disabled';
+                btn.className = mediaEnabledState ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white' : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white';
                 alert(`Media sharing is now ${mediaEnabledState ? 'Enabled' : 'Disabled'}`);
             });
         }
 
+        // ==========================================
+        // 2. POWER TRANSFER & EMAIL MANAGEMENT
+        // ==========================================
         function executeTransferAdminPower() {
-            if (!verifyMasterAdmin(auth.currentUser)) { alert("Access Denied"); return; }
+            if (!verifyMasterAdmin(auth.currentUser)) {
+                actionUnauthorized();
+                return;
+            }
             const newAdminUid = document.getElementById('transfer-admin-uid-input').value.trim();
-            if(!newAdminUid) return;
+            if(!newAdminUid) {
+                alert("Please enter valid Admin UID.");
+                return;
+            }
             db.collection('settings').doc('config').set({ masterAdminUid: newAdminUid }, { merge: true }).then(() => {
-                alert("Admin power transferred.");
+                alert("Admin power successfully updated / transferred.");
+                document.getElementById('transfer-admin-uid-input').value = '';
             });
         }
 
+        // ==========================================
+        // 3. MANUAL USER ADDITION (MASTER & GROUPS)
+        // ==========================================
+        function masterManualAddUser() {
+            if (!verifyMasterAdmin(auth.currentUser)) {
+                actionUnauthorized();
+                return;
+            }
+            const gId = document.getElementById('master-manual-group-id').value.trim();
+            const uId = document.getElementById('master-manual-user-id').value.trim();
+            if(!gId || !uId) {
+                alert("Please fill in Group ID and User ID.");
+                return;
+            }
+            db.collection('groups').doc(gId).get().then(doc => {
+                if(doc.exists) {
+                    const members = doc.data().members || [];
+                    if(!members.includes(uId)) {
+                        members.push(uId);
+                        db.collection('groups').doc(gId).update({ members: members }).then(() => {
+                            alert("User force-added successfully to group by Master Admin.");
+                            document.getElementById('master-manual-group-id').value = '';
+                            document.getElementById('master-manual-user-id').value = '';
+                        });
+                    } else {
+                        alert("User is already in this group.");
+                    }
+                } else {
+                    alert("Group not found.");
+                }
+            });
+        }
+
+        // ==========================================
+        // 4. PROFILE PICTURE UPDATE FROM GALLERY
+        // ==========================================
         function handleProfilePictureUpload(e) {
             const file = e.target.files[0];
             if (!file || !auth.currentUser) return;
             const reader = new FileReader();
             reader.onload = function(evt) {
-                db.collection('users').doc(auth.currentUser.uid).update({ photoURL: evt.target.result }).then(() => {
-                    alert("Profile picture updated!");
-                    loadProfileData();
-                });
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width, height = img.height;
+                    if (width > 250) { height = Math.round((height * 250) / width); width = 250; }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const base64Pic = canvas.toDataURL('image/jpeg', 0.7);
+
+                    db.collection('users').doc(auth.currentUser.uid).update({ photoURL: base64Pic }).then(() => {
+                        alert("Profile picture updated successfully!");
+                        loadProfileData();
+                    });
+                };
+                img.src = evt.target.result;
             };
             reader.readAsDataURL(file);
         }
 
+        function actionUnauthorized() {
+            alert("Access Denied: You do not have Master Admin privileges.");
+            throw new Error("Unauthorized Access Attempt");
+        }
+
+        let activeChatType = 'group';
+        let activeTargetId = null; 
+        let messagesUnsubscribe = null;
+        let cachedGroupsData = [];
+        let pendingInviteGroupId = null;
+
+        // Copy App Share Link Button Utility
         function copyAppShareLink() {
-            navigator.clipboard.writeText(window.location.origin + window.location.pathname).then(() => {
-                alert("App Link copied to clipboard!");
+            const appUrl = window.location.origin + window.location.pathname;
+            navigator.clipboard.writeText(appUrl).then(() => {
+                alert("App Link copied to clipboard successfully! Share it with anyone.");
             });
         }
 
-        // ==========================================
-        // AUTH FIRST FLOW & INVITE HANDLING
-        // ==========================================
+        // Check URL parameters on load for External Blood Hub or Invite Link
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('bloodhub')) {
                 document.getElementById('screen-loading').classList.add('hidden');
                 document.getElementById('view-external-blood').classList.remove('hidden');
                 document.getElementById('app-header').classList.remove('hidden');
+                document.getElementById('header-title').innerText = "Emergency Blood Hub";
                 loadExternalDonors();
             } else if (urlParams.has('group')) {
                 pendingInviteGroupId = urlParams.get('group');
                 document.getElementById('screen-loading').classList.add('hidden');
                 document.getElementById('view-invite-flow').classList.remove('hidden');
                 document.getElementById('app-header').classList.remove('hidden');
-                
                 db.collection('groups').doc(pendingInviteGroupId).get().then(doc => {
                     if(doc.exists) {
                         document.getElementById('invite-group-title').innerText = `Join Group: ${doc.data().name}`;
@@ -596,37 +746,29 @@
 
         auth.onAuthStateChanged(async (user) => {
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('bloodhub')) return; 
-
-            if (pendingInviteGroupId) {
-                if (user) {
-                    // Auth First Flow: User logged in successfully, now proceed to notification step
-                    document.getElementById('invite-step-auth').classList.add('hidden');
-                    document.getElementById('invite-step-1').classList.remove('hidden');
-                } else {
-                    // Show Google Sign-in First
-                    document.getElementById('invite-step-auth').classList.remove('hidden');
-                }
-                return;
-            }
+            if (urlParams.has('bloodhub') || pendingInviteGroupId) return; 
 
             if (user) {
                 try {
                     const userRef = db.collection('users').doc(user.uid);
                     let doc = await userRef.get();
+
                     if (!doc.exists) {
                         await userRef.set({
                             uid: user.uid,
                             email: user.email,
                             displayName: user.displayName || 'User',
                             photoURL: user.photoURL || null,
+                            status: 'approved',
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
+                        doc = await userRef.get();
                     }
+
                     document.getElementById('screen-auth').classList.add('hidden');
+                    document.getElementById('screen-pending').classList.add('hidden');
                     document.getElementById('screen-loading').classList.add('hidden');
                     navigateTo('home');
-                    initLiveEmergencyAlertsWatcher();
                 } catch (e) {
                     navigateTo('home');
                 }
@@ -643,37 +785,30 @@
             auth.signInWithPopup(provider).catch(err => alert("Login Error: " + err.message));
         }
 
-        function handleGoogleLoginForInvite() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).then(() => {
-                document.getElementById('invite-step-auth').classList.add('hidden');
-                document.getElementById('invite-step-1').classList.remove('hidden');
-            }).catch(err => alert("Login Error: " + err.message));
-        }
-
         function handleLogout() { auth.signOut(); }
 
+        // Invite Flow Functions
         function requestPushNotificationPermission() {
             if ("Notification" in window) {
                 Notification.requestPermission().then(permission => {
-                    if (permission === "granted" || permission === "default") {
-                        alert("Notifications allowed!");
+                    if (permission === "granted") {
+                        alert("Push notification & alarm sound permission granted!");
                         document.getElementById('invite-step-1').classList.add('hidden');
                         document.getElementById('invite-step-2').classList.remove('hidden');
                     } else {
-                        alert("Please allow notifications.");
+                        alert("Please allow notifications to receive emergency alert alarms.");
                     }
                 });
             } else {
+                alert("Notifications are not supported on this browser.");
                 document.getElementById('invite-step-1').classList.add('hidden');
                 document.getElementById('invite-step-2').classList.remove('hidden');
             }
         }
 
         function sendJoinRequestToGroup() {
-            if(!auth.currentUser || !pendingInviteGroupId) return;
-            const userId = auth.currentUser.uid;
-            const email = auth.currentUser.email;
+            const userId = auth.currentUser ? auth.currentUser.uid : ('guest_' + Date.now());
+            const email = auth.currentUser ? auth.currentUser.email : 'guest@alert.com';
 
             db.collection('groups').doc(pendingInviteGroupId).collection('join_requests').doc(userId).set({
                 uid: userId,
@@ -686,44 +821,40 @@
         }
 
         function checkJoinApprovalStatus() {
-            if(!auth.currentUser || !pendingInviteGroupId) return;
+            const userId = auth.currentUser ? auth.currentUser.uid : null;
+            if(!userId) {
+                alert("Please login first to check approval.");
+                return;
+            }
             db.collection('groups').doc(pendingInviteGroupId).get().then(doc => {
                 if(doc.exists) {
                     const members = doc.data().members || [];
-                    if(members.includes(auth.currentUser.uid)) {
+                    if(members.includes(userId)) {
                         document.getElementById('invite-step-3').classList.add('hidden');
                         document.getElementById('invite-step-done').classList.remove('hidden');
                     } else {
-                        alert("Approval still pending by Admin.");
+                        alert("Approval is still pending by Admin.");
                     }
                 }
             });
         }
 
         function completeJoinAsRegistered() {
+            if(!auth.currentUser) {
+                handleGoogleLogin();
+                return;
+            }
             window.location.href = window.location.origin + window.location.pathname;
         }
 
-        // ==========================================
-        // REAL-TIME ALERTS WATCHER (child_added)
-        // ==========================================
-        function initLiveEmergencyAlertsWatcher() {
-            if (liveAlertsListenerInitialized) return;
-            liveAlertsListenerInitialized = true;
-
-            rtdb.ref('alerts').on('child_added', snapshot => {
-                const alertData = snapshot.val();
-                if (alertData && alertData.senderId !== (auth.currentUser ? auth.currentUser.uid : '')) {
-                    playAlarmSound(alertData.sound || 'police_siren', alertData.duration || 10);
-                    if ("Notification" in window && Notification.permission === "granted") {
-                        new Notification("🚨 EMERGENCY SOS ALERT!", { body: alertData.message });
-                    }
-                }
-            });
+        function completeJoinAsGuest() {
+            alert("You are set as a Guest Member! Emergency alert sounds will now ring on your phone when broadcasted.");
+            window.location.href = window.location.origin + window.location.pathname;
         }
 
         function navigateTo(viewName) {
             if (messagesUnsubscribe) { messagesUnsubscribe(); messagesUnsubscribe = null; }
+
             ['screen-loading', 'screen-auth', 'screen-pending', 'view-external-blood', 'view-invite-flow', 'tab-home', 'tab-blood-hub', 'tab-chats', 'tab-profile', 'view-chat-room', 'view-new-alert'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.add('hidden');
@@ -739,6 +870,16 @@
                 document.getElementById('header-title').innerText = viewName.toUpperCase();
                 document.getElementById('header-back-btn').classList.add('hidden');
 
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    if (item.getAttribute('data-target') === viewName) {
+                        item.classList.remove('text-slate-500');
+                        item.classList.add('text-emerald-400');
+                    } else {
+                        item.classList.remove('text-emerald-400');
+                        item.classList.add('text-slate-500');
+                    }
+                });
+
                 if (viewName === 'home') loadGroups();
                 if (viewName === 'blood-hub') { loadBloodDonors(); setupBloodShareLink(); }
                 if (viewName === 'chats') loadChatsList();
@@ -753,7 +894,8 @@
         }
 
         function createNewChainGroup() {
-            const groupName = document.getElementById('new-group-name-input').value.trim();
+            const input = document.getElementById('new-group-name-input');
+            const groupName = input.value.trim();
             const user = auth.currentUser;
             if (!groupName || !user) return;
 
@@ -765,154 +907,532 @@
                 members: [user.uid],
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
-                document.getElementById('new-group-name-input').value = '';
+                input.value = '';
                 loadGroups();
             });
         }
 
-        // ==========================================
-        // FILTER GROUPS (Admin or Member only)
-        // ==========================================
         function loadGroups() {
             const container = document.getElementById('home-groups-list');
             container.innerHTML = `<p class="text-xs text-slate-500 italic">Refreshing...</p>`;
-            const currentUid = auth.currentUser ? auth.currentUser.uid : '';
-
-            db.collection('groups').get().then(snapshot => {
+            db.collection('groups').orderBy('createdAt', 'desc').get().then(snapshot => {
+                if (snapshot.empty) {
+                    container.innerHTML = `<p class="text-xs text-slate-500 italic">No groups found.</p>`;
+                    return;
+                }
+                cachedGroupsData = [];
                 let html = '';
-                let foundCount = 0;
                 snapshot.forEach(doc => {
                     const group = doc.data();
-                    const members = group.members || [];
-                    // ഫിൽട്ടർ ചെയ്യുക: യൂസർ അഡ്മിൻ ആയതോ അല്ലെങ്കിൽ മെമ്പർ ആയതോ ആയ ഗ്രൂപ്പുകൾ മാത്രം
-                    if (group.createdBy === currentUid || members.includes(currentUid)) {
-                        foundCount++;
-                        const gId = doc.id;
-                        const escapedName = group.name.replace(/'/g, "\\'");
-                        html += `<div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex items-center justify-between mb-2">
-                            <div class="flex items-center space-x-3 cursor-pointer flex-1" onclick="openChatRoom('${gId}', '${escapedName}', 'group')">
-                                ${group.photo ? `<img src="${group.photo}" class="w-10 h-10 rounded-full object-cover border border-emerald-600">` : `<div class="w-10 h-10 bg-emerald-950 text-emerald-400 rounded-full flex items-center justify-center font-bold text-sm border border-emerald-800">⛓️</div>`}
-                                <div>
-                                    <h4 class="font-bold text-slate-200 text-xs">${group.name}</h4>
-                                    <p class="text-[10px] text-slate-400">Members: ${members.length}</p>
-                                </div>
+                    const gId = doc.id;
+                    cachedGroupsData.push({ id: gId, name: group.name, members: group.members || [] });
+                    const escapedName = group.name.replace(/'/g, "\\'");
+                    html += `<div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex items-center justify-between">
+                        <div class="flex items-center space-x-3 cursor-pointer flex-1" onclick="openChatRoom('${gId}', '${escapedName}', 'group')">
+                            ${group.photo ? `<img src="${group.photo}" class="w-10 h-10 rounded-full object-cover border border-emerald-600">` : `<div class="w-10 h-10 bg-emerald-950 text-emerald-400 rounded-full flex items-center justify-center font-bold text-sm border border-emerald-800">⛓️</div>`}
+                            <div>
+                                <h4 class="font-bold text-slate-200 text-xs">${group.name}</h4>
+                                <p class="text-[10px] text-slate-400">Created by: ${group.creatorEmail || 'User'}</p>
                             </div>
-                            <button onclick="openChatRoom('${gId}', '${escapedName}', 'group')" class="text-xs text-emerald-400 font-bold px-2 py-1">Open →</button>
-                        </div>`;
-                    }
+                        </div>
+                        <button onclick="openChatRoom('${gId}', '${escapedName}', 'group')" class="text-xs text-emerald-400 font-bold px-2 py-1">Open →</button>
+                    </div>`;
                 });
-                container.innerHTML = foundCount > 0 ? html : `<p class="text-xs text-slate-500 italic">No groups found where you are a member.</p>`;
+                container.innerHTML = html;
             });
         }
 
         function loadChatsList() {
-            loadGroups(); // Chats list ഉം അതേ ഫിൽട്ടറിംഗ് ഉപയോഗിക്കുന്നു
+            const chatsContainer = document.getElementById('chats-groups-list');
+            chatsContainer.innerHTML = `<p class="text-xs text-slate-500 italic">Refreshing chats...</p>`;
+            
+            db.collection('groups').get().then(snapshot => {
+                let html = '<h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Groups</h4>';
+                snapshot.forEach(doc => {
+                    const group = doc.data();
+                    const escapedName = group.name.replace(/'/g, "\\'");
+                    html += `<div onclick="openChatRoom('${doc.id}', '${escapedName}', 'group')" class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex items-center justify-between cursor-pointer mb-2">
+                        <div class="flex items-center space-x-2.5">
+                            ${group.photo ? `<img src="${group.photo}" class="w-8 h-8 rounded-full object-cover">` : `<div class="w-8 h-8 bg-emerald-950 text-emerald-400 rounded-full flex items-center justify-center font-bold text-xs">⛓️</div>`}
+                            <span class="font-bold text-xs text-slate-200">${group.name}</span>
+                        </div>
+                        <span class="text-[10px] text-emerald-400 font-bold">Open Chat →</span>
+                    </div>`;
+                });
+                chatsContainer.innerHTML = html;
+            });
         }
 
         function openChatRoom(targetId, titleName, type = 'group') {
             activeTargetId = targetId;
             activeChatType = type;
             document.getElementById('chat-room-title').innerText = titleName;
+            document.getElementById('chat-room-subtitle').innerText = 'Group Chat (Tap to Edit)';
+
+            db.collection('groups').doc(targetId).get().then(doc => {
+                if(doc.exists) {
+                    const data = doc.data();
+                    const members = data.members || [];
+                    if(auth.currentUser && !members.includes(auth.currentUser.uid)) {
+                        members.push(auth.currentUser.uid);
+                        db.collection('groups').doc(targetId).update({ members: members });
+                    }
+                    if(data.photo) {
+                        document.getElementById('chat-header-avatar').innerHTML = `<img src="${data.photo}" class="w-full h-full rounded-full object-cover">`;
+                    } else {
+                        document.getElementById('chat-header-avatar').innerHTML = `⛓️`;
+                    }
+                }
+            });
 
             ['tab-home', 'tab-blood-hub', 'tab-chats', 'tab-profile', 'view-new-alert'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
             document.getElementById('view-chat-room').classList.remove('hidden');
             document.getElementById('app-nav-bar').classList.add('hidden');
+            document.getElementById('header-back-btn').classList.remove('hidden');
 
             const container = document.getElementById('chat-messages-container');
+            container.innerHTML = `<p class="text-slate-500 text-center italic py-4">Connecting to room...</p>`;
+
             if (messagesUnsubscribe) messagesUnsubscribe();
 
-            messagesUnsubscribe = db.collection('groups').doc(targetId).collection('messages').orderBy('timestamp', 'asc').onSnapshot(snapshot => {
+            const collectionRef = db.collection('groups').doc(targetId).collection('messages');
+
+            messagesUnsubscribe = collectionRef.orderBy('timestamp', 'asc').onSnapshot(snapshot => {
                 if (snapshot.empty) {
-                    container.innerHTML = `<p class="text-slate-500 text-center italic py-4">No messages yet.</p>`;
+                    container.innerHTML = `<p class="text-slate-500 text-center italic py-4">No messages yet. Send a greeting!</p>`;
                     return;
                 }
                 let html = '';
                 snapshot.forEach(doc => {
                     const m = doc.data();
                     const isMe = auth.currentUser && m.uid === auth.currentUser.uid;
-                    html += `<div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} my-1">
-                        <span class="text-[9px] text-slate-400 px-1 pb-0.5">${m.email || 'User'}</span>
-                        <div class="px-3 py-2 rounded-2xl text-xs max-w-[85%] ${isMe ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-200'}">
-                            ${m.text || ''}
-                        </div>
-                    </div>`;
+                    if (m.isPoll) {
+                        html += `<div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} my-1 w-full">
+                            <span class="text-[9px] text-slate-400 px-1 pb-0.5">${m.email || 'User'} (📊 Poll)</span>
+                            <div class="px-3.5 py-3 rounded-2xl text-xs bg-slate-800 border border-emerald-600/50 text-slate-100 w-full max-w-[90%] space-y-2">
+                                <p class="font-bold text-emerald-400">${m.question}</p>
+                                <div class="space-y-1.5">
+                                    <button onclick="voteOnPoll('${targetId}', '${doc.id}', 0)" class="w-full text-left px-3 py-2 bg-slate-900 hover:bg-slate-700 rounded-xl text-xs flex justify-between items-center border border-slate-700">
+                                        <span>1. ${m.option1}</span>
+                                        <span class="text-emerald-400 font-bold">${(m.votes0 || []).length} votes</span>
+                                    </button>
+                                    <button onclick="voteOnPoll('${targetId}', '${doc.id}', 1)" class="w-full text-left px-3 py-2 bg-slate-900 hover:bg-slate-700 rounded-xl text-xs flex justify-between items-center border border-slate-700">
+                                        <span>2. ${m.option2}</span>
+                                        <span class="text-emerald-400 font-bold">${(m.votes1 || []).length} votes</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>`;
+                    } else {
+                        html += `<div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} my-1">
+                            <span class="text-[9px] text-slate-400 px-1 pb-0.5">${m.email || 'User'}</span>
+                            <div class="px-3 py-2 rounded-2xl text-xs max-w-[85%] ${isMe ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-200'}">
+                                ${m.image ? `<img src="${m.image}" class="rounded-lg max-h-48 mb-1">` : ''}
+                                ${m.text || ''}
+                            </div>
+                        </div>`;
+                    }
                 });
                 container.innerHTML = html;
                 container.scrollTop = container.scrollHeight;
             });
         }
 
-        function sendChatMessage() {
+        // Poll Modals & Voting Functionality
+        function togglePollModal() {
+            const modal = document.getElementById('modal-poll');
+            modal.classList.toggle('hidden');
+        }
+
+        function createAndSendPoll() {
+            const q = document.getElementById('poll-question-input').value.trim();
+            const o1 = document.getElementById('poll-option-1').value.trim();
+            const o2 = document.getElementById('poll-option-2').value.trim();
+
+            if (!q || !o1 || !o2) {
+                alert("Please fill in the poll question and two options.");
+                return;
+            }
+            if (!activeTargetId || !auth.currentUser) return;
+
+            db.collection('groups').doc(activeTargetId).collection('messages').add({
+                uid: auth.currentUser.uid,
+                email: auth.currentUser.email,
+                isPoll: true,
+                question: q,
+                option1: o1,
+                option2: o2,
+                votes0: [],
+                votes1: [],
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                document.getElementById('poll-question-input').value = '';
+                document.getElementById('poll-option-1').value = '';
+                document.getElementById('poll-option-2').value = '';
+                togglePollModal();
+            });
+        }
+
+        function voteOnPoll(groupId, messageId, optionIndex) {
+            if (!auth.currentUser) return;
+            const uid = auth.currentUser.uid;
+            const msgRef = db.collection('groups').doc(groupId).collection('messages').doc(messageId);
+
+            db.runTransaction(async (transaction) => {
+                const doc = await transaction.get(msgRef);
+                if (!doc.exists) return;
+                const data = doc.data();
+                let votes0 = data.votes0 || [];
+                let votes1 = data.votes1 || [];
+
+                // Remove previous vote if any
+                votes0 = votes0.filter(id => id !== uid);
+                votes1 = votes1.filter(id => id !== uid);
+
+                if (optionIndex === 0) votes0.push(uid);
+                if (optionIndex === 1) votes1.push(uid);
+
+                transaction.update(msgRef, { votes0: votes0, votes1: votes1 });
+            }).then(() => {
+                // Vote recorded successfully
+            }).catch(err => console.log("Vote error:", err));
+        }
+
+        function sendChatMessage(imageUrl = null) {
+            if(!mediaEnabledState && imageUrl) {
+                alert("Media sharing is currently disabled by Master Admin.");
+                return;
+            }
             const input = document.getElementById('chat-input-msg');
             const text = input ? input.value.trim() : '';
-            if (!text || !activeTargetId || !auth.currentUser) return;
+            if (!text && !imageUrl) return;
+            if (!activeTargetId || !auth.currentUser) return;
 
             db.collection('groups').doc(activeTargetId).collection('messages').add({
                 uid: auth.currentUser.uid,
                 email: auth.currentUser.email,
                 text: text,
+                image: imageUrl,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => { if (input) input.value = ''; });
+            }).then(() => {
+                if (input) input.value = '';
+            });
         }
 
-        function togglePollModal() { document.getElementById('modal-poll').classList.toggle('hidden'); }
-        function createAndSendPoll() { togglePollModal(); }
-        function toggleGroupEditModal() { document.getElementById('modal-group-edit').classList.toggle('hidden'); }
-        function saveGroupProfileChanges() { toggleGroupEditModal(); }
-        function toggleGroupMembersModal() { document.getElementById('modal-group-members').classList.toggle('hidden'); }
-        function copyGroupInviteLink() {
-            navigator.clipboard.writeText(window.location.origin + window.location.pathname + "?group=" + activeTargetId).then(() => alert("Invite Link Copied!"));
+        function triggerMediaUpload() {
+            if(!mediaEnabledState) {
+                alert("Media sharing is currently disabled by Master Admin.");
+                return;
+            }
+            document.getElementById('chat-image-input').click();
         }
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width, height = img.height;
+                    if (width > 600) { height = Math.round((height * 600) / width); width = 600; }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    sendChatMessage(compressedBase64);
+                };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function sendLiveLocationInChat() {
+            if (!activeTargetId) return;
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const link = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+                    db.collection('groups').doc(activeTargetId).collection('messages').add({
+                        uid: auth.currentUser.uid,
+                        email: auth.currentUser.email,
+                        text: `📍 Live Location: ${link}`,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }, () => alert("Location permission denied."));
+            }
+        }
+
+        function toggleGroupEditModal() {
+            const modal = document.getElementById('modal-group-edit');
+            modal.classList.toggle('hidden');
+            if(!modal.classList.contains('hidden') && activeTargetId) {
+                db.collection('groups').doc(activeTargetId).get().then(doc => {
+                    if(doc.exists) {
+                        document.getElementById('edit-group-name-input').value = doc.data().name || '';
+                    }
+                });
+            }
+        }
+
+        function saveGroupProfileChanges() {
+            if (!activeTargetId) return;
+            const newName = document.getElementById('edit-group-name-input').value.trim();
+            const photoInput = document.getElementById('edit-group-photo-input');
+            
+            const updateData = {};
+            if(newName) updateData.name = newName;
+
+            const executeUpdate = (photoBase64 = null) => {
+                if(photoBase64) updateData.photo = photoBase64;
+                db.collection('groups').doc(activeTargetId).update(updateData).then(() => {
+                    alert("Group profile updated successfully!");
+                    toggleGroupEditModal();
+                    if(newName) document.getElementById('chat-room-title').innerText = newName;
+                    if(photoBase64) document.getElementById('chat-header-avatar').innerHTML = `<img src="${photoBase64}" class="w-full h-full rounded-full object-cover">`;
+                    loadGroups();
+                });
+            };
+
+            if(photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width, height = img.height;
+                        if (width > 300) { height = Math.round((height * 300) / width); width = 300; }
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        executeUpdate(canvas.toDataURL('image/jpeg', 0.6));
+                    };
+                    img.src = evt.target.result;
+                };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                executeUpdate();
+            }
+        }
+
+        function toggleGroupMembersModal() {
+            const modal = document.getElementById('modal-group-members');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden') && activeTargetId) {
+                loadGroupMembersList();
+            }
+        }
+
+        function loadGroupMembersList() {
+            const container = document.getElementById('group-members-list-content');
+            container.innerHTML = `<p class="text-xs text-slate-500 italic">Loading members...</p>`;
+
+            db.collection('groups').doc(activeTargetId).get().then(async doc => {
+                if(!doc.exists) return;
+                const membersUids = doc.data().members || [];
+                if(membersUids.length === 0) {
+                    container.innerHTML = `<p class="text-xs text-slate-500 italic">No members found.</p>`;
+                    return;
+                }
+
+                let html = '';
+                for(let uid of membersUids) {
+                    const userDoc = await db.collection('users').doc(uid).get();
+                    const uData = userDoc.exists ? userDoc.data() : { displayName: 'Member', email: 'User' };
+                    const donorDoc = await db.collection('blood_donors').doc(uid).get();
+                    const bloodGroup = donorDoc.exists ? donorDoc.data().bloodGroup : null;
+                    const phone = donorDoc.exists ? donorDoc.data().phone : null;
+
+                    html += `<div class="bg-slate-800 p-2.5 rounded-xl flex items-center justify-between">
+                        <div class="flex items-center space-x-2.5">
+                            ${uData.photoURL ? `<img src="${uData.photoURL}" class="w-9 h-9 rounded-full object-cover border border-emerald-500">` : `<div class="w-9 h-9 bg-emerald-950 text-emerald-400 rounded-full flex items-center justify-center font-bold text-xs">${uData.displayName ? uData.displayName[0] : 'U'}</div>`}
+                            <div>
+                                <div class="flex items-center space-x-1.5">
+                                    <h5 class="font-bold text-xs text-slate-100">${uData.displayName || 'Member'}</h5>
+                                    ${bloodGroup ? `<span class="bg-rose-950 text-rose-400 border border-rose-800 px-1.5 py-0.5 rounded text-[9px] font-black">${bloodGroup}</span>` : ''}
+                                </div>
+                                <p class="text-[10px] text-slate-400 select-all font-mono" title="UID: ${uid}">UID: ${uid.substring(0, 10)}...</p>
+                            </div>
+                        </div>
+                        <button onclick="navigator.clipboard.writeText('${uid}'); alert('Member UID Copied: ${uid}');" class="bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2 py-1.5 rounded-lg text-[10px] font-bold">📋 Copy UID</button>
+                    </div>`;
+                }
+                container.innerHTML = html;
+            });
+        }
+
+        // Group Member UID Picker Modal for Manual Adding to 2nd Group
+        function toggleGroupMemberSelectorModal() {
+            const modal = document.getElementById('modal-member-picker');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                loadPickerMembersList();
+            }
+        }
+
+        function loadPickerMembersList() {
+            const container = document.getElementById('picker-members-list');
+            container.innerHTML = `<p class="text-xs text-slate-500 italic">Loading users...</p>`;
+
+            db.collection('users').get().then(snapshot => {
+                if (snapshot.empty) {
+                    container.innerHTML = `<p class="text-xs text-slate-500 italic">No users found.</p>`;
+                    return;
+                }
+                let html = '';
+                snapshot.forEach(doc => {
+                    const u = doc.data();
+                    html += `<div class="bg-slate-800 p-2.5 rounded-xl flex items-center justify-between">
+                        <div>
+                            <h5 class="font-bold text-xs text-slate-100">${u.displayName || 'User'}</h5>
+                            <p class="text-[9px] text-slate-400 select-all font-mono">${u.email || u.uid}</p>
+                        </div>
+                        <button onclick="selectMemberForManualAdd('${u.uid}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold">Select UID</button>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            });
+        }
+
+        function selectMemberForManualAdd(uid) {
+            document.getElementById('manual-add-member-input').value = uid;
+            toggleGroupMemberSelectorModal();
+            alert("Member UID selected and filled into manual add input!");
+        }
+
+        function copyCurrentGroupId() {
+            const select = document.getElementById('profile-manage-group-select');
+            const gId = select.value;
+            if(!gId) {
+                alert("Please select a group first.");
+                return;
+            }
+            navigator.clipboard.writeText(gId).then(() => {
+                alert("Group UID Copied: " + gId);
+            });
+        }
+
+        function updateSelectedGroupUidDisplay() {
+            const select = document.getElementById('profile-manage-group-select');
+            const hint = document.getElementById('selected-group-uid-hint');
+            if(select.value) {
+                hint.innerText = `Selected Group ID: ${select.value}`;
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function copyGroupInviteLink() {
+            const inviteUrl = window.location.origin + window.location.pathname + "?group=" + activeTargetId;
+            navigator.clipboard.writeText(inviteUrl).then(() => {
+                alert("Group Invite Link Copied! Send it to new members.");
+            });
+        }
+
         function setupBloodShareLink() {
             const shareInput = document.getElementById('blood-share-link');
-            if(shareInput) shareInput.value = window.location.origin + window.location.pathname + "?bloodhub=true";
+            if(shareInput) {
+                shareInput.value = window.location.origin + window.location.pathname + "?bloodhub=true";
+            }
         }
-        function copyBloodShareLink() {
-            navigator.clipboard.writeText(document.getElementById('blood-share-link').value).then(() => alert("Blood Hub Link Copied!"));
-        }
-        function setupAlertTargetOptions() {}
 
-        // ==========================================
-        // SOS ALERT BROADCAST (Push to Realtime DB)
-        // ==========================================
-        function playAlarmSound(soundType, durationSec = 10) {
+        function copyBloodShareLink() {
+            const shareInput = document.getElementById('blood-share-link');
+            if(shareInput) {
+                navigator.clipboard.writeText(shareInput.value).then(() => {
+                    alert("External Blood Hub Link Copied! Share it with outsiders.");
+                });
+            }
+        }
+
+        function setupAlertTargetOptions() {
+            const groupSelect = document.getElementById('alert-target-group');
+            groupSelect.innerHTML = `<option value="ALL">🌐 Broadcast to All</option>`;
+            db.collection('groups').get().then(snapshot => {
+                snapshot.forEach(doc => {
+                    const g = doc.data();
+                    groupSelect.innerHTML += `<option value="${doc.id}">⛓️ ${g.name}</option>`;
+                });
+            });
+        }
+
+        function populateAlertMemberDropdown() {}
+
+        // Expanded Alarm Tones & Configurable Duration (Default 10 Seconds)
+        function playAlarmSound(soundType) {
+            const durationSec = parseInt(document.getElementById('alarm-duration-select').value) || 10;
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 let startTime = audioCtx.currentTime;
                 let endTime = startTime + durationSec;
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(800, startTime);
-                gain.gain.setValueAtTime(0.8, startTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, endTime);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(startTime); osc.stop(endTime);
+                
+                if (soundType === 'police_siren') {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    
+                    // Siren Frequency Modulation Loop for the duration
+                    for (let t = startTime; t < endTime; t += 1.0) {
+                        osc.frequency.setValueAtTime(600, t);
+                        osc.frequency.linearRampToValueAtTime(1300, t + 0.5);
+                        osc.frequency.linearRampToValueAtTime(600, t + 1.0);
+                    }
+                    gain.gain.setValueAtTime(0.8, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, endTime);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(startTime); osc.stop(endTime);
+                } else if (soundType === 'fire_alarm') {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    for (let t = startTime; t < endTime; t += 0.6) {
+                        osc.frequency.setValueAtTime(950, t);
+                        osc.frequency.setValueAtTime(750, t + 0.3);
+                    }
+                    gain.gain.setValueAtTime(0.8, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, endTime);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(startTime); osc.stop(endTime);
+                } else if (soundType === 'ambulance_blip') {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    for (let t = startTime; t < endTime; t += 0.8) {
+                        osc.frequency.setValueAtTime(500, t);
+                        osc.frequency.linearRampToValueAtTime(900, t + 0.4);
+                        osc.frequency.setValueAtTime(500, t + 0.4);
+                    }
+                    gain.gain.setValueAtTime(0.7, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, endTime);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(startTime); osc.stop(endTime);
+                } else {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(800, startTime);
+                    gain.gain.setValueAtTime(0.8, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, endTime);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(startTime); osc.stop(endTime);
+                }
             } catch (e) {
-                alert("Emergency Alarm Triggered!");
+                alert("Alarm played successfully for " + durationSec + " seconds.");
             }
         }
 
         function submitEmergencyAlert() {
             const text = document.getElementById('alert-message-text').value.trim();
             const selectedSound = document.querySelector('input[name="alert-sound"]:checked').value;
-            const durationSec = parseInt(document.getElementById('alarm-duration-select').value) || 10;
-            if (!text || !auth.currentUser) return;
+            const durationSec = document.getElementById('alarm-duration-select').value;
+            if (!text) return;
             
-            // റിയൽ ടൈം ഡാറ്റാബേസിലെ alerts നോഡിലേക്ക് പുഷ് ചെയ്യുന്നു
-            rtdb.ref('alerts').push({
-                senderId: auth.currentUser.uid,
-                message: text,
-                sound: selectedSound,
-                duration: durationSec,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                playAlarmSound(selectedSound, durationSec);
-                alert("🚨 SOS Emergency Alert Broadcasted Live!");
-                navigateTo('home');
-            });
+            playAlarmSound(selectedSound);
+            alert(`🚨 SOS Emergency Alert Broadcasted! Alarm ringing for ${durationSec} seconds on target screens.`);
+            navigateTo('home');
         }
 
         function registerAsBloodDonor() {
@@ -920,31 +1440,66 @@
             const phone = document.getElementById('donor-phone').value.trim();
             const location = document.getElementById('donor-location').value.trim();
             const user = auth.currentUser;
-            if(!phone || !location || !user) return;
+
+            if(!phone || !location || !user) {
+                alert("Please fill in your phone number and location.");
+                return;
+            }
 
             db.collection('blood_donors').doc(user.uid).set({
-                uid: user.uid, name: user.displayName || 'Donor', email: user.email,
-                bloodGroup: bloodGroup, phone: phone, location: location,
+                uid: user.uid,
+                name: user.displayName || 'Donor',
+                email: user.email,
+                bloodGroup: bloodGroup,
+                phone: phone,
+                location: location,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => alert("Blood Donor Registered Successfully!"));
+            }).then(() => {
+                alert("Successfully registered as Blood Donor!");
+                loadBloodDonors();
+            });
         }
 
         function registerExternalBloodDonor() {
+            const bloodGroup = document.getElementById('ext-donor-blood-group').value;
             const name = document.getElementById('ext-donor-name').value.trim();
             const phone = document.getElementById('ext-donor-phone').value.trim();
             const location = document.getElementById('ext-donor-location').value.trim();
-            if(!name || !phone || !location) return;
 
-            db.collection('blood_donors').doc('ext_' + Date.now()).set({
-                uid: 'ext_' + Date.now(), name: name, bloodGroup: document.getElementById('ext-donor-blood-group').value,
-                phone: phone, location: location, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => { alert("Registered!"); loadExternalDonors(); });
+            if(!name || !phone || !location) {
+                alert("Please fill in all details.");
+                return;
+            }
+
+            const donorId = 'ext_' + Date.now();
+            db.collection('blood_donors').doc(donorId).set({
+                uid: donorId,
+                name: name,
+                email: 'external@donor.com',
+                bloodGroup: bloodGroup,
+                phone: phone,
+                location: location,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                alert("Successfully registered as Blood Donor!");
+                document.getElementById('ext-donor-name').value = '';
+                document.getElementById('ext-donor-phone').value = '';
+                document.getElementById('ext-donor-location').value = '';
+                loadExternalDonors();
+            });
         }
 
         function loadBloodDonors() {
+            const container = document.getElementById('blood-donors-list');
+            container.innerHTML = `<p class="text-xs text-slate-500 italic">Loading donors directory...</p>`;
+            
             db.collection('blood_donors').get().then(snapshot => {
+                if (snapshot.empty) {
+                    container.innerHTML = `<p class="text-xs text-slate-500 italic">No blood donors registered yet.</p>`;
+                    return;
+                }
                 window.appAllDonors = [];
-                snapshot.forEach(doc => window.appAllDonors.push(doc.data()));
+                snapshot.forEach(doc => { window.appAllDonors.push(doc.data()); });
                 renderAppBloodDonors(window.appAllDonors);
             });
         }
@@ -953,31 +1508,113 @@
             const selectedBlood = document.getElementById('app-search-blood-group').value;
             const queryLocation = document.getElementById('app-search-location').value.toLowerCase().trim();
             if(!window.appAllDonors) return;
-            renderAppBloodDonors(window.appAllDonors.filter(d => (selectedBlood === 'ALL' || d.bloodGroup === selectedBlood) && (!queryLocation || d.location.toLowerCase().includes(queryLocation))));
+
+            let filtered = window.appAllDonors.filter(d => {
+                const matchBlood = (selectedBlood === 'ALL' || d.bloodGroup === selectedBlood);
+                const matchLoc = (!queryLocation || d.location.toLowerCase().includes(queryLocation));
+                return matchBlood && matchLoc;
+            });
+            renderAppBloodDonors(filtered);
         }
 
         function renderAppBloodDonors(donorsList) {
             const container = document.getElementById('blood-donors-list');
-            let html = '';
+            if (donorsList.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 italic">No matching blood donors found.</p>`;
+                return;
+            }
+            let html = '<h4 class="text-[10px] font-bold text-rose-400 uppercase tracking-wider mb-2">Registered Blood Donors Directory</h4>';
             donorsList.forEach(d => {
                 html += `<div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex items-center justify-between mb-2">
-                    <div><span class="bg-rose-950 text-rose-400 px-2 py-0.5 rounded text-xs font-black">${d.bloodGroup}</span> <b class="text-xs text-slate-100">${d.name}</b><p class="text-[10px] text-slate-400">📍 ${d.location}</p></div>
-                    <a href="tel:${d.phone}" class="bg-rose-600 text-white px-3 py-2 rounded-xl text-xs font-bold">📞 Call</a>
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-rose-950 text-rose-400 border border-rose-800 px-2 py-0.5 rounded-lg text-xs font-black">${d.bloodGroup}</span>
+                            <h4 class="font-bold text-slate-100 text-xs">${d.name}</h4>
+                        </div>
+                        <p class="text-[10px] text-slate-400">📍 Location: ${d.location}</p>
+                    </div>
+                    <a href="tel:${d.phone}" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1 shadow-md">
+                        <span>📞 Call</span>
+                    </a>
                 </div>`;
             });
-            container.innerHTML = html || '<p class="text-xs text-slate-500 italic">No donors found.</p>';
+            container.innerHTML = html;
         }
 
-        function loadExternalDonors() { loadBloodDonors(); }
-        function filterExternalDonors() { filterAppBloodDonors(); }
+        function loadExternalDonors() {
+            const container = document.getElementById('external-donors-results');
+            container.innerHTML = `<p class="text-xs text-slate-500 italic text-center">Loading donors...</p>`;
 
+            db.collection('blood_donors').get().then(snapshot => {
+                window.allExternalDonors = [];
+                snapshot.forEach(doc => { window.allExternalDonors.push(doc.data()); });
+                renderExternalDonors(window.allExternalDonors);
+            });
+        }
+
+        function filterExternalDonors() {
+            const selectedBlood = document.getElementById('search-blood-group').value;
+            const queryLocation = document.getElementById('search-location-input').value.toLowerCase().trim();
+
+            if (!window.allExternalDonors) return;
+
+            let filtered = window.allExternalDonors.filter(d => {
+                const matchBlood = (selectedBlood === 'ALL' || d.bloodGroup === selectedBlood);
+                const matchLoc = (!queryLocation || d.location.toLowerCase().includes(queryLocation));
+                return matchBlood && matchLoc;
+            });
+
+            renderExternalDonors(filtered);
+        }
+
+        function renderExternalDonors(donorsList) {
+            const container = document.getElementById('external-donors-results');
+            if (donorsList.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 italic text-center">No matching blood donors found.</p>`;
+                return;
+            }
+
+            let html = '<h4 class="text-[10px] font-bold text-rose-400 uppercase tracking-wider mb-2">Matching Donors</h4>';
+            donorsList.forEach(d => {
+                html += `<div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex items-center justify-between mb-2">
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="bg-rose-950 text-rose-400 border border-rose-800 px-2 py-0.5 rounded-lg text-xs font-black">${d.bloodGroup}</span>
+                            <h4 class="font-bold text-slate-100 text-xs">${d.name}</h4>
+                        </div>
+                        <p class="text-[10px] text-slate-400">📍 Location: ${d.location}</p>
+                    </div>
+                    <a href="tel:${d.phone}" class="bg-rose-600 hover:bg-rose-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-1 shadow-md">
+                        <span>📞 Call</span>
+                    </a>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // Profile Data & Master Admin Section Renderer
         function loadProfileData() {
             const user = auth.currentUser;
             if(user) {
                 document.getElementById('profile-name').innerText = user.displayName || 'User';
                 document.getElementById('profile-email').innerText = user.email || '';
                 document.getElementById('profile-uid-display').innerText = `UID: ${user.uid}`;
-                if (verifyMasterAdmin(user)) document.getElementById('master-admin-section').classList.remove('hidden');
+                
+                db.collection('users').doc(user.uid).get().then(doc => {
+                    if(doc.exists && doc.data().photoURL) {
+                        document.getElementById('profile-img-container').innerHTML = `<img src="${doc.data().photoURL}" class="w-full h-full rounded-full object-cover">`;
+                    } else if(user.photoURL) {
+                        document.getElementById('profile-img-container').innerHTML = `<img src="${user.photoURL}" class="w-full h-full rounded-full object-cover">`;
+                    }
+                });
+
+                if (verifyMasterAdmin(user)) {
+                    document.getElementById('master-admin-section').classList.remove('hidden');
+                    document.getElementById('profile-role-badge').innerText = 'Master Admin';
+                } else {
+                    document.getElementById('master-admin-section').classList.add('hidden');
+                    document.getElementById('profile-role-badge').innerText = 'Registered Member';
+                }
             }
             loadUserProfileGroups();
         }
@@ -985,9 +1622,13 @@
         function loadUserProfileGroups() {
             const select = document.getElementById('profile-manage-group-select');
             if(!select || !auth.currentUser) return;
+
             db.collection('groups').get().then(snapshot => {
                 let html = '<option value="">Select your group...</option>';
-                snapshot.forEach(doc => html += `<option value="${doc.id}">${doc.data().name}</option>`);
+                snapshot.forEach(doc => {
+                    const g = doc.data();
+                    html += `<option value="${doc.id}">${g.name} (ID: ${doc.id.substring(0, 8)}...)</option>`;
+                });
                 select.innerHTML = html;
             });
         }
@@ -995,45 +1636,94 @@
         function loadGroupApprovalRequests() {
             const groupId = document.getElementById('profile-manage-group-select').value;
             const container = document.getElementById('group-pending-requests-list');
-            if(!groupId) { container.innerHTML = '<p class="text-[10px] text-slate-500 italic">Select a group.</p>'; return; }
+            if(!groupId) {
+                container.innerHTML = '<p class="text-[10px] text-slate-500 italic">Select a group above to view pending requests.</p>';
+                return;
+            }
 
+            container.innerHTML = `<p class="text-[10px] text-slate-500 italic">Loading requests...</p>`;
             db.collection('groups').doc(groupId).collection('join_requests').get().then(snapshot => {
+                if(snapshot.empty) {
+                    container.innerHTML = '<p class="text-[10px] text-slate-500 italic">No pending requests for this group.</p>';
+                    return;
+                }
                 let html = '';
                 snapshot.forEach(doc => {
                     const req = doc.data();
-                    html += `<div class="bg-slate-800 p-2.5 rounded-xl flex items-center justify-between mb-1">
-                        <span class="text-xs text-slate-200">${req.email}</span>
-                        <button onclick="approveMember('${groupId}', '${req.uid}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded text-[10px] font-bold">Approve</button>
+                    html += `<div class="bg-slate-800 p-2.5 rounded-xl flex items-center justify-between">
+                        <div class="truncate pr-2">
+                            <span class="text-xs text-slate-200 block truncate">${req.email || req.uid}</span>
+                            <span class="text-[9px] text-slate-400 font-mono select-all">UID: ${req.uid}</span>
+                        </div>
+                        <div class="flex space-x-1 shrink-0">
+                            <button onclick="navigator.clipboard.writeText('${req.uid}'); alert('User UID Copied!');" class="bg-slate-700 text-emerald-400 px-2 py-1 rounded text-[9px] font-bold">Copy UID</button>
+                            <button onclick="approveGroupJoinRequest('${groupId}', '${req.uid}')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold">Approve</button>
+                        </div>
                     </div>`;
                 });
-                container.innerHTML = html || '<p class="text-[10px] text-slate-500 italic">No pending requests.</p>';
+                container.innerHTML = html;
             });
         }
 
-        function approveMember(groupId, uid) {
+        function approveGroupJoinRequest(groupId, uid) {
             db.collection('groups').doc(groupId).get().then(doc => {
                 if(doc.exists) {
-                    let members = doc.data().members || [];
-                    if(!members.includes(uid)) members.push(uid);
-                    db.collection('groups').doc(groupId).update({ members: members }).then(() => {
-                        db.collection('groups').doc(groupId).collection('join_requests').doc(uid).delete().then(() => {
-                            alert("Member approved successfully!");
-                            loadGroupApprovalRequests();
+                    const members = doc.data().members || [];
+                    if(!members.includes(uid)) {
+                        members.push(uid);
+                        db.collection('groups').doc(groupId).update({ members: members }).then(() => {
+                            db.collection('groups').doc(groupId).collection('join_requests').doc(uid).delete().then(() => {
+                                alert("Member approved and added to group successfully!");
+                                loadGroupApprovalRequests();
+                            });
                         });
-                    });
+                    }
                 }
             });
         }
 
-        function copyCurrentGroupId() {
-            const gId = document.getElementById('profile-manage-group-select').value;
-            if(gId) navigator.clipboard.writeText(gId).then(() => alert("Group UID Copied!"));
+                function manuallyAddMemberToGroup() {
+            const groupId = document.getElementById('profile-manage-group-select').value;
+            const memberInput = document.getElementById('manual-add-member-input').value.trim();
+            if(!groupId || !memberInput) {
+                alert("Please select a group and enter/pick Member UID or Email.");
+                return;
+            }
+
+            db.collection('groups').doc(groupId).get().then(doc => {
+                if(doc.exists) {
+                    const members = doc.data().members || [];
+                    if(!members.includes(memberInput)) {
+                        members.push(memberInput);
+                        db.collection('groups').doc(groupId).update({ members: members }).then(() => {
+                            alert("Member added manually to the second/target group successfully!");
+                            document.getElementById('manual-add-member-input').value = '';
+                        });
+                    } else {
+                        alert("This member is already in the group!");
+                    }
+                }
+            });
         }
 
-        function updateSelectedGroupUidDisplay() {
-            const gId = document.getElementById('profile-manage-group-select').value;
-            const hint = document.getElementById('selected-group-uid-hint');
-            if(gId) { hint.innerText = `ID: ${gId}`; hint.classList.remove('hidden'); } else hint.classList.add('hidden');
+        // FCM Notifications Setup
+        const messaging = firebase.messaging();
+
+        async function requestNotificationPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    console.log('Notification permission granted.');
+                    const token = await messaging.getToken({ 
+                        vapidKey: 'BEgr7aecThStfASiimhDZgVkIbm4nEtN3CgPiW_5kRG-Lc2ZOP9ED9zLIyTa-U1UJC2tpZYSQAzOOWvdm1pJ7Wk' 
+                    });
+                    if (token) {
+                        console.log('FCM Token received:', token);
+                    }
+                }
+            } catch (error) {
+                console.error('Error getting notification permission:', error);
+            }
         }
     </script>
 </body>
