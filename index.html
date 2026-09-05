@@ -1042,22 +1042,26 @@
             document.getElementById('chat-room-subtitle').innerText = 'Group Chat (Tap to Edit)';
 
             db.collection('groups').doc(targetId).get().then(doc => {
-                if(doc.exists) {
-                    const data = doc.data();
-                                const members = data.members || [];
-            
-            // യൂസർ മെമ്പർ ആണോ എന്ന് പരിശോധിക്കുന്നു, അല്ലെങ്കിൽ തടയുന്നു
-            if (auth.currentUser && !members.includes(auth.currentUser.uid)) {
-                alert("You are not a member of this group!");
-                navigateTo('home');
-                return;
-            }
-                    }
-                    if(data.photo) {
-                        document.getElementById('chat-header-avatar').innerHTML = `<img src="${data.photo}" class="w-full h-full rounded-full object-cover">`;
-                    } else {
-                        document.getElementById('chat-header-avatar').innerHTML = `⛓️`;
-                    }
+                if (!doc.exists) {
+                    alert("Group not found.");
+                    navigateTo('home');
+                    return;
+                }
+
+                const data = doc.data();
+                const members = data.members || [];
+
+                // Check whether the current user belongs to this group.
+                if (auth.currentUser && !members.includes(auth.currentUser.uid)) {
+                    alert("You are not a member of this group!");
+                    navigateTo('home');
+                    return;
+                }
+
+                if (data.photo) {
+                    document.getElementById('chat-header-avatar').innerHTML = `<img src="${data.photo}" class="w-full h-full rounded-full object-cover">`;
+                } else {
+                    document.getElementById('chat-header-avatar').innerHTML = `⛓️`;
                 }
             });
 
@@ -1337,6 +1341,14 @@
                 }
                 container.innerHTML = html;
             });
+        }
+
+        // Open the Group Member UID Picker Modal.
+        function openGroupMemberSelectorModal() {
+            const modal = document.getElementById('modal-member-picker');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            loadPickerMembersList();
         }
 
         // Group Member UID Picker Modal for Manual Adding to 2nd Group
