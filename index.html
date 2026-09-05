@@ -43,7 +43,6 @@
                 </div>
             </div>
             <div class="flex items-center space-x-2">
-                <button onclick="copyAppShareLink()" class="bg-emerald-950 border border-emerald-800 text-emerald-400 px-2.5 py-1 rounded-xl text-[11px] font-bold hover:bg-emerald-900 transition">📋 Copy App Link</button>
                 <div class="text-[11px] bg-emerald-950 text-emerald-400 border border-emerald-800/50 px-2.5 py-1 rounded-full font-semibold flex items-center space-x-1.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span id="header-status-text">Active</span>
@@ -310,6 +309,11 @@
                             </div>
                             <button id="master-media-toggle-btn" onclick="toggleGlobalMediaState()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white">Enabled</button>
                         </div>
+                        <div class="space-y-1 bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+    <span class="text-xs font-bold text-slate-200 block">Copy App Share Link</span>
+    <button onclick="copyAppShareLink()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs">Copy Link</button>
+</div>
+
 
                         <div class="space-y-1 bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
                             <span class="text-xs font-bold text-slate-200 block">Transfer Master Admin Power</span>
@@ -807,18 +811,30 @@
         }
 
         function sendJoinRequestToGroup() {
-            const userId = auth.currentUser ? auth.currentUser.uid : ('guest_' + Date.now());
-            const email = auth.currentUser ? auth.currentUser.email : 'guest@alert.com';
+    // യൂസർ ലോഗിൻ ചെയ്തിട്ടുണ്ടോ എന്ന് പരിശോധിക്കുക
+    if (!auth.currentUser) {
+        alert(" ദയവായി ആദ്യം ലോഗിൻ ചെയ്യുക!"); // അല്ലെങ്കിൽ ലോഗിൻ ചെയ്യുക എന്ന് കാണിക്കുക
+        // ലോഗിൻ സ്ക്രീനിലേക്ക് മാറ്റുക
+        document.getElementById('view-invite-flow').classList.add('hidden');
+        document.getElementById('screen-auth').classList.remove('hidden');
+        return;
+    }
 
-            db.collection('groups').doc(pendingInviteGroupId).collection('join_requests').doc(userId).set({
-                uid: userId,
-                email: email,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                document.getElementById('invite-step-2').classList.add('hidden');
-                document.getElementById('invite-step-3').classList.remove('hidden');
-            });
-        }
+    const userId = auth.currentUser ? auth.currentUser.uid : `guest_${Date.now()}`;
+    const email = auth.currentUser ? auth.currentUser.email : 'guest@alert.com';
+
+    db.collection('groups').doc(pendingInviteGroupId).collection('join_requests').doc(userId).set({
+        uid: userId,
+        email: email,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        document.getElementById('invite-step-2').classList.add('hidden');
+        document.getElementById('invite-step-3').classList.remove('hidden');
+    }).catch((err) => {
+        alert("Error sending request: " + err.message);
+    });
+}
+
 
         function checkJoinApprovalStatus() {
             const userId = auth.currentUser ? auth.currentUser.uid : null;
