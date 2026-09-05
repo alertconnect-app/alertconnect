@@ -793,22 +793,44 @@
 
         // Invite Flow Functions
         function requestPushNotificationPermission() {
-            if ("Notification" in window) {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        alert("Push notification & alarm sound permission granted!");
-                        document.getElementById('invite-step-1').classList.add('hidden');
-                        document.getElementById('invite-step-2').classList.remove('hidden');
-                    } else {
-                        alert("Please allow notifications to receive emergency alert alarms.");
+    if ('Notification' in window) {
+        Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+                alert('Push notification & alarm sound permission granted!');
+                
+                // ഫയർബേസ് മെസ്സേജിങ് ഇനീഷ്യലൈസ് ചെയ്ത് ടോക്കൺ എടുക്കുന്ന ഭാഗം
+                const messaging = firebase.messaging();
+                messaging.getToken({ 
+                    vapidKey: 'BEgr7aecThStfASiimhDZgVkIbm4nEtN3CgPiW_5kRG-Lc2ZOP9ED9zLIyTa-U1UJC2tpZYSQAzOOWvdm1pJ7Wk' 
+                }).then((currentToken) => {
+                    if (currentToken && auth.currentUser) {
+                        // ടോക്കൺ ഫയർബേസ് ഡാറ്റാബേസിൽ (Firestore) യൂസറുടെ പ്രൊഫൈലിൽ സേവ് ചെയ്യുന്നു
+                        db.collection('users').doc(auth.currentUser.uid).set({
+                            fcmToken: currentToken
+                        }, { merge: true })
+                        .then(() => {
+                            console.log('FCM Token successfully saved to database.');
+                        })
+                        .catch((error) => {
+                            console.error('Error saving FCM token: ', error);
+                        });
                     }
+                }).catch((err) => {
+                    console.log('An error occurred while retrieving token. ', err);
                 });
-            } else {
-                alert("Notifications are not supported on this browser.");
+
                 document.getElementById('invite-step-1').classList.add('hidden');
                 document.getElementById('invite-step-2').classList.remove('hidden');
+            } else {
+                alert('Please allow notifications to receive emergency alert alarms.');
             }
-        }
+        });
+    } else {
+        alert('Notifications are not supported on this browser.');
+        document.getElementById('invite-step-1').classList.add('hidden');
+        document.getElementById('invite-step-2').classList.remove('hidden');
+    }
+ }
 
         function sendJoinRequestToGroup() {
     // യൂസർ ലോഗിൻ ചെയ്തിട്ടുണ്ടോ എന്ന് പരിശോധിക്കുക
@@ -929,55 +951,89 @@
         }
 
         function loadGroups() {
-            const container = document.getElementById('home-groups-list');
-            container.innerHTML = `<p class="text-xs text-slate-500 italic">Refreshing...</p>`;
-            db.collection('groups').orderBy('createdAt', 'desc').get().then(snapshot => {
-                if (snapshot.empty) {
-                    container.innerHTML = `<p class="text-xs text-slate-500 italic">No groups found.</p>`;
-                    return;
-                }
-                cachedGroupsData = [];
-                let html = '';
-                snapshot.forEach(doc => {
-                    const group = doc.data();
-                    const gId = doc.id;
-                    cachedGroupsData.push({ id: gId, name: group.name, members: group.members || [] });
-                    const escapedName = group.name.replace(/'/g, "\\'");
-                    html += `<div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex items-center justify-between">
-                        <div class="flex items-center space-x-3 cursor-pointer flex-1" onclick="openChatRoom('${gId}', '${escapedName}', 'group')">
-                            ${group.photo ? `<img src="${group.photo}" class="w-10 h-10 rounded-full object-cover border border-emerald-600">` : `<div class="w-10 h-10 bg-emerald-950 text-emerald-400 rounded-full flex items-center justify-center font-bold text-sm border border-emerald-800">⛓️</div>`}
-                            <div>
-                                <h4 class="font-bold text-slate-200 text-xs">${group.name}</h4>
-                                <p class="text-[10px] text-slate-400">Created by: ${group.creatorEmail || 'User'}</p>
-                            </div>
-                        </div>
-                        <button onclick="openChatRoom('${gId}', '${escapedName}', 'group')" class="text-xs text-emerald-400 font-bold px-2 py-1">Open →</button>
-                    </div>`;
-                });
-                container.innerHTML = html;
-            });
+    const container = document.getElementById('home-groups-list');
+    container.innerHTML = `<p class="text-xs text-slate-500 italic">Refreshing...</p>`;
+    
+    if (!auth.currentUser) return;
+
+    // യൂസർ മെമ്പർ ആയ ഗ്രൂപ്പുകൾ മാത്രം ഫെച്ച് ചെയ്യുന്നു
+    db.collection('groups')
+      .where('members', 'array-contains', auth.currentUser.uid)
+      .get()
+      .then((snapshot) => {
+        if (snapshot.empty) {
+            container.innerHTML = `<p class="text-xs text-slate-500 italic">No groups found. Create a new group!</p>`;
+            return;
         }
 
-        function loadChatsList() {
-            const chatsContainer = document.getElementById('chats-groups-list');
-            chatsContainer.innerHTML = `<p class="text-xs text-slate-500 italic">Refreshing chats...</p>`;
+        cachedGroupsData = [];
+        let html = '';
+        snapshot.forEach(doc => {
+            const group = doc.data();
+            const gId = doc.id;
+            cachedGroupsData.push({ id: gId, name: group.name, members: group.members || [] });
+            const escapedName = group.name.replace(/'/g, "\\'");
             
-            db.collection('groups').get().then(snapshot => {
-                let html = '<h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Groups</h4>';
-                snapshot.forEach(doc => {
-                    const group = doc.data();
-                    const escapedName = group.name.replace(/'/g, "\\'");
-                    html += `<div onclick="openChatRoom('${doc.id}', '${escapedName}', 'group')" class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex items-center justify-between cursor-pointer mb-2">
-                        <div class="flex items-center space-x-2.5">
-                            ${group.photo ? `<img src="${group.photo}" class="w-8 h-8 rounded-full object-cover">` : `<div class="w-8 h-8 bg-emerald-950 text-emerald-400 rounded-full flex items-center justify-center font-bold text-xs">⛓️</div>`}
-                            <span class="font-bold text-xs text-slate-200">${group.name}</span>
+            html += `
+                <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex items-center justify-between">
+                    <div class="flex items-center space-x-3 cursor-pointer flex-1" onclick="openChatRoom('${gId}', '${escapedName}', 'group')">
+                        <img src="${group.photo || './icon-192.png'}" class="w-10 h-10 rounded-full object-cover border border-slate-700">
+                        <div>
+                            <p class="font-bold text-slate-200 text-xs">${group.name}</p>
+                            <p class="text-[10px] text-slate-400">Created by: ${group.creatorEmail || 'User'}</p>
                         </div>
-                        <span class="text-[10px] text-emerald-400 font-bold">Open Chat →</span>
-                    </div>`;
-                });
-                chatsContainer.innerHTML = html;
-            });
+                    </div>
+                    <button onclick="openChatRoom('${gId}', '${escapedName}', 'group')" class="text-xs text-emerald-400 font-bold">Open Chat</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }).catch(error => {
+        console.error("Error loading groups: ", error);
+        container.innerHTML = `<p class="text-xs text-red-500 italic">Error loading groups.</p>`;
+    });
+}
+
+
+        function loadChatsList() {
+    const chatsContainer = document.getElementById('chats-groups-list');
+    chatsContainer.innerHTML = `<p class="text-xs text-slate-500 italic">Refreshing chats...</p>`;
+
+    if (!auth.currentUser) return;
+
+    // യൂസർ മെമ്പർ ആയ ഗ്രൂപ്പുകൾ മാത്രം ചാറ്റ് ലിസ്റ്റിൽ കാണിക്കുന്നു
+    db.collection('groups')
+      .where('members', 'array-contains', auth.currentUser.uid)
+      .get()
+      .then((snapshot) => {
+        if (snapshot.empty) {
+            chatsContainer.innerHTML = `<p class="text-xs text-slate-500 italic">No joined chats found.</p>`;
+            return;
         }
+
+        let html = `<h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">My Groups</h4>`;
+        snapshot.forEach(doc => {
+            const group = doc.data();
+            const gId = doc.id;
+            const escapedName = group.name.replace(/'/g, "\\'");
+            
+            html += `
+                <div onclick="openChatRoom('${gId}', '${escapedName}', 'group')" class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer mb-2">
+                    <div class="flex items-center space-x-2.5">
+                        <img src="${group.photo || './icon-192.png'}" class="w-8 h-8 rounded-full object-cover border border-slate-700">
+                        <span class="font-bold text-slate-200 text-xs">${group.name}</span>
+                    </div>
+                    <span class="text-[10px] text-emerald-400 font-bold">Open Chat -></span>
+                </div>
+            `;
+        });
+        chatsContainer.innerHTML = html;
+    }).catch(error => {
+        console.error("Error loading chats: ", error);
+        chatsContainer.innerHTML = `<p class="text-xs text-red-500 italic">Error loading chats.</p>`;
+    });
+}
+
 
         function openChatRoom(targetId, titleName, type = 'group') {
             activeTargetId = targetId;
@@ -988,10 +1044,14 @@
             db.collection('groups').doc(targetId).get().then(doc => {
                 if(doc.exists) {
                     const data = doc.data();
-                    const members = data.members || [];
-                    if(auth.currentUser && !members.includes(auth.currentUser.uid)) {
-                        members.push(auth.currentUser.uid);
-                        db.collection('groups').doc(targetId).update({ members: members });
+                                const members = data.members || [];
+            
+            // യൂസർ മെമ്പർ ആണോ എന്ന് പരിശോധിക്കുന്നു, അല്ലെങ്കിൽ തടയുന്നു
+            if (auth.currentUser && !members.includes(auth.currentUser.uid)) {
+                alert("You are not a member of this group!");
+                navigateTo('home');
+                return;
+            }
                     }
                     if(data.photo) {
                         document.getElementById('chat-header-avatar').innerHTML = `<img src="${data.photo}" class="w-full h-full rounded-full object-cover">`;
