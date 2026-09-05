@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AlertConnect - Emergency & Community Hub</title>
+    <title>AlertConnect - Emergency & Community Hub | Master Admin Final</title>
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#059669">
     
@@ -295,45 +295,47 @@
                 </div>
 
                 <!-- MASTER ADMIN EXCLUSIVE PANEL (Visible only to Master Admin) -->
-                <div id="master-admin-section" class="hidden bg-slate-900 border border-emerald-600/60 p-4 rounded-2xl space-y-3 shadow-lg">
-                    <div class="border-b border-slate-800 pb-2 flex items-center justify-between">
-                        <h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider">👑 Master Admin Control Center</h4>
-                        <span class="text-[9px] bg-emerald-600 text-white px-2 py-0.5 rounded font-bold">Master Plan</span>
-                    </div>
-
-                    <div class="space-y-2.5">
-                        <div class="flex items-center justify-between bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
-                            <div>
-                                <span class="text-xs font-bold text-slate-200 block">Media / Photo Sharing Switch</span>
-                                <span class="text-[10px] text-slate-400">Enable or disable media sharing globally</span>
-                            </div>
-                            <button id="master-media-toggle-btn" onclick="toggleGlobalMediaState()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white">Enabled</button>
-                        </div>
-                        <div class="space-y-1 bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
-    <span class="text-xs font-bold text-slate-200 block">Copy App Share Link</span>
-    <button onclick="copyAppShareLink()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs">Copy Link</button>
+                <div id="master-admin-section" class="hidden bg-slate-900 border border-emerald-600/60 p-4 rounded-2xl space-y-4 shadow-lg">
+<div class="border-b border-slate-800 pb-3 flex items-center justify-between">
+<div><h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider">👑 Master Admin Control Center</h4><p class="text-[9px] text-slate-500 mt-1">Global control for users, groups, media, alerts and app settings</p></div>
+<span class="text-[9px] bg-emerald-600 text-white px-2 py-0.5 rounded font-bold">MASTER</span>
 </div>
-
-
-                        <div class="space-y-1 bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
-                            <span class="text-xs font-bold text-slate-200 block">Transfer Master Admin Power</span>
-                            <div class="flex space-x-2 pt-1">
-                                <input type="text" id="transfer-admin-uid-input" placeholder="New Admin UID..." class="flex-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-100">
-                                <button onclick="executeTransferAdminPower()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Transfer</button>
-                            </div>
-                        </div>
-
-                        <div class="space-y-1 bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
-                            <span class="text-xs font-bold text-slate-200 block">Manual Member Adder (Any Group)</span>
-                            <div class="grid grid-cols-2 gap-2 pt-1">
-                                <input type="text" id="master-manual-group-id" placeholder="Group ID" class="p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-100">
-                                <input type="text" id="master-manual-user-id" placeholder="User UID or Email" class="p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-100">
-                            </div>
-                            <button onclick="masterManualAddUser()" class="w-full mt-2 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold">Force Add User to Group</button>
-                        </div>
-                    </div>
-                </div>
-                        
+<div><div class="flex items-center justify-between mb-2"><h5 class="text-[10px] font-black text-slate-300 uppercase tracking-wider">📊 System Overview</h5><button onclick="loadMasterDashboard()" class="text-[9px] bg-slate-800 border border-slate-700 text-emerald-400 px-2 py-1 rounded-lg font-bold">↻ Refresh</button></div>
+<div class="grid grid-cols-2 gap-2">
+<div class="bg-slate-800 p-3 rounded-xl border border-slate-700"><p class="text-[9px] text-slate-500">Total Users</p><p id="master-stat-total-users" class="text-xl font-black text-white">—</p></div>
+<div class="bg-slate-800 p-3 rounded-xl border border-slate-700"><p class="text-[9px] text-slate-500">Active</p><p id="master-stat-active-users" class="text-xl font-black text-emerald-400">—</p></div>
+<div class="bg-slate-800 p-3 rounded-xl border border-slate-700"><p class="text-[9px] text-slate-500">Suspended</p><p id="master-stat-suspended-users" class="text-xl font-black text-amber-400">—</p></div>
+<div class="bg-slate-800 p-3 rounded-xl border border-slate-700"><p class="text-[9px] text-slate-500">Blocked</p><p id="master-stat-blocked-users" class="text-xl font-black text-red-400">—</p></div>
+</div></div>
+<div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700 space-y-2">
+<div class="flex items-center justify-between"><div><h5 class="text-[10px] font-black text-slate-200 uppercase">👥 User Management</h5><p class="text-[9px] text-slate-500">Search and control account status</p></div><button onclick="loadMasterUsers()" class="text-[9px] bg-slate-900 border border-slate-700 text-emerald-400 px-2 py-1 rounded-lg font-bold">Load</button></div>
+<input id="master-user-search" oninput="filterMasterUsers()" type="search" placeholder="Search name, email or UID..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-100">
+<div id="master-users-list" class="space-y-2 max-h-80 overflow-y-auto"><p class="text-[10px] text-slate-500 italic">Tap Load to view users.</p></div></div>
+<div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700 space-y-2">
+<h5 class="text-[10px] font-black text-slate-200 uppercase">🛡️ Global Feature Controls</h5>
+<div class="space-y-2">
+<div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-lg border border-slate-700"><div><span class="text-xs font-bold text-slate-200 block">📷 Photo / Media Sharing</span><span class="text-[9px] text-slate-500">Chat, profile and group photos</span></div><button id="master-media-toggle-btn" onclick="toggleGlobalMediaState()" class="px-3 py-1.5 rounded-lg text-[10px] font-black bg-emerald-600 text-white">ON</button></div>
+<div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-lg border border-slate-700"><span class="text-xs font-bold text-slate-200">📍 Location Sharing</span><button id="master-location-toggle-btn" onclick="toggleGlobalFeature('locationEnabled','master-location-toggle-btn')" class="px-3 py-1.5 rounded-lg text-[10px] font-black bg-emerald-600 text-white">ON</button></div>
+<div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-lg border border-slate-700"><span class="text-xs font-bold text-slate-200">📊 Polls</span><button id="master-poll-toggle-btn" onclick="toggleGlobalFeature('pollsEnabled','master-poll-toggle-btn')" class="px-3 py-1.5 rounded-lg text-[10px] font-black bg-emerald-600 text-white">ON</button></div>
+<div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-lg border border-slate-700"><span class="text-xs font-bold text-slate-200">🚨 Emergency Alerts</span><button id="master-alert-toggle-btn" onclick="toggleGlobalFeature('emergencyAlertsEnabled','master-alert-toggle-btn')" class="px-3 py-1.5 rounded-lg text-[10px] font-black bg-emerald-600 text-white">ON</button></div>
+</div></div>
+<div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700 space-y-2">
+<div class="flex items-center justify-between"><div><h5 class="text-[10px] font-black text-slate-200 uppercase">👨‍👩‍👧 Group Management</h5><p class="text-[9px] text-slate-500">All groups and member counts</p></div><button onclick="loadMasterGroups()" class="text-[9px] bg-slate-900 border border-slate-700 text-emerald-400 px-2 py-1 rounded-lg font-bold">Load</button></div>
+<div id="master-groups-list" class="space-y-2 max-h-72 overflow-y-auto"><p class="text-[10px] text-slate-500 italic">Tap Load to view groups.</p></div></div>
+<div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700 space-y-2">
+<h5 class="text-[10px] font-black text-slate-200 uppercase">🔐 Admin & Organizer Control</h5>
+<div class="grid grid-cols-2 gap-2"><input id="master-role-user-id" placeholder="User UID / email" class="p-2 bg-slate-900 border border-slate-700 rounded-lg text-[10px] text-slate-100"><select id="master-role-select" class="p-2 bg-slate-900 border border-slate-700 rounded-lg text-[10px] text-slate-100"><option value="member">Member</option><option value="organizer">Organizer</option><option value="admin">Admin</option></select></div>
+<button onclick="masterChangeUserRole()" class="w-full py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-bold">Apply Role</button>
+<div class="pt-2 border-t border-slate-700"><p class="text-[9px] text-slate-500 mb-1">Transfer Master Admin (UID)</p><div class="flex gap-2"><input id="transfer-admin-uid-input" placeholder="New Master Admin UID..." class="flex-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-[10px] text-slate-100"><button onclick="executeTransferAdminPower()" class="bg-amber-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold">Transfer</button></div></div></div>
+<div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700 space-y-2">
+<h5 class="text-[10px] font-black text-slate-200 uppercase">⚙️ System Settings</h5>
+<div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-lg border border-slate-700"><span class="text-xs font-bold text-slate-200">🛠️ Maintenance Mode</span><button id="master-maintenance-toggle-btn" onclick="toggleGlobalFeature('maintenanceMode','master-maintenance-toggle-btn')" class="px-3 py-1.5 rounded-lg text-[10px] font-black bg-slate-700 text-white">OFF</button></div>
+<div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-lg border border-slate-700"><span class="text-xs font-bold text-slate-200">📝 New Registration</span><button id="master-registration-toggle-btn" onclick="toggleGlobalFeature('registrationEnabled','master-registration-toggle-btn')" class="px-3 py-1.5 rounded-lg text-[10px] font-black bg-emerald-600 text-white">ON</button></div>
+<div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-lg border border-slate-700"><span class="text-xs font-bold text-slate-200">🩸 Blood Hub</span><button id="master-blood-toggle-btn" onclick="toggleGlobalFeature('bloodHubEnabled','master-blood-toggle-btn')" class="px-3 py-1.5 rounded-lg text-[10px] font-black bg-emerald-600 text-white">ON</button></div>
+<input id="master-announcement-input" placeholder="Global announcement..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-slate-100"><button onclick="saveMasterAnnouncement()" class="w-full py-2 bg-indigo-600 text-white rounded-lg text-[10px] font-bold">Publish Global Announcement</button></div>
+<div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700 space-y-2"><h5 class="text-[10px] font-black text-slate-200 uppercase">🛡️ Security & Audit</h5><p class="text-[9px] text-slate-500">Recent Master Admin actions.</p><button onclick="loadMasterAuditLogs()" class="w-full py-2 bg-slate-700 text-white rounded-lg text-[10px] font-bold">View Audit Logs</button><div id="master-audit-list" class="space-y-1 max-h-56 overflow-y-auto"></div></div>
+<div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700 space-y-2"><h5 class="text-[10px] font-black text-slate-200 uppercase">🔗 Master Tools</h5><button onclick="copyAppShareLink()" class="w-full py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-bold">Copy App Share Link</button><div class="grid grid-cols-2 gap-2"><input id="master-manual-group-id" placeholder="Group ID" class="p-2 bg-slate-900 border border-slate-700 rounded-lg text-[10px] text-slate-100"><input id="master-manual-user-id" placeholder="User UID / Email" class="p-2 bg-slate-900 border border-slate-700 rounded-lg text-[10px] text-slate-100"></div><button onclick="masterManualAddUser()" class="w-full py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-bold">Force Add User to Group</button></div>
+</div>
                 <!-- User Group Approval Panel & Manual Member Adder -->
                 <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-4">
                     <div class="border-b border-slate-800 pb-2 flex items-center justify-between">
@@ -1813,6 +1815,41 @@
                 console.error('Error getting notification permission:', error);
             }
         }
-    </script>
+    
+/* MASTER ADMIN CONTROL CENTER */
+(function(){
+let masterUid="NT1cA2oRVQdvkJ8CWhSFhpcr60V2", settings={}, users=[], groups=[];
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const master=u=>!!(u&&(u.uid===masterUid||(typeof MASTER_ADMIN_UID!=="undefined"&&u.uid===MASTER_ADMIN_UID)));
+window.verifyMasterAdmin=master;
+const deny=()=>{alert("Access Denied: Master Admin privileges are required.");return false};
+function btn(id,on){let b=document.getElementById(id);if(!b)return;b.textContent=on?"ON":"OFF";b.className="px-3 py-1.5 rounded-lg text-[10px] font-black "+(on?"bg-emerald-600 text-white":"bg-red-600 text-white")}
+async function audit(a,d){if(!master(auth.currentUser))return;try{await db.collection("admin_audit_logs").add({action:a,details:d||"",adminUid:auth.currentUser.uid,adminEmail:auth.currentUser.email||"",timestamp:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){}}
+async function loadSettings(){
+if(!master(auth.currentUser))return;
+try{let s=await db.collection("settings").doc("config").get();settings=s.exists?s.data()||{}:{};if(settings.masterAdminUid)masterUid=settings.masterAdminUid;
+mediaEnabledState=settings.mediaEnabled!==false;
+btn("master-media-toggle-btn",mediaEnabledState);btn("master-location-toggle-btn",settings.locationEnabled!==false);btn("master-poll-toggle-btn",settings.pollsEnabled!==false);btn("master-alert-toggle-btn",settings.emergencyAlertsEnabled!==false);btn("master-maintenance-toggle-btn",settings.maintenanceMode===true);btn("master-registration-toggle-btn",settings.registrationEnabled!==false);btn("master-blood-toggle-btn",settings.bloodHubEnabled!==false);
+let a=document.getElementById("master-announcement-input");if(a)a.value=settings.announcement||""}catch(e){console.warn(e)}}
+window.toggleGlobalMediaState=async()=>{if(!master(auth.currentUser))return deny();let n=!mediaEnabledState;try{await db.collection("settings").doc("config").set({mediaEnabled:n},{merge:true});mediaEnabledState=n;btn("master-media-toggle-btn",n);await audit("MEDIA_TOGGLE",String(n))}catch(e){alert(e.message)}};
+window.toggleGlobalFeature=async(k,id)=>{if(!master(auth.currentUser))return deny();let n=settings[k]!==true; if(k!=="maintenanceMode"&&settings[k]===undefined)n=true;try{await db.collection("settings").doc("config").set({[k]:n},{merge:true});settings[k]=n;btn(id,n);await audit("FEATURE_TOGGLE",k+"="+n)}catch(e){alert(e.message)}};
+window.loadMasterDashboard=async()=>{if(!master(auth.currentUser))return deny();try{let s=await db.collection("users").get(),a=0,sp=0,b=0;s.forEach(d=>{let x=(d.data().status||"approved").toLowerCase();if(x==="suspended")sp++;else if(x==="blocked")b++;else a++});document.getElementById("master-stat-total-users").textContent=s.size;document.getElementById("master-stat-active-users").textContent=a;document.getElementById("master-stat-suspended-users").textContent=sp;document.getElementById("master-stat-blocked-users").textContent=b}catch(e){alert(e.message)}};
+window.loadMasterUsers=async()=>{if(!master(auth.currentUser))return deny();let box=document.getElementById("master-users-list");box.innerHTML="Loading...";try{let s=await db.collection("users").get();users=[];s.forEach(d=>users.push({uid:d.id,...d.data()}));users.sort((a,b)=>(a.displayName||a.email||"").localeCompare(b.displayName||b.email||""));render(users);loadMasterDashboard()}catch(e){box.innerHTML='<p class="text-red-400 text-[10px]">'+esc(e.message)+"</p>"}};
+function render(list){let box=document.getElementById("master-users-list");if(!list.length){box.innerHTML='<p class="text-[10px] text-slate-500">No users found.</p>';return}box.innerHTML=list.map(u=>{let st=(u.status||"approved").toLowerCase(),cl=st==="blocked"?"text-red-400":st==="suspended"?"text-amber-400":"text-emerald-400";return `<div class="bg-slate-900 border border-slate-700 rounded-xl p-2.5"><div class="flex gap-2"><div class="min-w-0 flex-1"><p class="text-xs font-bold text-slate-100 truncate">${esc(u.displayName||"User")}</p><p class="text-[9px] text-slate-500 truncate">${esc(u.email||"")}</p><p class="text-[8px] font-mono text-slate-600 truncate">${esc(u.uid)}</p></div><div class="text-right"><b class="text-[9px] ${cl}">${esc(st.toUpperCase())}</b><p class="text-[8px] text-slate-500">${esc(u.role||"member")}</p></div></div><div class="grid grid-cols-4 gap-1 mt-2"><button onclick="masterSetUserStatus('${esc(u.uid)}','approved')" class="py-1 bg-emerald-950 text-emerald-400 rounded text-[8px]">Active</button><button onclick="masterSetUserStatus('${esc(u.uid)}','suspended')" class="py-1 bg-amber-950 text-amber-400 rounded text-[8px]">Suspend</button><button onclick="masterSetUserStatus('${esc(u.uid)}','blocked')" class="py-1 bg-red-950 text-red-400 rounded text-[8px]">Block</button><button onclick="masterViewUser('${esc(u.uid)}')" class="py-1 bg-slate-800 text-slate-200 rounded text-[8px]">View</button></div></div>`}).join("")}
+window.filterMasterUsers=()=>{let q=(document.getElementById("master-user-search").value||"").toLowerCase();render(users.filter(u=>(u.displayName||"").toLowerCase().includes(q)||(u.email||"").toLowerCase().includes(q)||u.uid.toLowerCase().includes(q)))};
+window.masterViewUser=uid=>{let u=users.find(x=>x.uid===uid);if(u)alert("USER DETAILS\n\nName: "+(u.displayName||"")+"\nEmail: "+(u.email||"")+"\nUID: "+u.uid+"\nRole: "+(u.role||"member")+"\nStatus: "+(u.status||"approved"))};
+window.masterSetUserStatus=async(uid,status)=>{if(!master(auth.currentUser))return deny();if(uid===auth.currentUser.uid&&status!=="approved")return alert("You cannot suspend or block the current Master Admin.");if(!confirm("Set user status to "+status+"?"))return;try{await db.collection("users").doc(uid).set({status,statusUpdatedAt:firebase.firestore.FieldValue.serverTimestamp(),statusUpdatedBy:auth.currentUser.uid},{merge:true});await audit("USER_STATUS",uid+" -> "+status);loadMasterUsers()}catch(e){alert(e.message)}};
+window.masterChangeUserRole=async()=>{if(!master(auth.currentUser))return deny();let key=document.getElementById("master-role-user-id").value.trim(),role=document.getElementById("master-role-select").value;if(!key)return alert("Enter UID or email.");try{let uid=key;if(key.includes("@")){let s=await db.collection("users").where("email","==",key).limit(1).get();if(s.empty)return alert("User not found.");uid=s.docs[0].id}await db.collection("users").doc(uid).set({role},{merge:true});await audit("USER_ROLE",uid+" -> "+role);alert("Role updated.");loadMasterUsers()}catch(e){alert(e.message)}};
+window.loadMasterGroups=async()=>{if(!master(auth.currentUser))return deny();let box=document.getElementById("master-groups-list");box.innerHTML="Loading...";try{let s=await db.collection("groups").get();groups=[];s.forEach(d=>groups.push({id:d.id,...d.data()}));box.innerHTML=groups.length?groups.map(g=>`<div class="bg-slate-900 border border-slate-700 rounded-xl p-2.5"><div class="flex justify-between"><b class="text-xs text-slate-100 truncate">${esc(g.name||"Unnamed")}</b><span class="text-[9px] text-emerald-400">${Array.isArray(g.members)?g.members.length:0} members</span></div><p class="text-[8px] font-mono text-slate-600">${esc(g.id)}</p><div class="flex gap-1 mt-2"><button onclick="masterToggleGroup('${esc(g.id)}')" class="flex-1 py-1 bg-slate-800 text-slate-200 rounded text-[8px]">${g.disabled?"Enable":"Disable"}</button><button onclick="masterDeleteGroup('${esc(g.id)}')" class="py-1 px-2 bg-red-950 text-red-400 rounded text-[8px]">Delete</button></div></div>`).join(""):'<p class="text-[10px] text-slate-500">No groups.</p>'}catch(e){box.innerHTML='<p class="text-red-400 text-[10px]">'+esc(e.message)+"</p>"}};
+window.masterToggleGroup=async id=>{if(!master(auth.currentUser))return deny();let g=groups.find(x=>x.id===id);try{await db.collection("groups").doc(id).set({disabled:!g.disabled},{merge:true});await audit("GROUP_STATUS",id);loadMasterGroups()}catch(e){alert(e.message)}};
+window.masterDeleteGroup=async id=>{if(!master(auth.currentUser))return deny();if(!confirm("Delete this group document?"))return;try{await db.collection("groups").doc(id).delete();await audit("GROUP_DELETE",id);loadMasterGroups()}catch(e){alert(e.message)}};
+window.saveMasterAnnouncement=async()=>{if(!master(auth.currentUser))return deny();let text=document.getElementById("master-announcement-input").value.trim();try{await db.collection("settings").doc("config").set({announcement:text,announcementUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});await audit("ANNOUNCEMENT",text?"Published":"Cleared");alert("Announcement saved.")}catch(e){alert(e.message)}};
+window.loadMasterAuditLogs=async()=>{if(!master(auth.currentUser))return deny();let box=document.getElementById("master-audit-list");try{let s=await db.collection("admin_audit_logs").orderBy("timestamp","desc").limit(30).get();box.innerHTML=s.empty?"<p class='text-[9px] text-slate-500'>No logs yet.</p>":s.docs.map(d=>{let x=d.data();return `<div class="bg-slate-900 border border-slate-700 rounded-lg p-2"><b class="text-[9px] text-emerald-400">${esc(x.action)}</b><p class="text-[9px] text-slate-300">${esc(x.details)}</p></div>`}).join("")}catch(e){box.innerHTML='<p class="text-[9px] text-amber-400">'+esc(e.message)+"</p>"}};
+window.executeTransferAdminPower=async()=>{if(!master(auth.currentUser))return deny();let n=document.getElementById("transfer-admin-uid-input").value.trim();if(!n)return alert("Enter UID.");if(!confirm("Transfer Master Admin to "+n+"?"))return;try{await db.collection("settings").doc("config").set({masterAdminUid:n},{merge:true});await audit("MASTER_TRANSFER","Transferred to "+n);masterUid=n;alert("Master Admin UID updated. Reload the session to apply.")}catch(e){alert(e.message)}};
+const oldProfile=window.loadProfileData;window.loadProfileData=function(){let r=oldProfile&&oldProfile();setTimeout(()=>{if(auth.currentUser&&master(auth.currentUser)){document.getElementById("master-admin-section")?.classList.remove("hidden");loadSettings();loadMasterDashboard()}},300);return r};
+auth.onAuthStateChanged(async u=>{if(!u)return;try{let s=await db.collection("users").doc(u.uid).get();if(s.exists&&!master(u)&&["blocked","suspended"].includes((s.data().status||"approved").toLowerCase())){alert("Your account is "+s.data().status+".");await auth.signOut();return}if(master(u)){loadSettings();loadMasterDashboard()}}catch(e){console.warn(e)}});
+})();
+
+</script>
 </body>
 </html>
