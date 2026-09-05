@@ -1308,42 +1308,109 @@
             }
         }
 
-        function loadGroupMembersList() {
+        async function loadGroupMembersList() {
             const container = document.getElementById('group-members-list-content');
+            if (!container) return;
             container.innerHTML = `<p class="text-xs text-slate-500 italic">Loading members...</p>`;
 
-            db.collection('groups').doc(activeTargetId).get().then(async doc => {
-                if(!doc.exists) return;
-                const membersUids = doc.data().members || [];
-                if(membersUids.length === 0) {
+            try {
+                if (!auth.currentUser) {
+                    container.innerHTML = `<p class="text-xs text-amber-400">Please login first.</p>`;
+                    return;
+                }
+                if (!activeTargetId) {
+                    container.innerHTML = `<p class="text-xs text-slate-500 italic">No group selected.</p>`;
+                    return;
+                }
+
+                const groupDoc = await db.collection('groups').doc(activeTargetId).get();
+                if (!groupDoc.exists) {
+                    container.innerHTML = `<p class="text-xs text-red-400">Group not found.</p>`;
+                    return;
+                }
+
+                const membersUids = Array.isArray(groupDoc.data().members) ? groupDoc.data().members : [];
+                if (membersUids.length === 0) {
                     container.innerHTML = `<p class="text-xs text-slate-500 italic">No members found.</p>`;
                     return;
                 }
 
                 let html = '';
-                for(let uid of membersUids) {
-                    const userDoc = await db.collection('users').doc(uid).get();
-                    const uData = userDoc.exists ? userDoc.data() : { displayName: 'Member', email: 'User' };
-                    const donorDoc = await db.collection('blood_donors').doc(uid).get();
-                    const bloodGroup = donorDoc.exists ? donorDoc.data().bloodGroup : null;
-                    const phone = donorDoc.exists ? donorDoc.data().phone : null;
+                for (const uid of membersUids) {
+                    // A member's basic profile must never fail just because optional
+                    // blood-donor information is unavailable.
+                    let uData = { displayName: 'Member', email: '', photoURL: '' };
+                    try {
+                        const userDoc = await db.collection('users').doc(uid).get();
+                        if (userDoc.exists) uData = { ...uData, ...userDoc.data() };
+                    } catch (userErr) {
+                        console.warn('Could not load user profile:', uid, userErr);
+                    }
 
-                    html += `<div class="bg-slate-800 p-2.5 rounded-xl flex items-center justify-between">
-                        <div class="flex items-center space-x-2.5">
-                            ${uData.photoURL ? `<img src="${uData.photoURL}" class="w-9 h-9 rounded-full object-cover border border-emerald-500">` : `<div class="w-9 h-9 bg-emerald-950 text-emerald-400 rounded-full flex items-center justify-center font-bold text-xs">${uData.displayName ? uData.displayName[0] : 'U'}</div>`}
-                            <div>
+                    let bloodGroup = null;
+                    let phone = null;
+                    try {
+                        const donorDoc = await db.collection('blood_donors').doc(uid).get();
+                        if (donorDoc.exists) {
+                            const d = donorDoc.data() || {};
+                            bloodGroup = d.bloodGroup || null;
+                            phone = d.phone || null;
+                        }
+                    } catch (donorErr) {
+                        // Optional donor data must not block member/profile rendering.
+                        console.warn('Blood donor profile unavailable:', uid, donorErr);
+                    }
+
+                    const safeUid = String(uid).replace(/'/g, "\\'");
+                    const safeName = String(uData.displayName || 'Member').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+                    const initial = safeName.trim().charAt(0).toUpperCase() || 'U';
+                    const photo = uData.photoURL ? `<img src="${uData.photoURL}" class="w-9 h-9 rounded-full object-cover border border-emerald-500" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="w-9 h-9 bg-emerald-950 text-emerald-400 rounded-full items-center justify-center font-bold text-xs" style="display:none">${initial}</div>` : `<div class="w-9 h-9 bg-emerald-950 text-emerald-400 rounded-full flex items-center justify-center font-bold text-xs">${initial}</div>`;
+                    const shownUid = String(uid).length > 18 ? `${String(uid).substring(0, 14)}...` : String(uid);
+
+                    html += `<div class="bg-slate-800 p-2.5 rounded-xl flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2.5 min-w-0">
+                            ${photo}
+                            <div class="min-w-0">
                                 <div class="flex items-center space-x-1.5">
-                                    <h5 class="font-bold text-xs text-slate-100">${uData.displayName || 'Member'}</h5>
-                                    ${bloodGroup ? `<span class="bg-rose-950 text-rose-400 border border-rose-800 px-1.5 py-0.5 rounded text-[9px] font-black">${bloodGroup}</span>` : ''}
+                                    <h5 class="font-bold text-xs text-slate-100 truncate">${safeName}</h5>
+                                    ${bloodGroup ? `<span class="bg-rose-950 text-rose-400 border border-rose-800 px-1.5 py-0.5 rounded text-[9px] font-black">${String(bloodGroup).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</span>` : ''}
                                 </div>
-                                <p class="text-[10px] text-slate-400 select-all font-mono" title="UID: ${uid}">UID: ${uid.substring(0, 10)}...</p>
+                                <p class="text-[10px] text-slate-400 select-all font-mono" title="Full UID: ${String(uid)}">UID: ${shownUid}</p>
+                                ${phone ? `<p class="text-[9px] text-slate-500">📞 ${String(phone)}</p>` : ''}
                             </div>
                         </div>
-                        <button onclick="navigator.clipboard.writeText('${uid}'); alert('Member UID Copied: ${uid}');" class="bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2 py-1.5 rounded-lg text-[10px] font-bold">📋 Copy UID</button>
+                        <button onclick="copyMemberUID('${safeUid}')" class="shrink-0 bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2 py-1.5 rounded-lg text-[10px] font-bold">📋 Copy UID</button>
                     </div>`;
                 }
-                container.innerHTML = html;
-            });
+
+                container.innerHTML = html || `<p class="text-xs text-slate-500 italic">No members found.</p>`;
+            } catch (e) {
+                console.error('loadGroupMembersList:', e);
+                container.innerHTML = `<p class="text-xs text-red-400">Could not load members: ${String(e.message || e).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</p>`;
+            }
+        }
+
+        async function copyMemberUID(uid) {
+            try {
+                await navigator.clipboard.writeText(String(uid));
+                alert('Member UID Copied: ' + uid);
+            } catch (e) {
+                // Clipboard can be blocked in some browsers/webviews; use a fallback.
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = String(uid);
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    document.execCommand('copy');
+                    ta.remove();
+                    alert('Member UID Copied: ' + uid);
+                } catch (fallbackErr) {
+                    prompt('Copy this Member UID:', String(uid));
+                }
+            }
         }
 
         // Open the Group Member UID Picker Modal.
