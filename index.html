@@ -96,28 +96,28 @@
             <!-- INVITATION / JOIN & NOTIFICATION PERMISSION SCREEN -->
             <div id="view-invite-flow" class="hidden flex flex-col p-5 space-y-5 bg-slate-950 h-full justify-center">
                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl text-center space-y-3 shadow-xl">
-                    <div class="w-16 h-16 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-2xl mx-auto flex items-center justify-center text-2xl font-bold">🔔</div>
+                    <div class="w-16 h-16 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-2xl mx-auto flex items-center justify-center text-2xl font-bold">🔗</div>
                     <h2 class="text-base font-extrabold text-slate-100" id="invite-group-title">Join Community Group</h2>
-                    <p class="text-xs text-slate-400">To receive emergency alarm alerts and push notifications even when your phone is locked, you must enable notifications first.</p>
-                    
-                    <div id="invite-step-1" class="space-y-3 pt-2">
-                        <button onclick="requestPushNotificationPermission()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg">1. Allow Push Notifications & Sound</button>
+                    <p class="text-xs text-slate-400">Access is controlled by the group administrator. You must log in, allow notifications, send a join request, and wait for approval.</p>
+                    <div id="invite-step-login" class="space-y-3 pt-2">
+                        <p class="text-xs text-amber-400 font-bold">🔐 Step 1 — Login first</p>
+                        <button onclick="loginFromInvite()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg">Login with Google</button>
                     </div>
-
+                    <div id="invite-step-1" class="hidden space-y-3 pt-2">
+                        <p class="text-xs text-slate-300 font-bold">🔔 Step 2 — Allow Notifications</p>
+                        <button onclick="requestPushNotificationPermission()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg">Allow Push Notifications</button>
+                    </div>
                     <div id="invite-step-2" class="hidden space-y-3 pt-2">
-                        <p class="text-xs text-emerald-400 font-bold">✅ Notifications Allowed!</p>
-                        <button onclick="sendJoinRequestToGroup()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg">2. Send Join Request to Admin</button>
+                        <p class="text-xs text-emerald-400 font-bold">✅ Notifications enabled</p>
+                        <button onclick="sendJoinRequestToGroup()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg">Send Join Request</button>
                     </div>
-
                     <div id="invite-step-3" class="hidden space-y-3 pt-2">
-                        <p class="text-xs text-amber-400 font-bold">⏳ Join request sent! Waiting for Admin approval.</p>
-                        <button onclick="checkJoinApprovalStatus()" class="w-full py-2.5 bg-slate-800 text-slate-200 rounded-xl text-xs font-bold">Check Status</button>
+                        <p class="text-xs text-amber-400 font-bold">⏳ Request sent. Waiting for Admin approval.</p>
+                        <button onclick="checkJoinApprovalStatus()" class="w-full py-2.5 bg-slate-800 text-slate-200 rounded-xl text-xs font-bold">Check Approval Status</button>
                     </div>
-
                     <div id="invite-step-done" class="hidden space-y-3 pt-2">
-                        <p class="text-xs text-emerald-400 font-bold">🎉 Approved successfully! Choose how you want to join:</p>
-                        <button onclick="completeJoinAsRegistered()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold">Install App / Login (Registered Member)</button>
-                        <button onclick="completeJoinAsGuest()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-300 rounded-xl text-xs font-bold">Just Receive Emergency Alerts (Guest Member)</button>
+                        <p class="text-xs text-emerald-400 font-bold">🎉 Approved! Group access is now enabled.</p>
+                        <button onclick="completeJoinAsRegistered()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold">Enter AlertConnect</button>
                     </div>
                 </div>
             </div>
@@ -588,6 +588,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyAu91Nuo5lXUZGzarPiWjgVQlSnBR8_r30",
             authDomain: "alertconnect-27dac.firebaseapp.com",
+            databaseURL: "https://alertconnect-27dac-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "alertconnect-27dac",
             storageBucket: "alertconnect-27dac.firebasestorage.app",
             messagingSenderId: "556004754007",
@@ -1514,15 +1515,25 @@
             }
         }
 
-        function submitEmergencyAlert() {
+        async function submitEmergencyAlert() {
+            if (!auth.currentUser) return alert('Please login first.');
             const text = document.getElementById('alert-message-text').value.trim();
-            const selectedSound = document.querySelector('input[name="alert-sound"]:checked').value;
+            const soundEl = document.querySelector('input[name="alert-sound"]:checked');
+            const selectedSound = soundEl ? soundEl.value : 'police_siren';
             const durationSec = document.getElementById('alarm-duration-select').value;
-            if (!text) return;
-            
-            playAlarmSound(selectedSound);
-            alert(`🚨 SOS Emergency Alert Broadcasted! Alarm ringing for ${durationSec} seconds on target screens.`);
-            navigateTo('home');
+            const target = document.getElementById('alert-target-group')?.value || 'ALL';
+            if (!text) return alert('Enter an alert message.');
+            try {
+                const ref = await db.collection('emergencyAlerts').add({
+                    text, targetGroupId: target, soundType: selectedSound, durationSec: Number(durationSec),
+                    senderUid: auth.currentUser.uid, senderEmail: auth.currentUser.email || '',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(), type: 'emergency'
+                });
+                playAlarmSound(selectedSound);
+                alert(`🚨 Emergency alert created. Members will receive a push notification after the server dispatches it.`);
+                const input = document.getElementById('alert-message-text'); if (input) input.value = '';
+                navigateTo('home');
+            } catch (e) { alert('Could not send emergency alert: ' + e.message); }
         }
 
         function registerAsBloodDonor() {
@@ -1796,25 +1807,69 @@
             });
         }
 
-        // FCM Notifications Setup
+        // FCM Notifications Setup — token is saved only for authenticated users
         const messaging = firebase.messaging();
+        const ALERTCONNECT_VAPID_KEY = 'BEgr7aecThStfASiimhDZgVkIbm4nEtN3CgPiW_5kRG-Lc2ZOP9ED9zLIyTa-U1UJC2tpZYSQAzOOWvdm1pJ7Wk';
+        let alertconnectMessagingReady = false;
+
+        async function getFCMTokenAndSave() {
+            if (!auth.currentUser || !('Notification' in window)) return null;
+            if (Notification.permission !== 'granted') return null;
+            try {
+                let registration = null;
+                if ('serviceWorker' in navigator) {
+                    registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+                }
+                const token = await messaging.getToken({ vapidKey: ALERTCONNECT_VAPID_KEY, serviceWorkerRegistration: registration || undefined });
+                if (!token) return null;
+                const tokenId = btoa(token).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 120);
+                await db.collection('users').doc(auth.currentUser.uid).collection('fcmTokens').doc(tokenId).set({
+                    token, uid: auth.currentUser.uid, platform: 'web', updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                await db.collection('users').doc(auth.currentUser.uid).set({ notificationsEnabled: true, fcmToken: token, notificationUpdatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+                alertconnectMessagingReady = true;
+                return token;
+            } catch (error) {
+                console.error('FCM setup error:', error);
+                throw error;
+            }
+        }
 
         async function requestNotificationPermission() {
             try {
                 const permission = await Notification.requestPermission();
-                if (permission === 'granted') {
-                    console.log('Notification permission granted.');
-                    const token = await messaging.getToken({ 
-                        vapidKey: 'BEgr7aecThStfASiimhDZgVkIbm4nEtN3CgPiW_5kRG-Lc2ZOP9ED9zLIyTa-U1UJC2tpZYSQAzOOWvdm1pJ7Wk' 
-                    });
-                    if (token) {
-                        console.log('FCM Token received:', token);
-                    }
-                }
+                if (permission !== 'granted') throw new Error('Notification permission was not granted.');
+                await getFCMTokenAndSave();
+                return true;
             } catch (error) {
-                console.error('Error getting notification permission:', error);
+                console.error(error);
+                alert('Notifications could not be enabled. Please allow notifications in the browser settings and try again.');
+                return false;
             }
         }
+
+        async function requestPushNotificationPermission() {
+            if (!auth.currentUser) {
+                alert('Please login first.');
+                return;
+            }
+            const ok = await requestNotificationPermission();
+            if (ok) {
+                document.getElementById('invite-step-1').classList.add('hidden');
+                document.getElementById('invite-step-2').classList.remove('hidden');
+            }
+        }
+
+        if (typeof messaging.onMessage === 'function') {
+            messaging.onMessage(payload => {
+                console.log('Foreground FCM:', payload);
+                const n = payload.notification || {};
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    try { new Notification(n.title || 'AlertConnect', { body: n.body || 'New alert', icon: n.icon || './icon-192.png', tag: payload.data?.messageId || 'alertconnect' }); } catch(e) {}
+                }
+            });
+        }
+
     
 /* MASTER ADMIN CONTROL CENTER */
 (function(){
@@ -1850,6 +1905,113 @@ const oldProfile=window.loadProfileData;window.loadProfileData=function(){let r=
 auth.onAuthStateChanged(async u=>{if(!u)return;try{let s=await db.collection("users").doc(u.uid).get();if(s.exists&&!master(u)&&["blocked","suspended"].includes((s.data().status||"approved").toLowerCase())){alert("Your account is "+s.data().status+".");await auth.signOut();return}if(master(u)){loadSettings();loadMasterDashboard()}}catch(e){console.warn(e)}});
 })();
 
+</script>
+
+<script>
+/* ALERTCONNECT FINAL JOIN + PUSH WORKFLOW */
+(function(){
+  const VAPID='BEgr7aecThStfASiimhDZgVkIbm4nEtN3CgPiW_5kRG-Lc2ZOP9ED9zLIyTa-U1UJC2tpZYSQAzOOWvdm1pJ7Wk';
+  window.loginFromInvite=function(){
+    if(!pendingInviteGroupId) return;
+    const provider=new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).catch(e=>alert('Login Error: '+e.message));
+  };
+  async function refreshInviteFlow(){
+    if(!pendingInviteGroupId) return;
+    const login=document.getElementById('invite-step-login'), s1=document.getElementById('invite-step-1'), s2=document.getElementById('invite-step-2'), s3=document.getElementById('invite-step-3'), done=document.getElementById('invite-step-done');
+    [login,s1,s2,s3,done].forEach(x=>x&&x.classList.add('hidden'));
+    if(!auth.currentUser){ login&&login.classList.remove('hidden'); return; }
+    try{
+      const g=await db.collection('groups').doc(pendingInviteGroupId).get();
+      if(!g.exists){ alert('This invite link is invalid or the group was deleted.'); return; }
+      const gd=g.data()||{}, uid=auth.currentUser.uid;
+      if((gd.members||[]).includes(uid)){ done&&done.classList.remove('hidden'); return; }
+      const req=await db.collection('groups').doc(pendingInviteGroupId).collection('join_requests').doc(uid).get();
+      if(req.exists){
+        const st=(req.data().status||'pending').toLowerCase();
+        if(st==='approved'){ done&&done.classList.remove('hidden'); return; }
+        if(st==='rejected'){ alert('Your previous join request was rejected by the group administrator.'); s1&&s1.classList.remove('hidden'); return; }
+        s3&&s3.classList.remove('hidden'); return;
+      }
+      if(Notification.permission==='granted'){ try{ await getFCMTokenAndSave(); }catch(e){} s2&&s2.classList.remove('hidden'); }
+      else s1&&s1.classList.remove('hidden');
+    }catch(e){ console.error(e); }
+  }
+  window.sendJoinRequestToGroup=async function(){
+    if(!auth.currentUser) return loginFromInvite();
+    if(!pendingInviteGroupId) return alert('Invalid invite link.');
+    try{
+      const gRef=db.collection('groups').doc(pendingInviteGroupId), g=await gRef.get();
+      if(!g.exists) return alert('Group not found.');
+      const gd=g.data()||{}, uid=auth.currentUser.uid;
+      if((gd.members||[]).includes(uid)) return refreshInviteFlow();
+      if(Notification.permission!=='granted') return alert('Please allow notifications first.');
+      try{await getFCMTokenAndSave();}catch(e){return alert('Notification setup failed. Please try again.');}
+      await gRef.collection('join_requests').doc(uid).set({
+        uid,email:auth.currentUser.email||'',displayName:auth.currentUser.displayName||'User',
+        status:'pending',timestamp:firebase.firestore.FieldValue.serverTimestamp()
+      },{merge:true});
+      refreshInviteFlow();
+    }catch(e){alert('Error sending request: '+e.message);}
+  };
+  window.checkJoinApprovalStatus=async function(){
+    if(!auth.currentUser||!pendingInviteGroupId) return;
+    try{
+      const g=await db.collection('groups').doc(pendingInviteGroupId).get();
+      if(g.exists && (g.data().members||[]).includes(auth.currentUser.uid)){ refreshInviteFlow(); alert('🎉 Admin approved your request.'); return; }
+      const r=await db.collection('groups').doc(pendingInviteGroupId).collection('join_requests').doc(auth.currentUser.uid).get();
+      if(r.exists && (r.data().status||'pending')==='rejected') alert('Your request was rejected.'); else alert('⏳ Approval is still pending.');
+    }catch(e){alert(e.message);}
+  };
+  window.completeJoinAsRegistered=function(){
+    if(!auth.currentUser) return loginFromInvite();
+    const u=window.location.origin+window.location.pathname; window.location.href=u;
+  };
+  // Only group creator, explicit group admin, or Master Admin can approve.
+  window.approveGroupJoinRequest=async function(groupId,uid){
+    if(!auth.currentUser) return alert('Please login.');
+    try{
+      const ref=db.collection('groups').doc(groupId), snap=await ref.get(); if(!snap.exists) return alert('Group not found.');
+      const g=snap.data()||{}; const isMaster=typeof verifyMasterAdmin==='function'&&verifyMasterAdmin(auth.currentUser);
+      const isAdmin=isMaster||g.createdBy===auth.currentUser.uid||Array.isArray(g.admins)&&g.admins.includes(auth.currentUser.uid);
+      if(!isAdmin) return alert('Only the group admin can approve members.');
+      const members=Array.isArray(g.members)?g.members.slice():[]; if(!members.includes(uid)) members.push(uid);
+      await ref.update({members});
+      await ref.collection('join_requests').doc(uid).set({status:'approved',approvedBy:auth.currentUser.uid,approvedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      alert('Member approved and added to the group.'); if(typeof loadGroupApprovalRequests==='function') loadGroupApprovalRequests();
+    }catch(e){alert('Approval failed: '+e.message);}
+  };
+  window.rejectGroupJoinRequest=async function(groupId,uid){
+    if(!auth.currentUser) return;
+    try{const ref=db.collection('groups').doc(groupId),s=await ref.get();if(!s.exists)return;const g=s.data()||{};const master=typeof verifyMasterAdmin==='function'&&verifyMasterAdmin(auth.currentUser);if(!(master||g.createdBy===auth.currentUser.uid||(g.admins||[]).includes(auth.currentUser.uid)))return alert('Only the group admin can reject members.');await ref.collection('join_requests').doc(uid).set({status:'rejected',rejectedBy:auth.currentUser.uid,rejectedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});if(typeof loadGroupApprovalRequests==='function')loadGroupApprovalRequests();}catch(e){alert(e.message);}
+  };
+  window.loadGroupApprovalRequests=async function(){
+    const groupId=document.getElementById('profile-manage-group-select')?.value, container=document.getElementById('group-pending-requests-list'); if(!container)return;
+    if(!groupId){container.innerHTML='<p class="text-[10px] text-slate-500 italic">Select a group above to view pending requests.</p>';return;}
+    try{const s=await db.collection('groups').doc(groupId).get();if(!s.exists){container.innerHTML='Group not found.';return;}const g=s.data()||{};const master=typeof verifyMasterAdmin==='function'&&verifyMasterAdmin(auth.currentUser);if(!(master||g.createdBy===auth.currentUser.uid||(g.admins||[]).includes(auth.currentUser.uid))){container.innerHTML='<p class="text-[10px] text-red-400">Only this group admin can manage requests.</p>';return;}const q=await db.collection('groups').doc(groupId).collection('join_requests').where('status','==','pending').get();if(q.empty){container.innerHTML='<p class="text-[10px] text-slate-500 italic">No pending requests.</p>';return;}container.innerHTML=q.docs.map(d=>{const r=d.data()||{};return `<div class="bg-slate-800 p-2.5 rounded-xl flex items-center justify-between"><div class="truncate pr-2"><span class="text-xs text-slate-200 block truncate">${String(r.displayName||r.email||r.uid).replace(/[<>]/g,'')}</span><span class="text-[9px] text-slate-400">${String(r.email||'')}</span></div><div class="flex space-x-1"><button onclick="approveGroupJoinRequest('${groupId}','${r.uid}')" class="bg-emerald-600 text-white px-2 py-1 rounded text-[9px] font-bold">Approve</button><button onclick="rejectGroupJoinRequest('${groupId}','${r.uid}')" class="bg-red-900 text-red-300 px-2 py-1 rounded text-[9px] font-bold">Reject</button></div></div>`}).join('');}catch(e){container.innerHTML='<p class="text-[10px] text-red-400">'+String(e.message)+'</p>'; }
+  };
+  // Every normal group message creates a push queue record for the server dispatcher.
+  const originalSendChatMessage=window.sendChatMessage;
+  window.sendChatMessage=async function(imageUrl=null){
+    if(!auth.currentUser||!activeTargetId)return;
+    const input=document.getElementById('chat-input-msg'), text=input?input.value.trim():''; if(!text&&!imageUrl)return;
+    try{
+      if(!mediaEnabledState&&imageUrl)return alert('Media sharing is currently disabled by Master Admin.');
+      const msgRef=await db.collection('groups').doc(activeTargetId).collection('messages').add({uid:auth.currentUser.uid,email:auth.currentUser.email||'',text,image:imageUrl||null,timestamp:firebase.firestore.FieldValue.serverTimestamp(),type:'message'});
+      if(input)input.value='';
+      // Dispatcher watches this record; no private FCM server key is exposed in HTML.
+    }catch(e){alert('Message failed: '+e.message);}
+  };
+  // Make invite UI resume after login without losing the invite.
+  const oldAuth=auth.onAuthStateChanged;
+  auth.onAuthStateChanged(async function(user){
+    if(pendingInviteGroupId){
+      setTimeout(refreshInviteFlow,250);
+      return;
+    }
+  });
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(refreshInviteFlow,500));
+})();
 </script>
 </body>
 </html>
